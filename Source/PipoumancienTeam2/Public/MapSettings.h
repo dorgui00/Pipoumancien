@@ -4,14 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DeveloperSettings.h"
-#include "PlayerSettings.generated.h"
+#include "MapSettings.generated.h"
 
+class UPipouCharacterInputData;
 class APipouCharacter;
 /**
  * 
  */
-UCLASS(Config=Game, DefaultConfig, meta= (DisplayName="Player Settings"))
-class PIPOUMANCIENTEAM2_API UPlayerSettings : public UDeveloperSettings
+UCLASS(Config=Game, DefaultConfig, meta= (DisplayName="Map Settings"))
+class PIPOUMANCIENTEAM2_API UMapSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
 
@@ -21,4 +22,7 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category="Characters")
 	TSubclassOf<APipouCharacter> PipouCharacterClassP1;
+
+
+
 };

@@ -8,7 +8,12 @@
 			"Name": "PipoumancienTeam2",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
-		}
+		},
+        {
+          "Name": "LocalMultiplayer",
+          "Type": "Runtime",
+          "LoadingPhase": "Default"
+        }
 	],
 	"Plugins": [
 		{

@@ -27,11 +27,11 @@ protected:
 	UPROPERTY()
 	uint8 LastAssignedPlayerIndex = -1;
 	
-	// Clé = KeyboardProfileIndex -> value = PlayerIndex
+	// Clï¿½ = KeyboardProfileIndex -> value = PlayerIndex
 	UPROPERTY()
 	TMap<int, int> PlayerIndexFromKeyboardProfileIndex;
 
-	// Clé = GamepadProfileIndex -> value = PlayerIndex
+	// Clï¿½ = GamepadProfileIndex -> value = PlayerIndex
 	UPROPERTY()
 	TMap<int, int> PlayerIndexFromGamepadProfileIndex;
 
