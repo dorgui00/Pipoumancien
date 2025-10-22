@@ -16,7 +16,10 @@ public:
 	// Sets default values for this component's properties
 	UAC_SkeletonFollower();
 
-	TArray<AActor*> PlayerActors;
+	UPROPERTY(EditAnywhere)
+	FName PlayersTag = "PipouPlayer";
+	
+	TArray<AActor*> PipouPlayers;
 	AActor* ParentActor;
 
 	const float FollowRange = 300.f;

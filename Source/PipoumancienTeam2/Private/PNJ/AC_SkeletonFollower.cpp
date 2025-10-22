@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "AC_SkeletonFollower.h"
+#include "PNJ/AC_SkeletonFollower.h"
+
+#include "Character/PipouCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
 #include "Components/PrimitiveComponent.h"
@@ -24,7 +26,7 @@ void UAC_SkeletonFollower::BeginPlay()
 #pragma region Find the stuff / init
 
 	//find players
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACharacter::StaticClass(), PlayerActors);
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), PlayersTag, PipouPlayers);
 	//find parent actor
 	ParentActor = GetOwner();
 
@@ -57,9 +59,9 @@ void UAC_SkeletonFollower::CheckPlayerRange()
 
 		FVector ParentLocation = ParentActor->GetActorLocation();
 
-		for (int32 i = 0; i < PlayerActors.Num(); i++)
+		for (int32 i = 0; i < PipouPlayers.Num(); i++)
 		{
-			if (AActor* Player = PlayerActors[i])
+			if (AActor* Player = PipouPlayers[i])
 			{
 				float Distance = FVector::Dist(Player->GetActorLocation(), ParentLocation);
 
@@ -83,10 +85,10 @@ void UAC_SkeletonFollower::FollowPlayers(float DeltaTime) //tick function
 {
 	if (bStartFollowing)
 	{
-		if (ParentActor && PlayerActors.Num() >= 2)
+		if (ParentActor && PipouPlayers.Num() >= 2)
 		{
-			Player1Location = PlayerActors[0]->GetActorLocation();
-			Player2Location = PlayerActors[1]->GetActorLocation();
+			Player1Location = PipouPlayers[0]->GetActorLocation();
+			Player2Location = PipouPlayers[1]->GetActorLocation();
 			FVector TargetLocation = (Player1Location + Player2Location) / 2;
 
 			FVector CurrentLocation = ParentActor->GetActorLocation();
