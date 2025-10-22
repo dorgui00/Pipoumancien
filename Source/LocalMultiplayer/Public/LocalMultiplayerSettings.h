@@ -50,8 +50,11 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category="LocalMultiplier")
 	FLocalMultiplayerProfileData GamepadProfileData;
-
+	// TArray<FLocalMultiplayerProfileData> GamepadProfileData;
+	// int GetNbGamepadProfiles() const;
+	// int FindGamepadProfileIndexFromKey(const FKey& Key, ELocalMultiplayerInputMappingType MappingType) const;
+	
 	UPROPERTY(Config, EditAnywhere, Category="LocalMultiplier")
-	int NbMaxGamepads = 4;
+	int NbMaxGamepads = 2;
 };
 
