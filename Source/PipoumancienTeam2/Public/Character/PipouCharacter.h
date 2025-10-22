@@ -17,8 +17,8 @@ class ICameraFollowTarget;
 UENUM()
 enum class EPipouCharacterClass : uint8
 {
-	Necromancer,
-	Phantom,
+	Musician,
+	Conductor,
 };
 
 UCLASS()
