@@ -8,7 +8,7 @@ public class PipoumancienTeam2 : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "LocalMultiplayer", "DeveloperSettings" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "LocalMultiplayer", "DeveloperSettings", "UMG" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
