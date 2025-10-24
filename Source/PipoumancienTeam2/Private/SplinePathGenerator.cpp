@@ -170,7 +170,7 @@ void ASplinePathGenerator::UpdateDebugVisuals()
                 End,
                 FLinearColor::MakeRandomColor().ToFColor(true),
                 false,
-                0.0f,
+                10.f,
                 0,
                 3.0f
             );
