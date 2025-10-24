@@ -19,7 +19,9 @@ ABP_ZoneSquelette::ABP_ZoneSquelette()
 	SphereComponent->SetupAttachment(RootComponent);
 	SphereComponent->SetSphereRadius(1000);
 	
-
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
+    WidgetComponent->SetupAttachment(RootComponent);
+	
 	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ABP_ZoneSquelette::ABP_ZoneSquelette::BeginOverlaps);
 	SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ABP_ZoneSquelette::endOverlaps);
 
@@ -32,6 +34,7 @@ ABP_ZoneSquelette::ABP_ZoneSquelette()
 void ABP_ZoneSquelette::BeginPlay()
 {
 	Super::BeginPlay();
+	WidgetComponent->SetVisibility(false);
 	
 }
 
@@ -47,7 +50,7 @@ void ABP_ZoneSquelette::BeginOverlaps(UPrimitiveComponent* OverlappedComp, AActo
 	{
 	//	APipouCharacter* FoundActor = Cast<APipouCharacter>(OtherActor);
 	//	FoundActor -> HUDPlay();
-		
+		WidgetComponent->SetVisibility(true);
 	}
 }
 
@@ -57,7 +60,7 @@ void ABP_ZoneSquelette::endOverlaps(UPrimitiveComponent* OverlappedComp, AActor*
 	{
 	//	APipouCharacter* FoundActor = Cast<APipouCharacter>(OtherActor);
 	//	FoundActor-> HUDExit();
-	
+		WidgetComponent->SetVisibility(false);
 		
 	}
 }

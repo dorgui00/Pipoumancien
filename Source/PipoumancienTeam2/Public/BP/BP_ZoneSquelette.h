@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/SphereComponent.h"
+#include "Components/WidgetComponent.h"
 #include "BP_ZoneSquelette.generated.h"
 
 UCLASS()
@@ -24,6 +25,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ZoneVictoir")
 	USphereComponent* SphereComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ZoneVictoir")
+    	UWidgetComponent* WidgetComponent;
 
 	UFUNCTION()
 	void BeginOverlaps(UPrimitiveComponent* OverlappedComp,AActor* OtherActor,
