@@ -6,6 +6,7 @@
 
 class UStaticMesh;
 class UStaticMeshComponent;
+class AGridGenerator;
 
 UCLASS()
 class PIPOUMANCIENTEAM2_API AGridPlaceableActor : public AActor
@@ -15,13 +16,24 @@ class PIPOUMANCIENTEAM2_API AGridPlaceableActor : public AActor
 public:
     AGridPlaceableActor();
 
-    UFUNCTION()
     void InitializeFromMesh(UStaticMesh* InMesh);
-
-    UFUNCTION(BlueprintCallable, Category = "Grid")
-    UStaticMeshComponent* GetMeshComponent() const { return MeshComp; }
 
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grid")
     UStaticMeshComponent* MeshComp = nullptr;
+
+#if WITH_EDITOR
+protected:
+
+    virtual void PostEditMove(bool bFinished) override;
+    virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
+private:
+    void SnapToGrid();
+    float GetGridSizeFromGenerator() const;
+#endif
+
+#if WITH_EDITORONLY_DATA
+    mutable TWeakObjectPtr<AGridGenerator> CachedGrid;
+#endif
 };
