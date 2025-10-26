@@ -48,5 +48,12 @@ public:
 
     UFUNCTION(CallInEditor, Category = "Placement")
     void PlaceSelectedItem();
+
+    UFUNCTION(CallInEditor, Category = "Debug")
+    void ToggleDebugLines();
+
+    UFUNCTION(CallInEditor, Category = "Debug")
+    void RefreshGrid();
+
 #endif
 };

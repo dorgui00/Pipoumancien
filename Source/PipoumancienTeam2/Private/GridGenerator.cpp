@@ -11,8 +11,6 @@
 #include "SceneView.h"
 #endif
 
-
-
 void AGridGenerator::BeginPlay()
 {
     Super::BeginPlay();
@@ -130,7 +128,7 @@ void AGridGenerator::PlaceItemAtCursor()
 }
 #endif
 
-
+#pragma region Buttons
 void AGridGenerator::SelectNextItem()
 {
     if (PlaceableMeshes.Num() == 0) return;
@@ -149,4 +147,31 @@ void AGridGenerator::PlaceSelectedItem()
 {
     PlaceItemAtCursor();
 }
+
+void AGridGenerator::ToggleDebugLines()
+{
+#if WITH_EDITOR
+    bShowGrid = !bShowGrid;
+
+    if (!bShowGrid && GetWorld())
+    {
+        FlushPersistentDebugLines(GetWorld());
+    }
+
+    RerunConstructionScripts();
+#endif
+}
+
+void AGridGenerator::RefreshGrid()
+{
+#if WITH_EDITOR
+    if (GetWorld() && !GetWorld()->IsGameWorld())
+    {
+        FlushPersistentDebugLines(GetWorld());
+        RerunConstructionScripts();
+    }
+#endif
+}
+
+#pragma endregion
 #endif
