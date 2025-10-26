@@ -112,6 +112,10 @@ void UAC_SkeletonFollower::OnParentOverlap(AActor* OverlappedActor, AActor* Othe
 	if (OtherActor && OtherActor->ActorHasTag("VillageBorder"))
 	{
 		bStartFollowing = false;
+
+		//do stuff here
+		//follow spline to village end points?
+		//Dorian's UI calls, etc
 	}
 }
 

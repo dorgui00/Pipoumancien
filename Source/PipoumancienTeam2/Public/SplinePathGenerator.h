@@ -14,7 +14,7 @@ public:
     ASplinePathGenerator();
 
     UPROPERTY(EditAnywhere, Category = "Spline Setup")
-    AActor* StartPoint;
+    TArray<AActor*> StartPoints;
 
     UPROPERTY(EditAnywhere, Category = "Spline Setup")
     TArray<AActor*> EndPoints;
