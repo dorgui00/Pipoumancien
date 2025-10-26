@@ -1,28 +1,25 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GridGenerator.generated.h"
 
+class UStaticMesh;
+
 UCLASS()
 class PIPOUMANCIENTEAM2_API AGridGenerator : public AActor
 {
-	GENERATED_BODY()
-	
-public:	
+    GENERATED_BODY()
 
+public:
     AGridGenerator();
 
 protected:
-
     virtual void BeginPlay() override;
-	virtual void OnConstruction(const FTransform& Transform) override;
+    virtual void OnConstruction(const FTransform& Transform) override;
 
-public:	
-
-	virtual void Tick(float DeltaTime) override;
+public:
+    virtual void Tick(float DeltaTime) override;
 
     UPROPERTY(EditAnywhere, Category = "Grid")
     float GridSize = 100.f;
@@ -33,8 +30,8 @@ public:
     UPROPERTY(EditAnywhere, Category = "Grid")
     bool bShowGrid = true;
 
-    UPROPERTY(EditAnywhere, Category = "Placement")
-    TArray<TSubclassOf<AActor>> PlaceableItems;
+    UPROPERTY(EditAnywhere, Category = "Placement", meta = (AllowedClasses = "/Script/Engine.StaticMesh"))
+    TArray<TSoftObjectPtr<UStaticMesh>> PlaceableMeshes;
 
     UPROPERTY(VisibleAnywhere, Category = "Placement")
     int32 SelectedItemIndex = 0;
@@ -52,5 +49,4 @@ public:
     UFUNCTION(CallInEditor, Category = "Placement")
     void PlaceSelectedItem();
 #endif
-
 };
