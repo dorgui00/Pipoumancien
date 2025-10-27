@@ -20,11 +20,12 @@ public:
     TArray<AActor*> EndPoints;
 
     UPROPERTY(EditAnywhere, Category = "Spline Setup")
+    TSubclassOf<AActor> StartPointClass;
+
+    UPROPERTY(EditAnywhere, Category = "Spline Setup")
     bool bShowDebug = true;
 
-
 #if WITH_EDITOR
-
     UFUNCTION(CallInEditor, Category = "Spline Tools")
     void RegenerateSplines();
 
@@ -41,7 +42,6 @@ public:
     void UpdateDebugVisuals();
 
 #endif
-
 
 private:
     UPROPERTY(Transient)

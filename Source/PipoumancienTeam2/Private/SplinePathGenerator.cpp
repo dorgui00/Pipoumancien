@@ -12,9 +12,10 @@ ASplinePathGenerator::ASplinePathGenerator()
 
     RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 
+    StartPointClass = ATargetPoint::StaticClass();
+
 #if WITH_EDITORONLY_DATA
     bIsEditorOnlyActor = true;
-
     UBillboardComponent* Sprite = CreateDefaultSubobject<UBillboardComponent>(TEXT("EditorIcon"));
     Sprite->SetupAttachment(RootComponent);
     Sprite->SetRelativeLocation(FVector::ZeroVector);
@@ -25,7 +26,6 @@ ASplinePathGenerator::ASplinePathGenerator()
     {
         Sprite->SetSprite(SpriteTexture.Object);
     }
-
 #endif
 }
 
@@ -54,7 +54,7 @@ void ASplinePathGenerator::ClearSplines()
 
 void ASplinePathGenerator::RegenerateSplines()
 {
-    Modify(); //undo
+    Modify();
     ClearSplines();
 
     StartPoints.RemoveAll([](AActor* A) { return A == nullptr; });
@@ -82,9 +82,10 @@ void ASplinePathGenerator::RegenerateSplines()
             USplineComponent* NewSpline =
                 NewObject<USplineComponent>(this, USplineComponent::StaticClass(), NAME_None, RF_Transactional);
 
+            NewSpline->SetupAttachment(RootComponent);
             NewSpline->RegisterComponent();
             NewSpline->SetMobility(EComponentMobility::Movable);
-            NewSpline->Modify(); //undo
+            NewSpline->Modify();
 
             NewSpline->ClearSplinePoints(false);
             NewSpline->AddSplinePoint(Start->GetActorLocation(), ESplineCoordinateSpace::World, false);
@@ -93,26 +94,16 @@ void ASplinePathGenerator::RegenerateSplines()
             NewSpline->SetSplinePointType(0, ESplinePointType::Curve, false);
             NewSpline->SetSplinePointType(1, ESplinePointType::Curve, true);
 
-            DrawDebugLine(
-                World,
-                Start->GetActorLocation(),
-                End->GetActorLocation(),
-                StartColor,
-                false,
-                100.f,
-                0,
-                3.f
-            );
+            DrawDebugLine(World, Start->GetActorLocation(), End->GetActorLocation(), StartColor, false, 100.f, 0, 3.f);
 
             GeneratedSplines.Add(NewSpline);
         }
     }
 }
 
-
 void ASplinePathGenerator::AddEndpoint()
 {
-    Modify(); //undo
+    Modify();
 
     StartPoints.RemoveAll([](AActor* A) { return A == nullptr; });
     if (StartPoints.Num() == 0)
@@ -133,11 +124,11 @@ void ASplinePathGenerator::AddEndpoint()
     const FVector BaseLoc = RefStart ? RefStart->GetActorLocation() : GetActorLocation();
     const FVector SpawnLoc = BaseLoc + FVector(200.f * (EndPoints.Num() + 1), 0.f, 0.f);
 
+    FActorSpawnParameters Params;
+    Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
     AActor* NewEndPoint = World->SpawnActor<AActor>(
-        ATargetPoint::StaticClass(),
-        SpawnLoc,
-        FRotator::ZeroRotator
-    );
+        ATargetPoint::StaticClass(), SpawnLoc, FRotator::ZeroRotator, Params);
 
     if (NewEndPoint)
     {
@@ -148,19 +139,21 @@ void ASplinePathGenerator::AddEndpoint()
     RegenerateSplines();
 }
 
-
 void ASplinePathGenerator::AddStartPoint()
 {
-    Modify(); //undo
+    Modify();
 
     UWorld* World = GetWorld();
     if (!World) return;
 
-    AActor* NewStart = World->SpawnActor<AActor>(
-        ATargetPoint::StaticClass(),
-        GetActorLocation() + FVector(-200 * (StartPoints.Num() + 1), 0, 0),
-        FRotator::ZeroRotator
-    );
+    UClass* ClassToSpawn = StartPointClass ? *StartPointClass : ATargetPoint::StaticClass();
+
+    const FVector SpawnLoc = GetActorLocation() + FVector(-200.f * (StartPoints.Num() + 1), 0.f, 0.f);
+
+    FActorSpawnParameters Params;
+    Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+    AActor* NewStart = World->SpawnActor<AActor>(ClassToSpawn, SpawnLoc, FRotator::ZeroRotator, Params);
 
     if (NewStart)
     {
@@ -170,7 +163,6 @@ void ASplinePathGenerator::AddStartPoint()
 
     RegenerateSplines();
 }
-
 
 void ASplinePathGenerator::UpdateDebugVisuals()
 {
