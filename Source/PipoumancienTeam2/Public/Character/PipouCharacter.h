@@ -46,6 +46,9 @@ public:
 	void CreateStateMachine();
 	void InitStateMachine();
 	void TickStateMachine(float DeltaTime);
+
+	UPROPERTY()
+	TObjectPtr<UPipouCharacterStateMachine> StateMachine;
 	
 	// Inputs
 	UPROPERTY()
@@ -83,10 +86,6 @@ protected:
 
 	// Camera
 	void SetCameraView() const;
-	
-	// State Machine
-	UPROPERTY()
-	TObjectPtr<UPipouCharacterStateMachine> StateMachine;
 
 	// Inputs
 	void SetupMappingContextIntoController() const;
@@ -137,11 +136,5 @@ private:
 	void OnInputNoteXCompleted(const FInputActionValue& InputActionValue);
 	void OnInputNoteYStarted(const FInputActionValue& InputActionValue);
 	void OnInputNoteYCompleted(const FInputActionValue& InputActionValue);
-
-	UFUNCTION()
-	void OnComponentBeginOverlap(AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherIndex, bool bFromSweep, const FHitResult & SweepResult);
-
-	UFUNCTION()
-	void OnComponentEndOverlap(AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherIndex)
 
 };
