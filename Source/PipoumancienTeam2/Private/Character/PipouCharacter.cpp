@@ -41,7 +41,8 @@ void APipouCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	if (EnhancedInputComponent == nullptr) return;
 
-	BindInputMoveXAxisAndActions(EnhancedInputComponent);
+	BindInputMoveAndActions(EnhancedInputComponent);
+	BindInputMusicActions(EnhancedInputComponent);
 }
 
 // Pipou Character State
@@ -152,9 +153,7 @@ bool APipouCharacter::GetInputNoteY() const
 	return InputNoteY; 
 }
 
-
-
-void APipouCharacter::BindInputMoveXAxisAndActions(UEnhancedInputComponent* EnhancedInputComponent)
+void APipouCharacter::BindInputMoveAndActions(UEnhancedInputComponent* EnhancedInputComponent)
 {
 	if (InputData == nullptr) return;
 
@@ -164,7 +163,10 @@ void APipouCharacter::BindInputMoveXAxisAndActions(UEnhancedInputComponent* Enha
 		EnhancedInputComponent->BindAction(InputData->InputActionMoveXY, ETriggerEvent::Triggered, this, &APipouCharacter::OnInputMoveXY);
 		EnhancedInputComponent->BindAction(InputData->InputActionMoveXY, ETriggerEvent::Completed, this, &APipouCharacter::OnInputMoveXY);
 	}
+}
 
+void APipouCharacter::BindInputMusicActions(UEnhancedInputComponent* EnhancedInputComponent)
+{
 	if (InputData->InputPitch)
 	{
 		EnhancedInputComponent->BindAction(InputData->InputPitch, ETriggerEvent::Started, this, &APipouCharacter::OnInputPitch);
@@ -174,22 +176,26 @@ void APipouCharacter::BindInputMoveXAxisAndActions(UEnhancedInputComponent* Enha
 
 	if (InputData->InputNoteA)
 	{
-		EnhancedInputComponent->BindAction(InputData->InputNoteA, ETriggerEvent::Started, this, &APipouCharacter::OnInputNoteA);
+		EnhancedInputComponent->BindAction(InputData->InputNoteA, ETriggerEvent::Started, this, &APipouCharacter::OnInputNoteAStarted);
+		EnhancedInputComponent->BindAction(InputData->InputNoteA, ETriggerEvent::Completed, this, &APipouCharacter::OnInputNoteACompleted);
 	}
 
 	if (InputData->InputNoteB)
 	{
-		EnhancedInputComponent->BindAction(InputData->InputNoteB, ETriggerEvent::Started, this, &APipouCharacter::OnInputNoteB);
+		EnhancedInputComponent->BindAction(InputData->InputNoteB, ETriggerEvent::Started, this, &APipouCharacter::OnInputNoteBStarted);
+		EnhancedInputComponent->BindAction(InputData->InputNoteB, ETriggerEvent::Completed, this, &APipouCharacter::OnInputNoteBCompleted);
 	}
 	
 	if (InputData->InputNoteX)
 	{
-		EnhancedInputComponent->BindAction(InputData->InputNoteX, ETriggerEvent::Started, this, &APipouCharacter::OnInputNoteX);
+		EnhancedInputComponent->BindAction(InputData->InputNoteX, ETriggerEvent::Started, this, &APipouCharacter::OnInputNoteXStarted);
+		EnhancedInputComponent->BindAction(InputData->InputNoteX, ETriggerEvent::Completed, this, &APipouCharacter::OnInputNoteXCompleted);
 	}
 
 	if (InputData->InputNoteY)
 	{
-		EnhancedInputComponent->BindAction(InputData->InputNoteY, ETriggerEvent::Started, this, &APipouCharacter::OnInputNoteY);
+		EnhancedInputComponent->BindAction(InputData->InputNoteY, ETriggerEvent::Started, this, &APipouCharacter::OnInputNoteYStarted);
+		EnhancedInputComponent->BindAction(InputData->InputNoteY, ETriggerEvent::Completed, this, &APipouCharacter::OnInputNoteYCompleted);
 	}
 }
 
@@ -203,24 +209,54 @@ void APipouCharacter::OnInputPitch(const FInputActionValue& InputActionValue)
 	InputPitch = InputActionValue.Get<float>();
 }
 
-void APipouCharacter::OnInputNoteA(const FInputActionValue& InputActionValue)
+void APipouCharacter::OnInputNoteAStarted(const FInputActionValue& InputActionValue)
 {
-	InputNoteA = InputActionValue.Get<bool>();
+	InputNoteA = true;
+	InputPressedEvent.Broadcast(InputData->InputNoteA, InputActionValue);
 }
 
-void APipouCharacter::OnInputNoteB(const FInputActionValue& InputActionValue)
+void APipouCharacter::OnInputNoteACompleted(const FInputActionValue& InputActionValue)
 {
-	InputNoteB = InputActionValue.Get<bool>();
+	InputNoteA = false;
 }
 
-void APipouCharacter::OnInputNoteX(const FInputActionValue& InputActionValue)
+void APipouCharacter::OnInputNoteBStarted(const FInputActionValue& InputActionValue)
 {
-	InputNoteX = InputActionValue.Get<bool>();
+	InputNoteB = true;
+	InputPressedEvent.Broadcast(InputData->InputNoteB, InputActionValue);
 }
 
-void APipouCharacter::OnInputNoteY(const FInputActionValue& InputActionValue)
+void APipouCharacter::OnInputNoteBCompleted(const FInputActionValue& InputActionValue)
 {
-	InputNoteY = InputActionValue.Get<bool>();
+	InputNoteB = false;
+}
+
+void APipouCharacter::OnInputNoteXStarted(const FInputActionValue& InputActionValue)
+{
+	InputNoteX = true;
+	InputPressedEvent.Broadcast(InputData->InputNoteX, InputActionValue);
+}
+
+void APipouCharacter::OnInputNoteXCompleted(const FInputActionValue& InputActionValue)
+{
+	InputNoteX = false;
+}
+
+void APipouCharacter::OnInputNoteYStarted(const FInputActionValue& InputActionValue)
+{
+	InputNoteY = true;
+	InputPressedEvent.Broadcast(InputData->InputNoteY, InputActionValue);
+}
+
+void APipouCharacter::OnInputNoteYCompleted(const FInputActionValue& InputActionValue)
+{
+	InputNoteY = false;
+}
+
+void APipouCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	
 }
 
 
