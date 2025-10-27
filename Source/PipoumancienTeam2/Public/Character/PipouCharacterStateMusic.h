@@ -7,8 +7,10 @@
 #include "PipouCharacterState.h"
 #include "PipouCharacterStateMusic.generated.h"
 
+class AMusicManager;
 struct FInputActionValue;
 class UInputAction;
+class ASkeletonController;
 
 UCLASS(ClassGroup=(PipouCharacterState), meta=(BlueprintSpawnableComponent))
 class PIPOUMANCIENTEAM2_API UPipouCharacterStateMusic : public UPipouCharacterState
@@ -27,16 +29,24 @@ public:
 
 	void InitRoles();
 	void InitSkeletons();
+	void InitInputPitch();
+	void InitMusicManager();
 
 	UPROPERTY()
 	bool HasReceivedInput = false;
 
 	UPROPERTY()
-	float PitchTolerance;
+	float PitchTolerance = 0.1f;
 
 	UPROPERTY()
 	UInputAction* InputPitch;
+
+	UPROPERTY()
+	AMusicManager* MusicManager;
 	
 	UFUNCTION()
 	void OnCharacterPressedInput(UInputAction* InputAction, FInputActionValue InputActionValue);
+
+	UFUNCTION()
+	void OnBeginQTE();
 };

@@ -35,13 +35,14 @@ public :
 	FResetReplyEvent ResetReplyEvent;
 
 	float CurrentCursorValue = 0.f;
+
+	bool IsAwaitingReply = false;
 	
 protected:
 	F_Skeleton* CurrentSkeleton = nullptr;
 	
 	bool IsInWorldStateMusic = false;
 	bool IsInCountDown = false;
-	bool IsAwaitingReply = false;
 	
 	float TimerCountDown = 0.f;
 	float Tempo = 0.f;

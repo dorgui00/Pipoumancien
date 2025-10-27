@@ -26,7 +26,7 @@ class PIPOUMANCIENTEAM2_API AGameManager : public AActor
 	GENERATED_BODY()
 	
 public :
-	AGameManager* Instance();
+	static AGameManager* Instance();
 	
 	F_Skeleton* CurrentSkeleton = nullptr;
 	TArray<APipouCharacter*> PipouCharacters;

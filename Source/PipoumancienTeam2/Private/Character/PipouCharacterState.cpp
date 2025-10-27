@@ -2,6 +2,8 @@
 
 
 #include "Character/PipouCharacterState.h"
+
+#include "InputActionValue.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
 
@@ -31,4 +33,9 @@ void UPipouCharacterState::StateTick(float Deltatime)
 	
 void UPipouCharacterState::StateExit(EPipouCharacterStateID NextStateID)
 {
+}
+
+void UPipouCharacterState::CheckThreeFirstNote(UInputAction* InputAction, FInputActionValue InputActionValue)
+{
+	TArray<FInputActionValue> InputActionValues;
 }

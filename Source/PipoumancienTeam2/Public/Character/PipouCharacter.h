@@ -138,9 +138,10 @@ private:
 	void OnInputNoteYStarted(const FInputActionValue& InputActionValue);
 	void OnInputNoteYCompleted(const FInputActionValue& InputActionValue);
 
-	// Music
 	UFUNCTION()
-	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
-		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);	
+	void OnComponentBeginOverlap(AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+	UFUNCTION()
+	void OnComponentEndOverlap(AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherIndex)
 
 };

@@ -5,10 +5,13 @@
 #include "EnhancedInputSubsystems.h"
 #include "Character/PipouCharacterInputData.h"
 #include "Camera/CameraWorldSubsystem.h"
+#include "Components/CapsuleComponent.h"
 
 APipouCharacter::APipouCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APipouCharacter::OnComponentBeginOverlap);
 }
 
 void APipouCharacter::BeginPlay()
@@ -253,11 +256,11 @@ void APipouCharacter::OnInputNoteYCompleted(const FInputActionValue& InputAction
 	InputNoteY = false;
 }
 
-void APipouCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void APipouCharacter::OnComponentBeginOverlap(AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherIndex,
+	bool bFromSweep, const FHitResult& SweepResult)
 {
-	
 }
+
 
 
 
