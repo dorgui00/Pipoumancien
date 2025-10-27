@@ -2,6 +2,7 @@
 
 #include "Engine/StaticMesh.h"
 #include "GridPlaceableActor.h"
+#include "GridSnapComponent.h"
 
 #if WITH_EDITOR
 #include "UnrealEdGlobals.h"
@@ -95,9 +96,11 @@ void AGridGenerator::PlaceItemAtCursor()
     ViewportClient->Viewport->GetMousePos(MousePos);
 
     FSceneViewFamilyContext ViewFamily(
-        FSceneViewFamily::ConstructionValues(ViewportClient->Viewport,
+        FSceneViewFamily::ConstructionValues(
+            ViewportClient->Viewport,
             GetWorld()->Scene,
             ViewportClient->EngineShowFlags));
+
     FSceneView* SceneView = ViewportClient->CalcSceneView(&ViewFamily);
     if (!SceneView) return;
 
@@ -111,36 +114,61 @@ void AGridGenerator::PlaceItemAtCursor()
 
     const FVector SnappedLoc = GetSnappedLocation(Hit.Location);
 
-    if (!PlaceableMeshes.IsValidIndex(SelectedItemIndex)) return;
-    UStaticMesh* MeshToPlace = PlaceableMeshes[SelectedItemIndex].LoadSynchronous();
-    if (!MeshToPlace) return;
+    if (!PlaceableItems.IsValidIndex(SelectedItemIndex)) return;
+    UClass* SelectedClass = PlaceableItems[SelectedItemIndex].LoadSynchronous();
+    if (!SelectedClass) return;
 
     const FScopedTransaction Tx(FText::FromString(TEXT("Place Item on Grid")));
-    AGridPlaceableActor* NewActor =
-        GetWorld()->SpawnActor<AGridPlaceableActor>(AGridPlaceableActor::StaticClass(),
-            SnappedLoc, FRotator::ZeroRotator);
+    AActor* NewActor = GetWorld()->SpawnActor<AActor>(SelectedClass, SnappedLoc, FRotator::ZeroRotator);
 
     if (NewActor)
     {
         NewActor->Modify();
-        NewActor->InitializeFromMesh(MeshToPlace);
+
+        UGridSnapComponent* Snap = NewActor->FindComponentByClass<UGridSnapComponent>();
+        if (!Snap)
+        {
+            Snap = NewObject<UGridSnapComponent>(
+                NewActor,
+                UGridSnapComponent::StaticClass(),
+                TEXT("GridSnapComponent"),
+                RF_Transactional
+            );
+
+            NewActor->AddInstanceComponent(Snap);
+            Snap->OnComponentCreated();
+            Snap->RegisterComponent();
+
+            //override past behaviour
+            Snap->bSnapZ = false;
+            Snap->bOverrideGridSize = false;
+
+            NewActor->RerunConstructionScripts();
+        }
+
+        if (Snap && !GetWorld()->IsGameWorld())
+        {
+            NewActor->SetActorLocation(SnappedLoc, false, nullptr, ETeleportType::TeleportPhysics);
+        }
     }
+
 }
+#endif
 #endif
 
 #pragma region Buttons
 void AGridGenerator::SelectNextItem()
 {
-    if (PlaceableMeshes.Num() == 0) return;
-    SelectedItemIndex = (SelectedItemIndex + 1) % PlaceableMeshes.Num();
-    UE_LOG(LogTemp, Log, TEXT("Selected mesh: %s"), *GetNameSafe(PlaceableMeshes[SelectedItemIndex].Get()));
+    if (PlaceableItems.Num() == 0) return;
+    SelectedItemIndex = (SelectedItemIndex + 1) % PlaceableItems.Num();
+    UE_LOG(LogTemp, Log, TEXT("Selected actor: %s"), *GetNameSafe(PlaceableItems[SelectedItemIndex].Get()));
 }
 
 void AGridGenerator::SelectPreviousItem()
 {
-    if (PlaceableMeshes.Num() == 0) return;
-    SelectedItemIndex = (SelectedItemIndex - 1 + PlaceableMeshes.Num()) % PlaceableMeshes.Num();
-    UE_LOG(LogTemp, Log, TEXT("Selected mesh: %s"), *GetNameSafe(PlaceableMeshes[SelectedItemIndex].Get()));
+    if (PlaceableItems.Num() == 0) return;
+    SelectedItemIndex = (SelectedItemIndex - 1 + PlaceableItems.Num()) % PlaceableItems.Num();
+    UE_LOG(LogTemp, Log, TEXT("Selected actor: %s"), *GetNameSafe(PlaceableItems[SelectedItemIndex].Get()));
 }
 
 void AGridGenerator::PlaceSelectedItem()
@@ -172,6 +200,4 @@ void AGridGenerator::RefreshGrid()
     }
 #endif
 }
-
 #pragma endregion
-#endif

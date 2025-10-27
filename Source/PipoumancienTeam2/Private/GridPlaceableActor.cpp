@@ -27,7 +27,7 @@ void AGridPlaceableActor::InitializeFromMesh(UStaticMesh* InMesh)
 
 void AGridPlaceableActor::PostEditMove(bool bFinished)
 {
-    Super::PostEditMove(bFinished); //dw about this
+    Super::PostEditMove(bFinished);
     if (bFinished)
     {
         SnapToGrid();

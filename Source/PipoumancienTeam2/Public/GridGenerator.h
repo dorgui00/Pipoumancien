@@ -27,11 +27,10 @@ public:
     UPROPERTY(EditAnywhere, Category = "Grid")
     float GridExtent = 5000.f;
 
-    UPROPERTY(EditAnywhere, Category = "Grid")
     bool bShowGrid = true;
 
-    UPROPERTY(EditAnywhere, Category = "Placement", meta = (AllowedClasses = "/Script/Engine.StaticMesh"))
-    TArray<TSoftObjectPtr<UStaticMesh>> PlaceableMeshes;
+    UPROPERTY(EditAnywhere, Category = "Placement", meta = (MetaClass = "Actor", AllowAbstract = "false"))
+    TArray<TSoftClassPtr<AActor>> PlaceableItems;
 
     UPROPERTY(VisibleAnywhere, Category = "Placement")
     int32 SelectedItemIndex = 0;
