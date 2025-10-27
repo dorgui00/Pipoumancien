@@ -10,8 +10,6 @@
 APipouCharacter::APipouCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
-	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APipouCharacter::OnComponentBeginOverlap);
 }
 
 void APipouCharacter::BeginPlay()
@@ -254,11 +252,6 @@ void APipouCharacter::OnInputNoteYStarted(const FInputActionValue& InputActionVa
 void APipouCharacter::OnInputNoteYCompleted(const FInputActionValue& InputActionValue)
 {
 	InputNoteY = false;
-}
-
-void APipouCharacter::OnComponentBeginOverlap(AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherIndex,
-	bool bFromSweep, const FHitResult& SweepResult)
-{
 }
 
 
