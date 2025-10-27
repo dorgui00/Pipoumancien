@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InputActionValue.h"
 #include "Camera/CameraFollowTarget.h"
 #include "GameFramework/Character.h"
 #include "PipouCharacter.generated.h"
@@ -17,9 +18,11 @@ class ICameraFollowTarget;
 UENUM()
 enum class EPipouCharacterClass : uint8
 {
-	Musician,
-	Conductor,
+	Necro,
+	Phantom,
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInputPressedEvent, UInputAction*,  InputAction, FInputActionValue, InputActionValue);
 
 UCLASS()
 class PIPOUMANCIENTEAM2_API APipouCharacter : public ACharacter, public ICameraFollowTarget
@@ -72,6 +75,8 @@ public:
 	bool GetInputNoteX() const;
 	bool GetInputNoteY() const;
 
+	UPROPERTY()
+	FInputPressedEvent InputPressedEvent;
 
 protected:
 	virtual void BeginPlay() override;
@@ -118,14 +123,24 @@ public:
 
 private:
 	// Move
-	void BindInputMoveXAxisAndActions(UEnhancedInputComponent* EnhancedInputComponent);
+	void BindInputMoveAndActions(UEnhancedInputComponent* EnhancedInputComponent);
+	void BindInputMusicActions(UEnhancedInputComponent* EnhancedInputComponent);
 	void OnInputMoveXY(const FInputActionValue& InputActionValue);
 
 	// Music
 	void OnInputPitch(const FInputActionValue& InputActionValue);
-	void OnInputNoteA(const FInputActionValue& InputActionValue);
-	void OnInputNoteB(const FInputActionValue& InputActionValue);
-	void OnInputNoteX(const FInputActionValue& InputActionValue);
-	void OnInputNoteY(const FInputActionValue& InputActionValue);
-	
+	void OnInputNoteAStarted(const FInputActionValue& InputActionValue);
+	void OnInputNoteACompleted(const FInputActionValue& InputActionValue);
+	void OnInputNoteBStarted(const FInputActionValue& InputActionValue);
+	void OnInputNoteBCompleted(const FInputActionValue& InputActionValue);
+	void OnInputNoteXStarted(const FInputActionValue& InputActionValue);
+	void OnInputNoteXCompleted(const FInputActionValue& InputActionValue);
+	void OnInputNoteYStarted(const FInputActionValue& InputActionValue);
+	void OnInputNoteYCompleted(const FInputActionValue& InputActionValue);
+
+	// Music
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);	
+
 };

@@ -11,6 +11,14 @@ class APipouCharacter;
 class UPipouCharacterStateMachine;
 enum class EPipouCharacterStateID : uint8;
 
+UENUM()
+enum class EPipouCharacterRoles : uint8
+{
+	None,
+	Musician,
+	Conductor,
+};
+
 UCLASS(Abstract)
 class PIPOUMANCIENTEAM2_API UPipouCharacterState : public UActorComponent
 {
@@ -32,4 +40,5 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UPipouCharacterStateMachine> StateMachine;
+
 };
