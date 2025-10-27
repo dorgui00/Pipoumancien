@@ -6,6 +6,7 @@
 #include "UObject/Object.h"
 #include "DB_Manager.generated.h"
 
+struct F_Skeleton;
 /**
  * 
  */
@@ -17,10 +18,12 @@ class PIPOUMANCIENTEAM2_API UDB_Manager : public UObject
 private:
 	static UDB_Manager* MyInstance;
 	
+	UPROPERTY()
+	UDataTable* DB_Music;
+	
 public:
 	static UDB_Manager* Instance();
-	
-	//F_Skeleton* GetSkeletonByID(int ID);
+	F_Skeleton* GetSkeletonByID(int ID);
 	
 
 };

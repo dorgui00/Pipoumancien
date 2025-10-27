@@ -3,6 +3,8 @@
 
 #include "Data/DB_Manager.h"
 
+#include "F_Skeleton.h"
+
 UDB_Manager* UDB_Manager::MyInstance;
 
 UDB_Manager* UDB_Manager::Instance()
@@ -15,7 +17,17 @@ UDB_Manager* UDB_Manager::Instance()
 	return MyInstance;
 }
 
-// F_Skeleton* UDB_Manager::GetSkeletonByID(int ID)
-// {
-// 	return nullptr;
-// }
+F_Skeleton* UDB_Manager::GetSkeletonByID(int ID)
+{
+	TArray<F_Skeleton*> Skeletons;
+	DB_Music->GetAllRows("", Skeletons);
+	for (const auto Skeleton : Skeletons)
+	{
+		if (Skeleton->ID == ID)
+		{
+			return Skeleton;
+		};
+	}
+	
+	return nullptr;
+}
