@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Data/SkeletonController.h"
+#include "PNJ/SkeletonController.h"
 
 #include "Data/DB_Manager.h"
 
