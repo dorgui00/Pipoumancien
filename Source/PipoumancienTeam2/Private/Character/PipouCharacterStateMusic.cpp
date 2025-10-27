@@ -24,7 +24,6 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 	InitMusicManager();
 	
 	Character->InputPressedEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedInput);
-	AMusicManager::Instance()->ResetReplyEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnBeginQTE);
 }
 
 void UPipouCharacterStateMusic::StateTick(float Deltatime)
@@ -36,7 +35,6 @@ void UPipouCharacterStateMusic::StateExit(EPipouCharacterStateID NextStateID)
 {
 	Super::StateExit(NextStateID);
 	Character->InputPressedEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedInput);
-	AMusicManager::Instance()->ResetReplyEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnBeginQTE);
 }
 
 // Music
@@ -78,7 +76,7 @@ void UPipouCharacterStateMusic::OnCharacterPressedInput(UInputAction* InputActio
 	{
 		if (MusicManager->IsAwaitingReply && MusicManager->CurrentWaitingNote->InputAction == InputAction)
 		{
-			HasReceivedInput = true;
+			MusicManager->ReceiveInput();
 		}
 	}
 	else if (CurrentRole == EPipouCharacterRoles::Conductor)
@@ -91,14 +89,9 @@ void UPipouCharacterStateMusic::OnCharacterPressedInput(UInputAction* InputActio
 				(MusicManager->CurrentWaitingNote->Pitch >= MusicManager->CurrentCursorValue - PitchTolerance ||
 				MusicManager->CurrentWaitingNote->Pitch <= MusicManager->CurrentCursorValue + PitchTolerance))
 			{
-				HasReceivedInput = true;
+				MusicManager->ReceiveInput();
 			}
 		}
 	}
-}
-
-void UPipouCharacterStateMusic::OnBeginQTE()
-{
-	HasReceivedInput = false;
 }
 

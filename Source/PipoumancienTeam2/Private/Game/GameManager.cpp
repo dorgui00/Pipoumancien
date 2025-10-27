@@ -4,6 +4,8 @@
 #include "Game/GameManager.h"
 
 #include "Character/PipouCharacterStateID.h"
+#include "Character/PipouCharacterStateMachine.h"
+
 
 AGameManager* AGameManager::MyInstance;
 
@@ -31,11 +33,12 @@ void AGameManager::BeginPlay()
 void AGameManager::SetWorldMusicState(F_Skeleton* Skeleton)
 {
 	CurrentSkeleton = Skeleton;
+	
 	//change state for players
-	// for (auto Character : PipouCharacters) // stateMachine à passer en public
-	// {
-	// 	Character->StateMachine->ChangeState(EPipouCharacterStateID::Music);
-	// } 
+	for (auto Character : PipouCharacters) 
+	{
+		Character->StateMachine->ChangeState(EPipouCharacterStateID::Music);
+	} 
 	
 	//// Pailletas
 	// SetAllMusicBehavior()

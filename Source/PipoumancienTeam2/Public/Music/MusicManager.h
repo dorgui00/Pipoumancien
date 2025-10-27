@@ -61,11 +61,6 @@ private :
 #pragma region Replies
 public :
 	
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FResetReplyEvent);
-
-	UPROPERTY()
-	FResetReplyEvent ResetReplyEvent;
-	
 	bool IsAwaitingReply = false;
 
 	void ReceiveInput();
@@ -84,11 +79,11 @@ private :
 public :
 	void InitMusicBySkeleton(F_Skeleton* Skeleton);
 	
-private :
-	bool IsInWorldStateMusic = false;
-	
 	float CurrentCursorValue = 0.f;
 	
+private :
+	bool IsInWorldStateMusic = false;
+
 #pragma endregion
 	
 };

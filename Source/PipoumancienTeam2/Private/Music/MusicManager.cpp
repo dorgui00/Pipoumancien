@@ -40,24 +40,25 @@ void AMusicManager::Tick(float DeltaTime)
 		{
 			CurrentWaitingNoteIndex = i;
 
+			// Not yet time for qte => !IsAwaitingReply
 			if (Tempo < CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency-Tolerance)
 			{
 				IsAwaitingReply = false;
 				continue;
 			}
+			//Is Awaiting Reply
 			else if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - Tolerance && !IsAwaitingReply)
 			{
 				IsAwaitingReply = true;
 				continue;
 			}
+			// check success
 			else if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + Tolerance)
 			{
-				// au max du tps check si il a réussit
 				IsAwaitingReply = false ;
-				//ResetReplyEvent.Broadcast();
 				ResetReplies();
 				
-				if(HasAchievedQte)
+				if(HasAchievedQte())
 				{
 					//go next note
                 	Tempo = Tolerance;
@@ -66,7 +67,7 @@ void AMusicManager::Tick(float DeltaTime)
 				{
 					StartCountDown();
 					CurrentWaitingNoteIndex -= 2;
-					break;
+					break; // out loop to go inCountdown
 				}
 			}
 			
@@ -74,10 +75,6 @@ void AMusicManager::Tick(float DeltaTime)
 	}
 }
 
-void AMusicManager::ResetReplies()
-{
-	Replies = 0;
-}
 
 void AMusicManager::InitMusicBySkeleton(F_Skeleton* Skeleton)
 {
@@ -98,6 +95,11 @@ void AMusicManager::ReceiveInput()
 	Replies++;	
 }
 
+void AMusicManager::ResetReplies()
+{
+	Replies = 0;
+}
+
 bool AMusicManager::HasAchievedQte()
 {
 	AGameManager* GameManager = AGameManager::Instance();
@@ -107,6 +109,6 @@ bool AMusicManager::HasAchievedQte()
 
 void AMusicManager::StartCountDown()
 {
-	IsInCountDown = true;
 	Tempo = 0.f;
+	IsInCountDown = true;
 }

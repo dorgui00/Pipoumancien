@@ -33,9 +33,6 @@ public:
 	void InitMusicManager();
 
 	UPROPERTY()
-	bool HasReceivedInput = false;
-
-	UPROPERTY()
 	float PitchTolerance = 0.1f;
 
 	UPROPERTY()
@@ -47,6 +44,4 @@ public:
 	UFUNCTION()
 	void OnCharacterPressedInput(UInputAction* InputAction, FInputActionValue InputActionValue);
 
-	UFUNCTION()
-	void OnBeginQTE();
 };
