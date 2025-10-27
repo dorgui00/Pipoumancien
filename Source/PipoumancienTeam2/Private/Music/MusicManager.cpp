@@ -3,9 +3,13 @@
 
 #include "Music/MusicManager.h"
 
+#include "Character/PipouCharacterStateID.h"
+#include "Character/PipouCharacterStateMachine.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
+#include "Game/GameManager.h"
 
+class UPipouCharacterStateMusic;
 AMusicManager* AMusicManager::MyInstance;
 	
 AMusicManager* AMusicManager::Instance()
@@ -50,25 +54,32 @@ void AMusicManager::Tick(float DeltaTime)
 			{
 				// au max du tps check si il a réussit
 				IsAwaitingReply = false ;
-				ResetReplyEvent.Broadcast();
-				// if (!HasReceivedReply player0 || !HasReceivedReply player1) // loose
-				// {
-				// 	StartCountDown();
-				// 	CurrentWaitingNoteIndex -= 2;
-				// 	break;
-				// }
-				// else
-				// {
-				// 	//go next note
-				// 	Tempo = Tolerance;
-				// }
+				//ResetReplyEvent.Broadcast();
+				ResetReplies();
+				
+				if(HasAchievedQte)
+				{
+					//go next note
+                	Tempo = Tolerance;
+				}
+				else
+				{
+					StartCountDown();
+					CurrentWaitingNoteIndex -= 2;
+					break;
+				}
 			}
 			
 		}
 	}
 }
 
-void AMusicManager::InitMusicManager(F_Skeleton* Skeleton)
+void AMusicManager::ResetReplies()
+{
+	Replies = 0;
+}
+
+void AMusicManager::InitMusicBySkeleton(F_Skeleton* Skeleton)
 {
 	CurrentSkeleton = Skeleton;
 	
@@ -80,6 +91,18 @@ F_Note* AMusicManager::GetWaitingNote()
 {
 	CurrentWaitingNote = &CurrentSkeleton->Notes[CurrentWaitingNoteIndex];
 	return CurrentWaitingNote;
+}
+
+void AMusicManager::ReceiveInput()
+{
+	Replies++;	
+}
+
+bool AMusicManager::HasAchievedQte()
+{
+	AGameManager* GameManager = AGameManager::Instance();
+	
+	return Replies >= GameManager->PipouCharacters.Num();
 }
 
 void AMusicManager::StartCountDown()

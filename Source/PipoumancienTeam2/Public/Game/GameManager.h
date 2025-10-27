@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "Character/PipouCharacter.h"
 #include "GameManager.generated.h"
 
 /**
  * 
  */
 struct F_Skeleton;
-class APipouCharacter; 
 
 UENUM()
 enum class EWorldState : uint8{
@@ -29,7 +29,11 @@ public :
 	static AGameManager* Instance();
 	
 	F_Skeleton* CurrentSkeleton = nullptr;
+
+	UPROPERTY()
 	TArray<APipouCharacter*> PipouCharacters;
+	
+	void AddPipouCharacter(APipouCharacter* Character);
 
 protected :
 	virtual void BeginPlay() override;

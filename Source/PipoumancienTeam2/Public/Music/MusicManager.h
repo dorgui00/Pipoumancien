@@ -18,44 +18,77 @@ class PIPOUMANCIENTEAM2_API AMusicManager : public AActor
 	GENERATED_BODY()
 	
 public :
-	static AMusicManager* Instance();
-	
+#pragma region Override
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	void InitMusicManager(F_Skeleton* Skeleton);
-
-	F_Note* GetWaitingNote();
-
-	F_Note* CurrentWaitingNote = nullptr;
 	
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FResetReplyEvent);
-
-	UPROPERTY()
-	FResetReplyEvent ResetReplyEvent;
-
-	float CurrentCursorValue = 0.f;
-
-	bool IsAwaitingReply = false;
+#pragma endregion
 	
-protected:
-	F_Skeleton* CurrentSkeleton = nullptr;
-	
-	bool IsInWorldStateMusic = false;
+#pragma region Instance
+public :
+	static AMusicManager* Instance();
+private :
+	static AMusicManager* MyInstance;
+#pragma endregion
+
+#pragma region Timer
 	bool IsInCountDown = false;
 	
 	float TimerCountDown = 0.f;
 	float Tempo = 0.f;
 
+	void StartCountDown();
+	
+#pragma endregion
+
+#pragma region Skeleton&Notes
+	
+public :
+	F_Note* GetWaitingNote();
+
+	F_Note* CurrentWaitingNote = nullptr;
+	
+private :
+	F_Skeleton* CurrentSkeleton = nullptr;
+	
 	UPROPERTY(EditDefaultsOnly)
 	float Tolerance = 0.1f;
 
-	void StartCountDown();
-	
-private :
-	static AMusicManager* MyInstance;
-
 	int CurrentWaitingNoteIndex = 0;
 	
+#pragma endregion
+	
+#pragma region Replies
+public :
+	
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FResetReplyEvent);
+
+	UPROPERTY()
+	FResetReplyEvent ResetReplyEvent;
+	
+	bool IsAwaitingReply = false;
+
+	void ReceiveInput();
+	
+private :
+	bool HasAchievedQte();
+	
+	int Replies = 0;
+
+	void ResetReplies();
+	
+#pragma endregion
+
+#pragma region Misc
+	
+public :
+	void InitMusicBySkeleton(F_Skeleton* Skeleton);
+	
+private :
+	bool IsInWorldStateMusic = false;
+	
+	float CurrentCursorValue = 0.f;
+	
+#pragma endregion
 	
 };
