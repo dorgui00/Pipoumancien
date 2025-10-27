@@ -3,6 +3,8 @@
 
 #include "Data/SkeletonController.h"
 
+#include "Data/DB_Manager.h"
+
 
 // Sets default values
 ASkeletonController::ASkeletonController()
@@ -15,7 +17,11 @@ ASkeletonController::ASkeletonController()
 void ASkeletonController::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	DB_Manager = ADB_Manager::Instance();
+
+	if (DB_Manager)
+	MySkeleton = DB_Manager->GetSkeletonByID(ID);
 }
 
 // Called every frame

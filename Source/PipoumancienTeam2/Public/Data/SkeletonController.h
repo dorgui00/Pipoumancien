@@ -6,6 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "SkeletonController.generated.h"
 
+class ADB_Manager;
+struct F_Skeleton;
+
 UCLASS()
 class PIPOUMANCIENTEAM2_API ASkeletonController : public AActor
 {
@@ -18,8 +21,16 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	
+	UPROPERTY()
+	ADB_Manager* DB_Manager;
+	
+	int ID = 0;
 
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	F_Skeleton* MySkeleton;
+	
 };

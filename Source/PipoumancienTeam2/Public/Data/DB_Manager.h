@@ -11,18 +11,19 @@ struct F_Skeleton;
  * 
  */
 UCLASS()
-class PIPOUMANCIENTEAM2_API UDB_Manager : public UObject
+class PIPOUMANCIENTEAM2_API ADB_Manager : public AActor
 {
 	GENERATED_BODY()
 
 private:
-	static UDB_Manager* MyInstance;
-	
-	UPROPERTY()
-	UDataTable* DB_Music;
+	static ADB_Manager* MyInstance;
 	
 public:
-	static UDB_Manager* Instance();
+	static ADB_Manager* Instance();
+	
+	UPROPERTY(EditAnywhere)
+	UDataTable* DB_Music;
+	
 	F_Skeleton* GetSkeletonByID(int ID);
 	
 

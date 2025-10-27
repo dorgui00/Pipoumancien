@@ -10,13 +10,13 @@
  * 
  */
 UCLASS()
-class PIPOUMANCIENTEAM2_API UGameManager : public UObject
+class PIPOUMANCIENTEAM2_API AGameManager : public AActor
 {
 	GENERATED_BODY()
 
 private :
-	static UGameManager* MyInstance;
+	static AGameManager* MyInstance;
 	
 public :
-	UGameManager* Instance();
+	AGameManager* Instance();
 };

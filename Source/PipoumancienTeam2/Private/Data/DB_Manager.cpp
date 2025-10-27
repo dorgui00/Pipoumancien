@@ -5,19 +5,19 @@
 
 #include "F_Skeleton.h"
 
-UDB_Manager* UDB_Manager::MyInstance;
+ADB_Manager* ADB_Manager::MyInstance;
 
-UDB_Manager* UDB_Manager::Instance()
+ADB_Manager* ADB_Manager::Instance()
 {
 	if (!MyInstance)
 	{
-		MyInstance = NewObject<UDB_Manager>(); 
+		MyInstance = NewObject<ADB_Manager>(); 
 	}
 
 	return MyInstance;
 }
 
-F_Skeleton* UDB_Manager::GetSkeletonByID(int ID)
+F_Skeleton* ADB_Manager::GetSkeletonByID(int ID)
 {
 	TArray<F_Skeleton*> Skeletons;
 	DB_Music->GetAllRows("", Skeletons);

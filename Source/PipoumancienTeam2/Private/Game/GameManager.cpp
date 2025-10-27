@@ -3,13 +3,13 @@
 
 #include "Game/GameManager.h"
 
-UGameManager* UGameManager::MyInstance;
+AGameManager* AGameManager::MyInstance;
 
-UGameManager* UGameManager::Instance()
+AGameManager* AGameManager::Instance()
 {
 	if (!MyInstance)
 	{
-		MyInstance = NewObject<UGameManager>(); 
+		MyInstance = NewObject<AGameManager>(); 
 	}
 
 	return MyInstance;
