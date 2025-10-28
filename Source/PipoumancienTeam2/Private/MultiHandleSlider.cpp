@@ -15,12 +15,6 @@ TSharedRef<SWidget> UMultiHandleSlider::RebuildWidget()
 		Lanes.SetNum(NumLanes);
 	}
 
-	if (NumLanes > 0 && Lanes[0].Values01.Num() == 0)
-	{
-		Lanes[0].Values01 = { 0.25f, 0.75f };
-		Lanes[0].Keys.SetNum(Lanes[0].Values01.Num());
-	}
-
 	TArray<TArray<float>> LaneValues;
 	BuildSlateLaneArray(LaneValues);
 

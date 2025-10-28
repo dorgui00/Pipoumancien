@@ -293,8 +293,8 @@ int32 SMultiHandleSlider::NearestLane(const FGeometry& Geo, FVector2D Local) con
 }
 
 
-// -------------------------------------------- //
-/*
+/*  -------------------------------------------- 
+
 	This is so I can remember stuff for later on :
 
 		clear all keys function call :
