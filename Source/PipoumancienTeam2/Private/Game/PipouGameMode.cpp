@@ -11,6 +11,8 @@
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 
+class AGameManager;
+
 void APipouGameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -95,7 +97,7 @@ void APipouGameMode::GetCameraByTag(const FName& CameraTag)
 {
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), CameraTag, FoundActors);
-	CameraActor = Cast<AActor>(FoundActors[0]);
+	CameraActor = FoundActors[0];
 }
 
 void APipouGameMode::CreateAndInitPlayers()

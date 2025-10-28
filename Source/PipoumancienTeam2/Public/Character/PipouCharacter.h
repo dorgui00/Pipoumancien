@@ -3,10 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InputActionValue.h"
 #include "Camera/CameraFollowTarget.h"
 #include "GameFramework/Character.h"
 #include "PipouCharacter.generated.h"
 
+class USphereComponent;
 struct FInputActionValue;
 class UInputMappingContext;
 class UAnimMontage;
@@ -17,9 +19,11 @@ class ICameraFollowTarget;
 UENUM()
 enum class EPipouCharacterClass : uint8
 {
-	Necromancer,
+	Necro,
 	Phantom,
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInputPressedEvent, UInputAction*,  InputAction, FInputActionValue, InputActionValue);
 
 UCLASS()
 class PIPOUMANCIENTEAM2_API APipouCharacter : public ACharacter, public ICameraFollowTarget
@@ -34,7 +38,7 @@ public:
 	float DeadZone = 0.5f;
 
 	// Pipou State
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category="Pipou Character")
 	EPipouCharacterClass PipouClass;
 
 	EPipouCharacterClass GetPipouCharacterClass() const;
@@ -43,6 +47,9 @@ public:
 	void CreateStateMachine();
 	void InitStateMachine();
 	void TickStateMachine(float DeltaTime);
+
+	UPROPERTY()
+	TObjectPtr<UPipouCharacterStateMachine> StateMachine;
 	
 	// Inputs
 	UPROPERTY()
@@ -72,16 +79,18 @@ public:
 	bool GetInputNoteX() const;
 	bool GetInputNoteY() const;
 
+	UPROPERTY()
+	FInputPressedEvent InputPressedEvent;
+	
+	// Collider
+	UPROPERTY(VisibleAnywhere)
+	USphereComponent* InteractionCollider;
 
 protected:
 	virtual void BeginPlay() override;
 
 	// Camera
 	void SetCameraView() const;
-	
-	// State Machine
-	UPROPERTY()
-	TObjectPtr<UPipouCharacterStateMachine> StateMachine;
 
 	// Inputs
 	void SetupMappingContextIntoController() const;
@@ -118,14 +127,26 @@ public:
 
 private:
 	// Move
-	void BindInputMoveXAxisAndActions(UEnhancedInputComponent* EnhancedInputComponent);
+	void BindInputMoveAndActions(UEnhancedInputComponent* EnhancedInputComponent);
+	void BindInputMusicActions(UEnhancedInputComponent* EnhancedInputComponent);
 	void OnInputMoveXY(const FInputActionValue& InputActionValue);
 
 	// Music
 	void OnInputPitch(const FInputActionValue& InputActionValue);
-	void OnInputNoteA(const FInputActionValue& InputActionValue);
-	void OnInputNoteB(const FInputActionValue& InputActionValue);
-	void OnInputNoteX(const FInputActionValue& InputActionValue);
-	void OnInputNoteY(const FInputActionValue& InputActionValue);
-	
+	void OnInputNoteAStarted(const FInputActionValue& InputActionValue);
+	void OnInputNoteACompleted(const FInputActionValue& InputActionValue);
+	void OnInputNoteBStarted(const FInputActionValue& InputActionValue);
+	void OnInputNoteBCompleted(const FInputActionValue& InputActionValue);
+	void OnInputNoteXStarted(const FInputActionValue& InputActionValue);
+	void OnInputNoteXCompleted(const FInputActionValue& InputActionValue);
+	void OnInputNoteYStarted(const FInputActionValue& InputActionValue);
+	void OnInputNoteYCompleted(const FInputActionValue& InputActionValue);
+
+	UFUNCTION()
+	void OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnComponentEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };
