@@ -38,7 +38,7 @@ public:
 	float DeadZone = 0.5f;
 
 	// Pipou State
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category="Pipou Character")
 	EPipouCharacterClass PipouClass;
 
 	EPipouCharacterClass GetPipouCharacterClass() const;
@@ -83,8 +83,8 @@ public:
 	FInputPressedEvent InputPressedEvent;
 	
 	// Collider
-	UPROPERTY(EditAnywhere, Category="Collision")
-	USphereComponent* InteractionCollider;	
+	UPROPERTY(VisibleAnywhere)
+	USphereComponent* InteractionCollider;
 
 protected:
 	virtual void BeginPlay() override;
@@ -142,9 +142,11 @@ private:
 	void OnInputNoteYStarted(const FInputActionValue& InputActionValue);
 	void OnInputNoteYCompleted(const FInputActionValue& InputActionValue);
 
-	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UFUNCTION()
+	void OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	void OnComponentEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };

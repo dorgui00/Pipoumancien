@@ -7,22 +7,24 @@
 #include "Character/PipouCharacterStateMachine.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
+#include "Kismet/GameplayStatics.h"
+#include "Music/MusicManager.h"
 
 
-AGameManager* AGameManager::MyInstance;
+AGameManager* AGameManager::MyInstance ;
 
 AGameManager* AGameManager::Instance()
 {
-	if (!MyInstance)
-	{
-		MyInstance = NewObject<AGameManager>(); 
-	}
+	// if (!MyInstance)
+	// {
+	// 	MyInstance = NewObject<AGameManager>();
+	// }
 
 	return MyInstance;
 }
 
 // to call in init pipou chara
-void AGameManager::SetPipouCharacter(APipouCharacter* Character)
+void AGameManager::SetCharacters(APipouCharacter* Character)
 {
 	PipouCharacters.Add(Character);
 }
@@ -44,40 +46,74 @@ void AGameManager::AddNote(UInputAction* InputAction)
 
 	if (InputPressed.Num() >= NbNotesToCheck)
 	{
-		ChechThreeFirstNote();
+		if (HasValidFirstNotes()) 
+			SetWorldMusicState();
+		
+		ResetInputsArray();
 	}
 }
 
-void AGameManager::ChechThreeFirstNote()
+bool AGameManager::HasValidFirstNotes()
 {
 	for (int i = 0; i < NbNotesToCheck; ++i)
 	{
 		if (CurrentSkeleton->Notes[i].InputAction != InputPressed[i])
 		{
-			return;
+			UE_LOG(LogTemp, Display, TEXT("Enchainement de 3 notes raté"));
+			return false;
 		}
 	}
 
-	SetWorldMusicState();
+	UE_LOG(LogTemp, Display, TEXT("Enchainement de 3 notes réussi"));
+	return true;
+}
+
+void AGameManager::ResetInputsArray()
+{
+	InputPressed.Empty();
 }
 
 void AGameManager::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//Init instance in the begin play
+	if (!MyInstance)
+	{
+		MyInstance = Cast<AGameManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AGameManager::StaticClass()));
+	}
 }
 
 void AGameManager::SetWorldMusicState()
 {
+
+	WorldState = EWorldState::WorldMusic;
+
+	// TO EDIT -- secu pour avoir un TArray<APipouCharacter> à jour (ordre d'execution/initialisation)
+	if (PipouCharacters.Num() ==0)
+	{
+		TArray<AActor*> Characters;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(),APipouCharacter::StaticClass(), Characters);
+		for (auto Character : Characters)
+		{
+			APipouCharacter* PipouCharacter = Cast<APipouCharacter>(Character);
+			PipouCharacters.Add(PipouCharacter);
+		}
+	}
+	
 	//change state for players
 	for (auto Character : PipouCharacters) 
 	{
-		Character->StateMachine->ChangeState(EPipouCharacterStateID::Music);
-	} 
+		if (Character && Character->StateMachine)
+		{
+			Character->StateMachine->ChangeState(EPipouCharacterStateID::Music);
+		}
+	}
 	
 	//// Pailletas
 	// SetAllMusicBehavior()
 	// BlockMovement()
 	// SetCameraMusic()
 	// DisplayUI()
-	// MusicManager.InitMusicManager(CurrentS_Skeleton)
+	AMusicManager::Instance()->InitMusicBySkeleton(CurrentSkeleton);
 }

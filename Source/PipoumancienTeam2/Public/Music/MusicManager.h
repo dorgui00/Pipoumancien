@@ -34,7 +34,7 @@ private :
 #pragma region Timer
 	bool IsInCountDown = false;
 	
-	float TimerCountDown = 0.f;
+	float TimerCountDown = 3.f;
 	float Tempo = 0.f;
 
 	void StartCountDown();

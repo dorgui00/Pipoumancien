@@ -212,13 +212,13 @@ UCameraComponent* UCameraWorldSubsystem::FindCameraByTag(const FName& Tag) const
 	TArray<AActor*> Cameras;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), Tag,Cameras);
 	
-	UCameraComponent* Camera = nullptr;
+	UCameraComponent* CameraComponent = nullptr;
 	if (Cameras.Num() > 0)
 	{
-		Camera = Cameras[0]->FindComponentByClass<UCameraComponent>();
+		CameraComponent = Cameras[0]->FindComponentByClass<UCameraComponent>();
 	}
 	
-	return Camera;
+	return CameraComponent;
 }
 
 AActor* UCameraWorldSubsystem::FindCameraBoundsActor()

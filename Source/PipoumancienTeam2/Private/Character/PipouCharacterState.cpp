@@ -42,7 +42,8 @@ void UPipouCharacterState::OnCharacterPressedInput(UInputAction* InputAction, FI
 {
 	if (AGameManager::Instance()->GetCurrentSkeleton() != nullptr)
 	{
-		AGameManager::Instance()->AddNote();
+		UE_LOG(LogTemp, Display, TEXT("Add note"));
+		AGameManager::Instance()->AddNote(InputAction);
 	}
 }
 

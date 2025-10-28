@@ -32,17 +32,20 @@ public :
 	UPROPERTY()
 	TArray<APipouCharacter*> PipouCharacters;
 	
-	void SetPipouCharacter(APipouCharacter* Character);
+	void SetCharacters(APipouCharacter* Character);
 
 	F_Skeleton* GetCurrentSkeleton();
 	void SetCurrentSkeleton(F_Skeleton* Skeleton);
 
 	// Music
 	int NbNotesToCheck = 3;
+	
+	UPROPERTY()
 	TArray<UInputAction*> InputPressed;
 	
 	void AddNote(UInputAction* InputAction);
-	void ChechThreeFirstNote();
+	bool HasValidFirstNotes();
+	void ResetInputsArray();
 
 private :
 	virtual void BeginPlay() override;

@@ -38,4 +38,5 @@ private:
 	void GetCameraByTag(const FName& CameraTag);
 
 	void CreateAndInitPlayers();
+
 };

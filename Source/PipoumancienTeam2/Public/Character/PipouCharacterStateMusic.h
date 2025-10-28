@@ -30,7 +30,7 @@ public:
 	void InitRoles();
 	void InitSkeletons();
 	void InitInputPitch();
-	void InitMusicManager();
+	void SetMusicManager();
 
 	UPROPERTY()
 	float PitchTolerance = 0.1f;
@@ -41,7 +41,6 @@ public:
 	UPROPERTY()
 	AMusicManager* MusicManager;
 	
-	UFUNCTION()
 	virtual void OnCharacterPressedInput(UInputAction* InputAction, FInputActionValue InputActionValue) override;
 
 };

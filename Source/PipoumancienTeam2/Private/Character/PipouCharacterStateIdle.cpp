@@ -5,6 +5,7 @@
 #include "Character/PipouCharacter.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
+#include "Game/GameManager.h"
 
 EPipouCharacterStateID UPipouCharacterStateIdle::GetStateID()
 {
@@ -39,5 +40,6 @@ void UPipouCharacterStateIdle::StateExit(EPipouCharacterStateID NextStateID)
 void UPipouCharacterStateIdle::OnCharacterPressedInput(UInputAction* InputAction, FInputActionValue InputActionValue)
 {
 	Super::OnCharacterPressedInput(InputAction, InputActionValue);
+
 }
 

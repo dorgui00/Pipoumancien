@@ -20,11 +20,12 @@ private:
 	
 public:
 	static ADB_Manager* Instance();
+
+	virtual void BeginPlay() override;
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditDefaultsOnly)
 	UDataTable* DB_Music;
 	
 	F_Skeleton* GetSkeletonByID(int ID);
-	
 
 };

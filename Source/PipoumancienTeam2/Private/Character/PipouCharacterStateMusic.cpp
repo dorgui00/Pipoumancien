@@ -21,9 +21,11 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 	InitRoles();
 	InitSkeletons();
 	InitInputPitch();
-	InitMusicManager();
+	SetMusicManager();
 	
 	Character->InputPressedEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedInput);
+
+	UE_LOG(LogTemp, Display, TEXT("Entre dans le state music"));
 }
 
 void UPipouCharacterStateMusic::StateTick(float Deltatime)
@@ -63,7 +65,7 @@ void UPipouCharacterStateMusic::InitInputPitch()
 	InputPitch = Character->InputData->InputPitch;
 }
 
-void UPipouCharacterStateMusic::InitMusicManager()
+void UPipouCharacterStateMusic::SetMusicManager()
 {
 	MusicManager = AMusicManager::Instance();
 }

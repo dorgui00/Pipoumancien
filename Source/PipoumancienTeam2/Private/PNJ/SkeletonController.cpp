@@ -21,7 +21,7 @@ void ASkeletonController::BeginPlay()
 	DB_Manager = ADB_Manager::Instance();
 
 	if (DB_Manager)
-	MySkeleton = DB_Manager->GetSkeletonByID(ID);
+		MySkeleton = DB_Manager->GetSkeletonByID(ID);
 }
 
 // Called every frame

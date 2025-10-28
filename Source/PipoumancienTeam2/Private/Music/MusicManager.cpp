@@ -26,11 +26,19 @@ void AMusicManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (! IsInWorldStateMusic) return ;
+	// isInWorldState
 	
 	if (IsInCountDown)
 	{
-	
+		TimerCountDown-=DeltaTime;
+		
+		if (TimerCountDown<=0)
+		{
+			UE_LOG(LogTemp, Display, TEXT("Finish Countdown"));
+			
+		 	IsInCountDown = false;
+			TimerCountDown = 3.f;
+		}
 	}
 	else // 
 	{
@@ -47,13 +55,15 @@ void AMusicManager::Tick(float DeltaTime)
 				continue;
 			}
 			//Is Awaiting Reply
-			else if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - Tolerance && !IsAwaitingReply)
+			if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - Tolerance && !IsAwaitingReply)
 			{
+				//UE_LOG(LogTemp, Display, TEXT("Attend l input %s", CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction.ToString()));
+				
 				IsAwaitingReply = true;
 				continue;
 			}
 			// check success
-			else if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + Tolerance)
+			if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + Tolerance)
 			{
 				IsAwaitingReply = false ;
 				ResetReplies();
@@ -70,8 +80,10 @@ void AMusicManager::Tick(float DeltaTime)
 					break; // out loop to go inCountdown
 				}
 			}
-			
 		}
+		
+		UE_LOG(LogTemp, Display, TEXT("Melodie finie et réussie"));
+		SetActorTickEnabled(false);
 	}
 }
 
@@ -80,7 +92,7 @@ void AMusicManager::InitMusicBySkeleton(F_Skeleton* Skeleton)
 {
 	CurrentSkeleton = Skeleton;
 	
-	// enable tick
+	SetActorTickEnabled(true);
 	StartCountDown();
 }
 
@@ -108,6 +120,8 @@ bool AMusicManager::HasAchievedQte()
 
 void AMusicManager::StartCountDown()
 {
+	UE_LOG(LogTemp, Display, TEXT("Start Count Down de 3sec"));
+	
 	Tempo = 0.f;
 	IsInCountDown = true;
 }

@@ -24,8 +24,11 @@ protected:
 	
 	UPROPERTY()
 	ADB_Manager* DB_Manager;
-	
+
+	UPROPERTY(EditAnywhere, Category="Skeleton")
 	int ID = 0;
+
+	
 
 public:
 	// Called every frame

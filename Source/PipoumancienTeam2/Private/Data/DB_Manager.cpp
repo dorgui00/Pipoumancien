@@ -4,29 +4,41 @@
 #include "Data/DB_Manager.h"
 
 #include "F_Skeleton.h"
+#include "Kismet/GameplayStatics.h"
 
 ADB_Manager* ADB_Manager::MyInstance;
 
 ADB_Manager* ADB_Manager::Instance()
 {
+	return MyInstance;
+}
+
+void ADB_Manager::BeginPlay()
+{
+	Super::BeginPlay();
+	
 	if (!MyInstance)
 	{
-		MyInstance = NewObject<ADB_Manager>(); 
+		MyInstance = Cast<ADB_Manager>(UGameplayStatics::GetActorOfClass(GetWorld(), ADB_Manager::StaticClass()));
 	}
 
-	return MyInstance;
 }
 
 F_Skeleton* ADB_Manager::GetSkeletonByID(int ID)
 {
 	TArray<F_Skeleton*> Skeletons;
-	DB_Music->GetAllRows("", Skeletons);
-	for (const auto Skeleton : Skeletons)
+	
+	if (DB_Music)
 	{
-		if (Skeleton->ID == ID)
+		DB_Music->GetAllRows("", Skeletons);
+	
+		for (const auto Skeleton : Skeletons)
 		{
-			return Skeleton;
-		};
+			if (Skeleton->ID == ID)
+			{
+				return Skeleton;
+			}
+		}
 	}
 	
 	return nullptr;
