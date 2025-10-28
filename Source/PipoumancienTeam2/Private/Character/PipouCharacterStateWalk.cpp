@@ -3,6 +3,8 @@
 
 
 #include "Character/PipouCharacterStateWalk.h"
+
+#include "Camera/CameraWorldSubsystem.h" // ADDED
 #include "Character/PipouCharacter.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
@@ -43,7 +45,21 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 		MoveDir.Normalize();
 		Character->SetOrientXY(FVector2D(MoveDir.X, MoveDir.Y));
 		Character->AddMovementInput(MoveDir, 1);
+		
+		//ADDED
+		if (UCameraWorldSubsystem* CamSys = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
+		{
+			FVector ClampedPos;
+			bool bInside = CamSys->ClampPositionInsideQuad(Character->GetActorLocation(), ClampedPos);
+
+			// clamp position if outside
+			if (!bInside)
+			{
+				Character->SetActorLocation(ClampedPos);
+			}
+		}
 	}
+
 }
 
 void UPipouCharacterStateWalk::StateExit(EPipouCharacterStateID NextStateID)
