@@ -45,8 +45,6 @@ private :
 	
 public :
 	F_Note* GetWaitingNote();
-
-	F_Note* CurrentWaitingNote = nullptr;
 	
 private :
 	F_Skeleton* CurrentSkeleton = nullptr;

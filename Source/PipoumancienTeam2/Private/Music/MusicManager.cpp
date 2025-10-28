@@ -86,8 +86,7 @@ void AMusicManager::InitMusicBySkeleton(F_Skeleton* Skeleton)
 
 F_Note* AMusicManager::GetWaitingNote()
 {
-	CurrentWaitingNote = &CurrentSkeleton->Notes[CurrentWaitingNoteIndex];
-	return CurrentWaitingNote;
+	return &CurrentSkeleton->Notes[CurrentWaitingNoteIndex];
 }
 
 void AMusicManager::ReceiveInput()

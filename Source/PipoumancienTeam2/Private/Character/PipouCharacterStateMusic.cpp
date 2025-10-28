@@ -74,7 +74,7 @@ void UPipouCharacterStateMusic::OnCharacterPressedInput(UInputAction* InputActio
 {
 	if (CurrentRole == EPipouCharacterRoles::Musician)
 	{
-		if (MusicManager->IsAwaitingReply && MusicManager->CurrentWaitingNote->InputAction == InputAction)
+		if (MusicManager->IsAwaitingReply && MusicManager->GetWaitingNote()->InputAction == InputAction)
 		{
 			MusicManager->ReceiveInput();
 		}
@@ -86,8 +86,8 @@ void UPipouCharacterStateMusic::OnCharacterPressedInput(UInputAction* InputActio
 			MusicManager->CurrentCursorValue += InputActionValue.Get<float>();
 
 			if (MusicManager->IsAwaitingReply &&
-				(MusicManager->CurrentWaitingNote->Pitch >= MusicManager->CurrentCursorValue - PitchTolerance ||
-				MusicManager->CurrentWaitingNote->Pitch <= MusicManager->CurrentCursorValue + PitchTolerance))
+				(MusicManager->GetWaitingNote()->Pitch >= MusicManager->CurrentCursorValue - PitchTolerance ||
+				MusicManager->GetWaitingNote()->Pitch <= MusicManager->CurrentCursorValue + PitchTolerance))
 			{
 				MusicManager->ReceiveInput();
 			}
