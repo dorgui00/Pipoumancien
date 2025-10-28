@@ -42,6 +42,6 @@ public:
 	AMusicManager* MusicManager;
 	
 	UFUNCTION()
-	void OnCharacterPressedInput(UInputAction* InputAction, FInputActionValue InputActionValue);
+	virtual void OnCharacterPressedInput(UInputAction* InputAction, FInputActionValue InputActionValue) override;
 
 };

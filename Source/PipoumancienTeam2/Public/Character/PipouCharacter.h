@@ -8,6 +8,7 @@
 #include "GameFramework/Character.h"
 #include "PipouCharacter.generated.h"
 
+class USphereComponent;
 struct FInputActionValue;
 class UInputMappingContext;
 class UAnimMontage;
@@ -80,6 +81,10 @@ public:
 
 	UPROPERTY()
 	FInputPressedEvent InputPressedEvent;
+	
+	// Collider
+	UPROPERTY(EditAnywhere, Category="Collision")
+	USphereComponent* InteractionCollider;	
 
 protected:
 	virtual void BeginPlay() override;
@@ -137,4 +142,9 @@ private:
 	void OnInputNoteYStarted(const FInputActionValue& InputActionValue);
 	void OnInputNoteYCompleted(const FInputActionValue& InputActionValue);
 
+	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

@@ -48,5 +48,5 @@ protected:
 	F_Skeleton* Skeleton = nullptr;
 
 	UFUNCTION()
-	virtual void CheckThreeFirstNote(UInputAction* InputAction, FInputActionValue InputActionValue);
+	virtual void OnCharacterPressedInput(UInputAction* InputAction, FInputActionValue InputActionValue);
 };

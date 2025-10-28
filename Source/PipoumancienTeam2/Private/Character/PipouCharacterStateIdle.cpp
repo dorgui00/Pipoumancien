@@ -16,7 +16,7 @@ void UPipouCharacterStateIdle::StateEnter(EPipouCharacterStateID PreviousStateID
 	Super::StateEnter(PreviousStateID);
 	Character->GetMesh()->PlayAnimation(IdleAnim, true);
 		
-	Character->InputPressedEvent.AddDynamic(this, &UPipouCharacterStateIdle::CheckThreeFirstNote);
+	Character->InputPressedEvent.AddDynamic(this, &UPipouCharacterStateIdle::OnCharacterPressedInput);
 }
 
 void UPipouCharacterStateIdle::StateTick(float Deltatime)
@@ -33,10 +33,11 @@ void UPipouCharacterStateIdle::StateExit(EPipouCharacterStateID NextStateID)
 {
 	Super::StateExit(NextStateID);
 
-	Character->InputPressedEvent.RemoveDynamic(this, &UPipouCharacterStateIdle::CheckThreeFirstNote);
+	Character->InputPressedEvent.RemoveDynamic(this, &UPipouCharacterStateIdle::OnCharacterPressedInput);
 }
 
-void UPipouCharacterStateIdle::CheckThreeFirstNote(UInputAction* InputAction, FInputActionValue InputActionValue)
+void UPipouCharacterStateIdle::OnCharacterPressedInput(UInputAction* InputAction, FInputActionValue InputActionValue)
 {
-	Super::CheckThreeFirstNote(InputAction, InputActionValue);
+	Super::OnCharacterPressedInput(InputAction, InputActionValue);
 }
+

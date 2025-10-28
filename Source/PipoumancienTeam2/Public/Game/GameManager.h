@@ -7,6 +7,7 @@
 #include "Character/PipouCharacter.h"
 #include "GameManager.generated.h"
 
+class UInputAction;
 /**
  * 
  */
@@ -28,22 +29,31 @@ class PIPOUMANCIENTEAM2_API AGameManager : public AActor
 public :
 	static AGameManager* Instance();
 	
-	F_Skeleton* CurrentSkeleton = nullptr;
-
 	UPROPERTY()
 	TArray<APipouCharacter*> PipouCharacters;
 	
-	void AddPipouCharacter(APipouCharacter* Character);
+	void SetPipouCharacter(APipouCharacter* Character);
 
-protected :
+	F_Skeleton* GetCurrentSkeleton();
+	void SetCurrentSkeleton(F_Skeleton* Skeleton);
+
+	// Music
+	int NbNotesToCheck = 3;
+	TArray<UInputAction*> InputPressed;
+	
+	void AddNote(UInputAction* InputAction);
+	void ChechThreeFirstNote();
+
+private :
 	virtual void BeginPlay() override;
 
 	EWorldState WorldState = EWorldState::WorldFree;
 	
-private :
+	F_Skeleton* CurrentSkeleton = nullptr;
+
 	static AGameManager* MyInstance;
 
-	void SetWorldMusicState(F_Skeleton* Skeleton);
+	void SetWorldMusicState();
 	
 };
 

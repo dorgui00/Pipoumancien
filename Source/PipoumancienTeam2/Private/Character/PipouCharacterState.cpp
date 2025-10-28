@@ -6,6 +6,7 @@
 #include "InputActionValue.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
+#include "Game/GameManager.h"
 
 UPipouCharacterState::UPipouCharacterState()
 {
@@ -35,7 +36,13 @@ void UPipouCharacterState::StateExit(EPipouCharacterStateID NextStateID)
 {
 }
 
-void UPipouCharacterState::CheckThreeFirstNote(UInputAction* InputAction, FInputActionValue InputActionValue)
+
+
+void UPipouCharacterState::OnCharacterPressedInput(UInputAction* InputAction, FInputActionValue InputActionValue)
 {
-	TArray<FInputActionValue> InputActionValues;
+	if (AGameManager::Instance()->GetCurrentSkeleton() != nullptr)
+	{
+		AGameManager::Instance()->AddNote();
+	}
 }
+

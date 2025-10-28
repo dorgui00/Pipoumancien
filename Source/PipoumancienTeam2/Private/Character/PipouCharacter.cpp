@@ -6,19 +6,27 @@
 #include "Character/PipouCharacterInputData.h"
 #include "Camera/CameraWorldSubsystem.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/SphereComponent.h"
+#include "Game/GameManager.h"
+#include "PNJ/SkeletonController.h"
 
 APipouCharacter::APipouCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	InteractionCollider->OnComponentBeginOverlap.AddDynamic(this, &APipouCharacter::OnBeginOverlap);
+	InteractionCollider->OnComponentBeginOverlap.AddDynamic(this, &APipouCharacter::OnEndOverlap);
 }
 
 void APipouCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
 	CreateStateMachine();
 	InitStateMachine();
 	SetCameraView();
 	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->AddFollowTarget(this);
+	AGameManager::Instance()->SetPipouCharacter(this);
 }
 
 void APipouCharacter::SetCameraView() const
@@ -252,6 +260,28 @@ void APipouCharacter::OnInputNoteYStarted(const FInputActionValue& InputActionVa
 void APipouCharacter::OnInputNoteYCompleted(const FInputActionValue& InputActionValue)
 {
 	InputNoteY = false;
+}
+
+void APipouCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	ASkeletonController* SkeletonController = Cast<ASkeletonController>(OtherActor);
+
+	if (SkeletonController)
+	{
+		AGameManager::Instance()->SetCurrentSkeleton(SkeletonController->MySkeleton);
+	}
+}
+
+void APipouCharacter::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	ASkeletonController* SkeletonController = Cast<ASkeletonController>(OtherActor);
+
+	if (SkeletonController)
+	{
+		AGameManager::Instance()->SetCurrentSkeleton(nullptr);
+	}
 }
 
 

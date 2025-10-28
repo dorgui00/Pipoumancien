@@ -55,7 +55,7 @@ void UPipouCharacterStateMusic::InitRoles()
 
 void UPipouCharacterStateMusic::InitSkeletons()
 {
-	Skeleton = AGameManager::Instance()->CurrentSkeleton;
+	Skeleton = AGameManager::Instance()->GetCurrentSkeleton();
 }
 
 void UPipouCharacterStateMusic::InitInputPitch()
