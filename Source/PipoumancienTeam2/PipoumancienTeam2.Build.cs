@@ -13,6 +13,11 @@ public class PipoumancienTeam2 : ModuleRules
             "CoreUObject",
             "Engine",
             "InputCore",
+            //j'ai add ca aussi
+            "UMG",
+            "Slate",
+            "SlateCore",
+            //
             "EnhancedInput",
             "LocalMultiplayer",
             "DeveloperSettings"
