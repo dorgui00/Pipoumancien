@@ -1,6 +1,7 @@
 #include "SMultiHandleSlider.h"
 #include "Rendering/DrawElements.h"
 #include "Styling/CoreStyle.h"
+#include "Framework/Application/SlateApplication.h"
 
 void SMultiHandleSlider::Construct(const FArguments& InArgs)
 {
@@ -8,83 +9,83 @@ void SMultiHandleSlider::Construct(const FArguments& InArgs)
 	BarThickness = InArgs._BarThickness;
 	HandleRadius = InArgs._HandleRadius;
 	StepSize = InArgs._StepSize;
-	ValuesAttr = InArgs._Values01;
-	OnValuesChanged = InArgs._OnValuesChanged;
 
-	Values = ValuesAttr.Get();
-	Values.Sort();
+	ValuesAttr = InArgs._Values01;
+
+	LaneValues = InArgs._LaneValues;
+	if (LaneValues.Num() == 0)
+	{
+		Values = ValuesAttr.IsBound() ? ValuesAttr.Get() : Values;
+		Values.Sort();
+		LaneValues.Add(Values);
+	}
+	NumLanes = LaneValues.Num();
+	for (TArray<float>& L : LaneValues) { L.Sort(); }
+
+	OnValuesChanged = InArgs._OnValuesChanged;
+	OnLanesChanged = InArgs._OnLanesChanged;
+}
+
+void SMultiHandleSlider::SetLaneValues(const TArray<TArray<float>>& In)
+{
+	LaneValues = In;
+	NumLanes = LaneValues.Num();
+	for (TArray<float>& L : LaneValues) { L.Sort(); }
 }
 
 int32 SMultiHandleSlider::OnPaint(const FPaintArgs& Args, const FGeometry& Geo,
-	const FSlateRect& MyCullingRect, FSlateWindowElementList& Out, int32 LayerId,
-	const FWidgetStyle& InStyle, bool bParentEnabled) const
+	const FSlateRect& Cull, FSlateWindowElementList& Out, int32 LayerId,
+	const FWidgetStyle& Style, bool bParentEnabled) const
 {
-	TArray<float> Current = ValuesAttr.IsBound() ? ValuesAttr.Get() : Values;
-	TArray<float> Sorted = Current; Sorted.Sort();
-
 	const FSlateBrush* Brush = FCoreStyle::Get().GetBrush("WhiteBrush");
-
 	const FVector2D Size = Geo.GetLocalSize();
-	const float TrackHalf = BarThickness * 0.5f;
 
-	FVector2D TrackStart, TrackEnd;
-	if (Orientation == Orient_Horizontal)
+	const float TrackThickness = FMath::Max(1.f, BarThickness);
+	const FLinearColor TrackColor(0.25f, 0.25f, 0.25f, 1.f);
+
+	for (int32 Lane = 0; Lane < NumLanes; ++Lane)
 	{
-		TrackStart = FVector2D(HandleRadius, 0.5f * Size.Y);
-		TrackEnd = FVector2D(Size.X - HandleRadius, 0.5f * Size.Y);
-
-		FSlateDrawElement::MakeBox(
-			Out, ++LayerId, Geo.ToPaintGeometry(
-				FVector2D(0.f, 0.5f * Size.Y - TrackHalf),
-				FVector2D(Size.X, BarThickness)),
-			Brush, ESlateDrawEffect::None, FLinearColor(0.25f, 0.25f, 0.25f, 1.f));
-
-		for (int32 i = 0; i + 1 < Sorted.Num(); i += 2)
+		if (Orientation == Orient_Horizontal)
 		{
-			const float X0 = Value01ToPixel(Geo, Sorted[i]);
-			const float X1 = Value01ToPixel(Geo, Sorted[i + 1]);
-			FSlateDrawElement::MakeBox(
-				Out, ++LayerId, Geo.ToPaintGeometry(
-					FVector2D(X0, 0.5f * Size.Y - TrackHalf),
-					FVector2D(FMath::Max(1.f, X1 - X0), BarThickness)),
-				Brush, ESlateDrawEffect::None, FLinearColor(0.1f, 0.6f, 1.f, 0.6f));
+			const float Y = LanePosY(Geo, Lane);
+			const FVector2D P(HandleRadius, Y - 0.5f * TrackThickness);
+			const FVector2D S(Size.X - 2.f * HandleRadius, TrackThickness);
+			FSlateDrawElement::MakeBox(Out, ++LayerId, Geo.ToPaintGeometry(P, S), Brush, ESlateDrawEffect::None, TrackColor);
 		}
-
-		for (float V : Current)
+		else
 		{
-			const float X = Value01ToPixel(Geo, V);
-			const FVector2D P = FVector2D(X - HandleRadius, 0.5f * Size.Y - HandleRadius);
-			const FVector2D S = FVector2D(HandleRadius * 2.f, HandleRadius * 2.f);
-			FSlateDrawElement::MakeBox(Out, ++LayerId, Geo.ToPaintGeometry(P, S),
-				Brush, ESlateDrawEffect::None, FLinearColor::White);
+			const float X = LanePosX(Geo, Lane);
+			const FVector2D P(X - 0.5f * TrackThickness, HandleRadius);
+			const FVector2D S(TrackThickness, Size.Y - 2.f * HandleRadius);
+			FSlateDrawElement::MakeBox(Out, ++LayerId, Geo.ToPaintGeometry(P, S), Brush, ESlateDrawEffect::None, TrackColor);
 		}
 	}
-	else
+
+	for (int32 Lane = 0; Lane < LaneValues.Num(); ++Lane)
 	{
-		FSlateDrawElement::MakeBox(
-			Out, ++LayerId, Geo.ToPaintGeometry(
-				FVector2D(0.5f * Size.X - TrackHalf, 0.f),
-				FVector2D(BarThickness, Size.Y)),
-			Brush, ESlateDrawEffect::None, FLinearColor(0.25f, 0.25f, 0.25f, 1.f));
+		const TArray<float>& Curr = LaneValues[Lane];
 
-		for (int32 i = 0; i + 1 < Sorted.Num(); i += 2)
+		if (Orientation == Orient_Horizontal)
 		{
-			const float Y1 = Value01ToPixel(Geo, Sorted[i]);
-			const float Y0 = Value01ToPixel(Geo, Sorted[i + 1]);
-			FSlateDrawElement::MakeBox(
-				Out, ++LayerId, Geo.ToPaintGeometry(
-					FVector2D(0.5f * Size.X - TrackHalf, Y0),
-					FVector2D(BarThickness, FMath::Max(1.f, Y1 - Y0))),
-				Brush, ESlateDrawEffect::None, FLinearColor(0.1f, 0.6f, 1.f, 0.6f));
+			const float Y = LanePosY(Geo, Lane);
+			for (float V : Curr)
+			{
+				const float X = Value01ToPixel(Geo, V);
+				const FVector2D P(X - HandleRadius, Y - HandleRadius);
+				const FVector2D S(HandleRadius * 2.f, HandleRadius * 2.f);
+				FSlateDrawElement::MakeBox(Out, ++LayerId, Geo.ToPaintGeometry(P, S), Brush, ESlateDrawEffect::None, FLinearColor::White);
+			}
 		}
-
-		for (float V : Current)
+		else
 		{
-			const float Y = Value01ToPixel(Geo, V);
-			const FVector2D P = FVector2D(0.5f * Size.X - HandleRadius, Y - HandleRadius);
-			const FVector2D S = FVector2D(HandleRadius * 2.f, HandleRadius * 2.f);
-			FSlateDrawElement::MakeBox(Out, ++LayerId, Geo.ToPaintGeometry(P, S),
-				Brush, ESlateDrawEffect::None, FLinearColor::White);
+			const float X = LanePosX(Geo, Lane);
+			for (float V : Curr)
+			{
+				const float Y = Value01ToPixel(Geo, V);
+				const FVector2D P(X - HandleRadius, Y - HandleRadius);
+				const FVector2D S(HandleRadius * 2.f, HandleRadius * 2.f);
+				FSlateDrawElement::MakeBox(Out, ++LayerId, Geo.ToPaintGeometry(P, S), Brush, ESlateDrawEffect::None, FLinearColor::White);
+			}
 		}
 	}
 
@@ -94,11 +95,56 @@ int32 SMultiHandleSlider::OnPaint(const FPaintArgs& Args, const FGeometry& Geo,
 FReply SMultiHandleSlider::OnMouseButtonDown(const FGeometry& Geo, const FPointerEvent& E)
 {
 	if (E.GetEffectingButton() != EKeys::LeftMouseButton) return FReply::Unhandled();
-	ActiveIndex = HitTestHandle(Geo, E.GetScreenSpacePosition());
-	if (ActiveIndex == INDEX_NONE)
+
+	const FVector2D Local = Geo.AbsoluteToLocal(E.GetScreenSpacePosition());
+
+	ActiveLane = INDEX_NONE;
+	ActiveIndex = INDEX_NONE;
+
+	const float PickRadius = HandleRadius * 1.6f;
+	float BestDist = FLT_MAX;
+
+	for (int32 Lane = 0; Lane < LaneValues.Num(); ++Lane)
 	{
-		// If clicked empty space, create or move nearest handle (optional behavior)
+		const float LaneAxis = (Orientation == Orient_Horizontal) ? LanePosY(Geo, Lane) : LanePosX(Geo, Lane);
+		for (int32 i = 0; i < LaneValues[Lane].Num(); ++i)
+		{
+			const float AxisAlong = Value01ToPixel(Geo, LaneValues[Lane][i]);
+			const FVector2D HandleCenter = (Orientation == Orient_Horizontal)
+				? FVector2D(AxisAlong, LaneAxis) : FVector2D(LaneAxis, AxisAlong);
+
+			const float Dist = (HandleCenter - Local).Size();
+			if (Dist < BestDist && Dist <= PickRadius)
+			{
+				BestDist = Dist; ActiveLane = Lane; ActiveIndex = i;
+			}
+		}
 	}
+
+	if (ActiveLane == INDEX_NONE)
+	{
+		const int32 Lane = NearestLane(Geo, Local);
+		float V01 = (Orientation == Orient_Horizontal) ? PixelToValue01(Geo, Local.X) : PixelToValue01(Geo, Local.Y);
+		V01 = FMath::Clamp(Snap(V01), 0.f, 1.f);
+
+		TArray<float>& Curr = LaneValues[Lane];
+		Curr.Add(V01);
+		Curr.Sort();
+
+		int32 NewIdx = 0; float Best = FLT_MAX;
+		for (int32 i = 0; i < Curr.Num(); ++i)
+		{
+			const float D = FMath::Abs(Curr[i] - V01);
+			if (D < Best) { Best = D; NewIdx = i; }
+		}
+		ActiveLane = Lane;
+		ActiveIndex = NewIdx;
+
+		if (LaneValues.Num() > 0) { Values = LaneValues[0]; }
+		if (OnValuesChanged.IsBound())      OnValuesChanged.Execute(Values);
+		if (OnLanesChanged.IsBound())       OnLanesChanged.Execute(LaneValues);
+	}
+
 	FSlateApplication::Get().SetKeyboardFocus(AsShared());
 	return FReply::Handled().CaptureMouse(AsShared());
 }
@@ -106,42 +152,43 @@ FReply SMultiHandleSlider::OnMouseButtonDown(const FGeometry& Geo, const FPointe
 FReply SMultiHandleSlider::OnMouseButtonUp(const FGeometry&, const FPointerEvent& E)
 {
 	if (E.GetEffectingButton() != EKeys::LeftMouseButton) return FReply::Unhandled();
+	ActiveLane = INDEX_NONE;
 	ActiveIndex = INDEX_NONE;
 	return FReply::Handled().ReleaseMouseCapture();
 }
 
 FReply SMultiHandleSlider::OnMouseMove(const FGeometry& Geo, const FPointerEvent& E)
 {
-	if (!HasMouseCapture() || ActiveIndex == INDEX_NONE) return FReply::Unhandled();
+	if (!HasMouseCapture() || ActiveLane == INDEX_NONE || ActiveIndex == INDEX_NONE) return FReply::Unhandled();
 
 	const FVector2D Local = Geo.AbsoluteToLocal(E.GetScreenSpacePosition());
-	float V01 = (Orientation == Orient_Horizontal)
-		? PixelToValue01(Geo, Local.X)
-		: PixelToValue01(Geo, Local.Y);
 
+	float V01 = (Orientation == Orient_Horizontal) ? PixelToValue01(Geo, Local.X) : PixelToValue01(Geo, Local.Y);
 	V01 = FMath::Clamp(Snap(V01), 0.f, 1.f);
 
+	TArray<float>& Curr = LaneValues[ActiveLane];
 	const float Eps = 0.001f;
-	Values = ValuesAttr.IsBound() ? ValuesAttr.Get() : Values;
-	Values[ActiveIndex] = V01;
-	Values.Sort();
 
-	int32 NewIndex = 0;
-	float BestDist = FLT_MAX;
-	for (int32 i = 0; i < Values.Num(); ++i)
+	Curr[ActiveIndex] = V01;
+	Curr.Sort();
+
+	int32 NewIdx = 0; float Best = FLT_MAX;
+	for (int32 i = 0; i < Curr.Num(); ++i)
 	{
-		float D = FMath::Abs(Values[i] - V01);
-		if (D < BestDist) { BestDist = D; NewIndex = i; }
+		const float D = FMath::Abs(Curr[i] - V01);
+		if (D < Best) { Best = D; NewIdx = i; }
 	}
-	ActiveIndex = NewIndex;
+	ActiveIndex = NewIdx;
 
-	if (Values.Num() > 1)
+	if (Curr.Num() > 1)
 	{
-		if (ActiveIndex > 0)        Values[ActiveIndex] = FMath::Max(Values[ActiveIndex], Values[ActiveIndex - 1] + Eps);
-		if (ActiveIndex < Values.Num() - 1) Values[ActiveIndex] = FMath::Min(Values[ActiveIndex], Values[ActiveIndex + 1] - Eps);
+		if (ActiveIndex > 0)               Curr[ActiveIndex] = FMath::Max(Curr[ActiveIndex], Curr[ActiveIndex - 1] + Eps);
+		if (ActiveIndex < Curr.Num() - 1)  Curr[ActiveIndex] = FMath::Min(Curr[ActiveIndex], Curr[ActiveIndex + 1] - Eps);
 	}
 
+	if (LaneValues.Num() > 0) { Values = LaneValues[0]; }
 	if (OnValuesChanged.IsBound()) OnValuesChanged.Execute(Values);
+	if (OnLanesChanged.IsBound())  OnLanesChanged.Execute(LaneValues);
 
 	return FReply::Handled();
 }
@@ -190,8 +237,7 @@ int32 SMultiHandleSlider::HitTestHandle(const FGeometry& Geo, FVector2D Cursor) 
 
 	for (int32 i = 0; i < Curr.Num(); ++i)
 	{
-		const float P = (Orientation == Orient_Horizontal)
-			? Value01ToPixel(Geo, Curr[i]) - Local.X
+		const float P = (Orientation == Orient_Horizontal) ? Value01ToPixel(Geo, Curr[i]) - Local.X
 			: Value01ToPixel(Geo, Curr[i]) - Local.Y;
 		const float Dist = FMath::Abs(P);
 		if (Dist < Best && Dist <= HandleRadius * 1.5f) { Best = Dist; BestIdx = i; }
@@ -201,10 +247,60 @@ int32 SMultiHandleSlider::HitTestHandle(const FGeometry& Geo, FVector2D Cursor) 
 
 float SMultiHandleSlider::Snap(float V) const
 {
-	if (StepSize > KINDA_SMALL_NUMBER && StepSize > 0.f)
+	if (StepSize > 0.f)
 	{
-		const float Steps = FMath::RoundToFloat(V / StepSize);
-		return FMath::Clamp(Steps * StepSize, 0.f, 1.f);
+		const float steps = FMath::RoundToFloat(V / StepSize);
+		float out = steps * StepSize;
+
+		const float inv = 1.f / StepSize;
+		out = FMath::RoundToFloat(out * inv) / inv;
+
+		return FMath::Clamp(out, 0.f, 1.f);
 	}
 	return V;
 }
+
+
+float SMultiHandleSlider::LanePosY(const FGeometry& Geo, int32 Lane) const
+{
+	const FVector2D Size = Geo.GetLocalSize();
+	const float Top = HandleRadius;
+	const float Bottom = Size.Y - HandleRadius;
+	const float T = (NumLanes > 1) ? (float)Lane / (float)(NumLanes - 1) : 0.5f;
+	return FMath::Lerp(Top, Bottom, T);
+}
+
+float SMultiHandleSlider::LanePosX(const FGeometry& Geo, int32 Lane) const
+{
+	const FVector2D Size = Geo.GetLocalSize();
+	const float Left = HandleRadius;
+	const float Right = Size.X - HandleRadius;
+	const float T = (NumLanes > 1) ? (float)Lane / (float)(NumLanes - 1) : 0.5f;
+	return FMath::Lerp(Left, Right, T);
+}
+
+int32 SMultiHandleSlider::NearestLane(const FGeometry& Geo, FVector2D Local) const
+{
+	int32 Best = 0;
+	float BestDist = FLT_MAX;
+	for (int32 Lane = 0; Lane < NumLanes; ++Lane)
+	{
+		const float Axis = (Orientation == Orient_Horizontal) ? LanePosY(Geo, Lane) : LanePosX(Geo, Lane);
+		const float Dist = FMath::Abs(((Orientation == Orient_Horizontal) ? Local.Y : Local.X) - Axis);
+		if (Dist < BestDist) { BestDist = Dist; Best = Lane; }
+	}
+	return Best;
+}
+
+
+// -------------------------------------------- //
+/*
+	This is so I can remember stuff for later on :
+
+		clear all keys function call :
+			MyMultiHandleSlider->ClearAllKeys();
+
+
+
+
+*/
