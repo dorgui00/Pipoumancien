@@ -19,7 +19,7 @@ private:
 	static ADB_Manager* MyInstance;
 	
 public:
-	static ADB_Manager* Instance();
+	static ADB_Manager* Instance(UWorld* World);
 
 	virtual void BeginPlay() override;
 	

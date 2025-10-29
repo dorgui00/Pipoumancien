@@ -4,6 +4,7 @@
 #include "Character/PipouCharacterState.h"
 
 #include "InputActionValue.h"
+#include "Character/PipouCharacterInputData.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
 #include "Game/GameManager.h"
@@ -30,20 +31,24 @@ void UPipouCharacterState::StateEnter(EPipouCharacterStateID PreviousStateID)
 
 void UPipouCharacterState::StateTick(float Deltatime)
 {
+	
 }
 	
 void UPipouCharacterState::StateExit(EPipouCharacterStateID NextStateID)
 {
 }
 
-
-
-void UPipouCharacterState::OnCharacterPressedInput(UInputAction* InputAction, FInputActionValue InputActionValue)
+void UPipouCharacterState::OnCharacterPitch(FInputActionValue InputActionValue)
 {
-	if (AGameManager::Instance()->GetCurrentSkeleton() != nullptr)
+	
+}
+
+void UPipouCharacterState::OnCharacterPressedNote(UInputAction* InputAction)
+{
+	if (AGameManager::Instance(GetWorld())->GetCurrentSkeleton() != nullptr)
 	{
 		UE_LOG(LogTemp, Display, TEXT("Add note"));
-		AGameManager::Instance()->AddNote(InputAction);
+		AGameManager::Instance(GetWorld())->AddNote(InputAction);
 	}
 }
 
