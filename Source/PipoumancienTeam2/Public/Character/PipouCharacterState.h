@@ -29,7 +29,7 @@ class PIPOUMANCIENTEAM2_API UPipouCharacterState : public UActorComponent
 
 public:
 	UPipouCharacterState();
-	
+
 	// Manage State
 	virtual EPipouCharacterStateID GetStateID();
 	virtual void StateInit(UPipouCharacterStateMachine* InStateMachine);
@@ -48,8 +48,5 @@ protected:
 	F_Skeleton* Skeleton = nullptr;
 
 	UFUNCTION()
-	virtual void OnCharacterPressedNote(UInputAction* InputAction);
-
-	UFUNCTION()
-	virtual void OnCharacterPitch(FInputActionValue InputActionValue);
+	virtual void OnCharacterPressedInput(UInputAction* InputAction, FInputActionValue InputActionValue);
 };

@@ -2,28 +2,14 @@
 
 
 #include "Data/DB_Manager.h"
-#include "EngineUtils.h"
+
 #include "F_Skeleton.h"
 #include "Kismet/GameplayStatics.h"
 
 ADB_Manager* ADB_Manager::MyInstance;
 
-ADB_Manager* ADB_Manager::Instance(UWorld* World)
+ADB_Manager* ADB_Manager::Instance()
 {
-	if (IsValid(MyInstance))
-		return MyInstance;
-
-	for (TActorIterator<ADB_Manager> It(World); It; ++It)
-	{
-		MyInstance = *It;
-		break;
-	}
-
-	if (!MyInstance)
-	{
-		MyInstance = World->SpawnActor<ADB_Manager>(ADB_Manager::StaticClass());
-	}
-
 	return MyInstance;
 }
 

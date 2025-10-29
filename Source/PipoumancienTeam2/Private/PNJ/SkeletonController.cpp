@@ -18,7 +18,7 @@ void ASkeletonController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	DB_Manager = ADB_Manager::Instance(GetWorld());
+	DB_Manager = ADB_Manager::Instance();
 
 	if (DB_Manager)
 		MySkeleton = DB_Manager->GetSkeletonByID(ID);

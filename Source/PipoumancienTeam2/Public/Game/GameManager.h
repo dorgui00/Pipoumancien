@@ -27,7 +27,7 @@ class PIPOUMANCIENTEAM2_API AGameManager : public AActor
 	GENERATED_BODY()
 	
 public :
-	static AGameManager* Instance(UWorld* World);
+	static AGameManager* Instance();
 	
 	UPROPERTY()
 	TArray<APipouCharacter*> PipouCharacters;
