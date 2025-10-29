@@ -79,8 +79,6 @@ void AMusicManager::Tick(float DeltaTime)
 			IsInWorldStateMusic = false;
 			
 			Tempo = 0.f;
-
-			return;
 		}
 		
 		F_Note CurrentNote = CurrentSkeleton->Notes[CurrentWaitingNoteIndex];
@@ -149,7 +147,7 @@ void AMusicManager::ResetReplies()
 
 bool AMusicManager::HasAchievedQte()
 {
-	AGameManager* GameManager = AGameManager::Instance();
+	AGameManager* GameManager = AGameManager::Instance(GetWorld());
 	
 	//return Replies >= GameManager->PipouCharacters.Num();
 	return Replies >= 1;

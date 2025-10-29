@@ -23,7 +23,8 @@ enum class EPipouCharacterClass : uint8
 	Phantom,
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInputPressedEvent, UInputAction*,  InputAction, FInputActionValue, InputActionValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInputPressedNoteEvent, UInputAction*,  InputAction);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInputPitchEvent, FInputActionValue, InputActionValue);
 
 UCLASS()
 class PIPOUMANCIENTEAM2_API APipouCharacter : public ACharacter, public ICameraFollowTarget
@@ -32,6 +33,7 @@ class PIPOUMANCIENTEAM2_API APipouCharacter : public ACharacter, public ICameraF
 
 public:
 	APipouCharacter();
+	// ~APipouCharacter();
 
 	// Dead Zone
 	UPROPERTY(EditAnywhere, Category="Dead Zone")
@@ -80,7 +82,10 @@ public:
 	bool GetInputNoteY() const;
 
 	UPROPERTY()
-	FInputPressedEvent InputPressedEvent;
+	FInputPressedNoteEvent InputPressedNoteEvent;
+
+	UPROPERTY()
+	FInputPitchEvent InputPitchEvent;
 	
 	// Collider
 	UPROPERTY(VisibleAnywhere)
@@ -88,6 +93,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	// Camera
 	void SetCameraView() const;

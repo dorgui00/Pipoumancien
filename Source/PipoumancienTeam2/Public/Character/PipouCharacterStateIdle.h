@@ -24,5 +24,5 @@ public:
 	UAnimationAsset* IdleAnim;
 
 	// Music
-	virtual void OnCharacterPressedInput(UInputAction* InputAction, FInputActionValue InputActionValue) override;
+	virtual void OnCharacterPressedNote(UInputAction* InputAction) override;
 };
