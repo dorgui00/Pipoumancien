@@ -3,6 +3,7 @@
 
 #include "Game/GameManager.h"
 
+#include "EngineUtils.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
 #include "Data/F_Note.h"
@@ -13,12 +14,21 @@
 
 AGameManager* AGameManager::MyInstance ;
 
-AGameManager* AGameManager::Instance()
+AGameManager* AGameManager::Instance(UWorld* World)
 {
-	// if (!MyInstance)
-	// {
-	// 	MyInstance = NewObject<AGameManager>();
-	// }
+	if (IsValid(MyInstance))
+		return MyInstance;
+
+	for (TActorIterator<AGameManager> It(World); It; ++It)
+	{
+		MyInstance = *It;
+		break;
+	}
+
+	if (!MyInstance)
+	{
+		MyInstance = World->SpawnActor<AGameManager>(AGameManager::StaticClass());
+	}
 
 	return MyInstance;
 }
@@ -76,12 +86,6 @@ void AGameManager::ResetInputsArray()
 void AGameManager::BeginPlay()
 {
 	Super::BeginPlay();
-
-	//Init instance in the begin play
-	if (!MyInstance)
-	{
-		MyInstance = Cast<AGameManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AGameManager::StaticClass()));
-	}
 }
 
 void AGameManager::SetWorldMusicState()
@@ -90,16 +94,16 @@ void AGameManager::SetWorldMusicState()
 	WorldState = EWorldState::WorldMusic;
 
 	// TO EDIT -- secu pour avoir un TArray<APipouCharacter> à jour (ordre d'execution/initialisation)
-	if (PipouCharacters.Num() ==0)
-	{
-		TArray<AActor*> Characters;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(),APipouCharacter::StaticClass(), Characters);
-		for (auto Character : Characters)
-		{
-			APipouCharacter* PipouCharacter = Cast<APipouCharacter>(Character);
-			PipouCharacters.Add(PipouCharacter);
-		}
-	}
+	// if (PipouCharacters.Num() == 0)
+	// {
+	// 	TArray<AActor*> Characters;
+	// 	UGameplayStatics::GetAllActorsOfClass(GetWorld(),APipouCharacter::StaticClass(), Characters);
+	// 	for (auto Character : Characters)
+	// 	{
+	// 		APipouCharacter* PipouCharacter = Cast<APipouCharacter>(Character);
+	// 		PipouCharacters.Add(PipouCharacter);
+	// 	}
+	// }
 	
 	//change state for players
 	for (auto Character : PipouCharacters) 

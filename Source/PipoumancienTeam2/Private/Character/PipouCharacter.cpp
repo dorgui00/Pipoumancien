@@ -19,6 +19,11 @@ APipouCharacter::APipouCharacter()
 	InteractionCollider->SetupAttachment(GetRootComponent());
 }
 
+// APipouCharacter::~APipouCharacter()
+// {
+// 	
+// }
+
 void APipouCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -32,8 +37,16 @@ void APipouCharacter::BeginPlay()
 	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->AddFollowTarget(this);
 
 	// TO EDIT pour l instant jamais true (ordre d'execution/initialisation)
-	if (AGameManager::Instance())
-		AGameManager::Instance()->SetCharacters(this);
+	if (AGameManager::Instance(GetWorld()))
+		AGameManager::Instance(GetWorld())->SetCharacters(this);
+}
+
+void APipouCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	InteractionCollider->OnComponentBeginOverlap.RemoveDynamic(this, &APipouCharacter::OnComponentBeginOverlap);
+	InteractionCollider->OnComponentEndOverlap.RemoveDynamic(this, &APipouCharacter::OnComponentEndOverlap);
 }
 
 void APipouCharacter::SetCameraView() const
@@ -223,12 +236,13 @@ void APipouCharacter::OnInputMoveXY(const FInputActionValue& InputActionValue)
 void APipouCharacter::OnInputPitch(const FInputActionValue& InputActionValue)
 {
 	InputPitch = InputActionValue.Get<float>();
+	InputPitchEvent.Broadcast(InputActionValue);
 }
 
 void APipouCharacter::OnInputNoteAStarted(const FInputActionValue& InputActionValue)
 {
 	InputNoteA = true;
-	InputPressedEvent.Broadcast(InputData->InputNoteA, InputActionValue);
+	InputPressedNoteEvent.Broadcast(InputData->InputNoteA);
 }
 
 void APipouCharacter::OnInputNoteACompleted(const FInputActionValue& InputActionValue)
@@ -239,7 +253,7 @@ void APipouCharacter::OnInputNoteACompleted(const FInputActionValue& InputAction
 void APipouCharacter::OnInputNoteBStarted(const FInputActionValue& InputActionValue)
 {
 	InputNoteB = true;
-	InputPressedEvent.Broadcast(InputData->InputNoteB, InputActionValue);
+	InputPressedNoteEvent.Broadcast(InputData->InputNoteB);
 }
 
 void APipouCharacter::OnInputNoteBCompleted(const FInputActionValue& InputActionValue)
@@ -250,7 +264,7 @@ void APipouCharacter::OnInputNoteBCompleted(const FInputActionValue& InputAction
 void APipouCharacter::OnInputNoteXStarted(const FInputActionValue& InputActionValue)
 {
 	InputNoteX = true;
-	InputPressedEvent.Broadcast(InputData->InputNoteX, InputActionValue);
+	InputPressedNoteEvent.Broadcast(InputData->InputNoteX);
 }
 
 void APipouCharacter::OnInputNoteXCompleted(const FInputActionValue& InputActionValue)
@@ -261,7 +275,7 @@ void APipouCharacter::OnInputNoteXCompleted(const FInputActionValue& InputAction
 void APipouCharacter::OnInputNoteYStarted(const FInputActionValue& InputActionValue)
 {
 	InputNoteY = true;
-	InputPressedEvent.Broadcast(InputData->InputNoteY, InputActionValue);
+	InputPressedNoteEvent.Broadcast(InputData->InputNoteY);
 }
 
 void APipouCharacter::OnInputNoteYCompleted(const FInputActionValue& InputActionValue)
@@ -279,7 +293,7 @@ void APipouCharacter::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCom
 
 	if (SkeletonController)
 	{
-		AGameManager::Instance()->SetCurrentSkeleton(SkeletonController->MySkeleton);
+		AGameManager::Instance(GetWorld())->SetCurrentSkeleton(SkeletonController->MySkeleton);
 		UE_LOG(LogTemp, Display, TEXT("Begin Overlap Skeleton"));
 	}
 }
@@ -292,7 +306,7 @@ void APipouCharacter::OnComponentEndOverlap(UPrimitiveComponent* OverlappedCompo
 
 	if (SkeletonController)
 	{
-		AGameManager::Instance()->SetCurrentSkeleton(nullptr);
+		AGameManager::Instance(GetWorld())->SetCurrentSkeleton(nullptr);
 		UE_LOG(LogTemp, Display, TEXT("End Overlap Skeleton"));
 	}
 }
