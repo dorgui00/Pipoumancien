@@ -46,9 +46,11 @@ void UPipouCharacterStateMusic::InitRoles()
 	{
 	case EPipouCharacterClass::Necro:
 		CurrentRole = EPipouCharacterRoles::Musician;
+		break;
 		
 	case EPipouCharacterClass::Phantom:
 		CurrentRole = EPipouCharacterRoles::Conductor;
+		break;
 		
 	default:
 		CurrentRole = EPipouCharacterRoles::None;
@@ -67,7 +69,7 @@ void UPipouCharacterStateMusic::InitInputPitch()
 
 void UPipouCharacterStateMusic::SetMusicManager()
 {
-	MusicManager = AMusicManager::Instance();
+	MusicManager = AMusicManager::Instance(GetWorld());
 }
 
 

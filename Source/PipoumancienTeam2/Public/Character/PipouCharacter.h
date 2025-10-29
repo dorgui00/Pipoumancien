@@ -38,7 +38,7 @@ public:
 	float DeadZone = 0.5f;
 
 	// Pipou State
-	UPROPERTY(EditAnywhere, Category="Pipou Character")
+	UPROPERTY(EditDefaultsOnly, Category="Pipou Character")
 	EPipouCharacterClass PipouClass;
 
 	EPipouCharacterClass GetPipouCharacterClass() const;

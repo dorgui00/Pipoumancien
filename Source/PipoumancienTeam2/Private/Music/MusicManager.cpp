@@ -3,30 +3,55 @@
 
 #include "Music/MusicManager.h"
 
-#include "Character/PipouCharacterStateID.h"
-#include "Character/PipouCharacterStateMachine.h"
+#include "EngineUtils.h"
+#include "InputAction.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
 #include "Game/GameManager.h"
 
 class UPipouCharacterStateMusic;
 AMusicManager* AMusicManager::MyInstance;
-	
-AMusicManager* AMusicManager::Instance()
+
+AMusicManager::AMusicManager()
 {
+	PrimaryActorTick.bCanEverTick = true;
+}
+	
+AMusicManager* AMusicManager::Instance(UWorld* World)
+{
+	if (IsValid(MyInstance))
+		return MyInstance;
+
+	for (TActorIterator<AMusicManager> It(World); It; ++It)
+	{
+		MyInstance = *It;
+		break;
+	}
+
 	if (!MyInstance)
 	{
-		MyInstance = NewObject<AMusicManager>(); 
+		MyInstance = World->SpawnActor<AMusicManager>(AMusicManager::StaticClass());
 	}
 
 	return MyInstance;
 }
 
+
+void AMusicManager::BeginPlay()
+{
+	Super::BeginPlay();
+
+	//SetActorTickEnabled(false);
+	IsInWorldStateMusic = false;
+}
+
+
 void AMusicManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	//UE_LOG(LogTemp, Display, TEXT("jveux ticker"));
 
-	// isInWorldState
+	if (!IsInWorldStateMusic) return; // TO EDIT
 	
 	if (IsInCountDown)
 	{
@@ -37,53 +62,63 @@ void AMusicManager::Tick(float DeltaTime)
 			UE_LOG(LogTemp, Display, TEXT("Finish Countdown"));
 			
 		 	IsInCountDown = false;
-			TimerCountDown = 3.f;
+			TimerCountDown = 5.f;
 		}
 	}
 	else // 
 	{
 		Tempo += DeltaTime;
-		
-		for (int i = CurrentWaitingNoteIndex; i < CurrentSkeleton->Notes.Num(); i++)
-		{
-			CurrentWaitingNoteIndex = i;
 
-			// Not yet time for qte => !IsAwaitingReply
-			if (Tempo < CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency-Tolerance)
-			{
-				IsAwaitingReply = false;
-				continue;
-			}
-			//Is Awaiting Reply
-			if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - Tolerance && !IsAwaitingReply)
-			{
-				//UE_LOG(LogTemp, Display, TEXT("Attend l input %s", CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction.ToString()));
-				
-				IsAwaitingReply = true;
-				continue;
-			}
-			// check success
-			if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + Tolerance)
-			{
-				IsAwaitingReply = false ;
-				ResetReplies();
-				
-				if(HasAchievedQte())
-				{
-					//go next note
-                	Tempo = Tolerance;
-				}
-				else
-				{
-					StartCountDown();
-					CurrentWaitingNoteIndex -= 2;
-					break; // out loop to go inCountdown
-				}
-			}
+		if (!CurrentSkeleton) return; // secu
+		
+		if (CurrentWaitingNoteIndex == CurrentSkeleton->Notes.Num()-1)
+		{
+			UE_LOG(LogTemp, Display, TEXT("Melodie finie et réussie"));
+			
+			//SetActorTickEnabled(false);
+			IsInWorldStateMusic = false;
+			
+			Tempo = 0.f;
+
+			return;
 		}
 		
-		UE_LOG(LogTemp, Display, TEXT("Melodie finie et réussie"));
-		SetActorTickEnabled(false);
+		F_Note CurrentNote = CurrentSkeleton->Notes[CurrentWaitingNoteIndex];
+
+		// Not yet time for qte => !IsAwaitingReply
+		if (Tempo < CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency-Tolerance)
+		{
+			IsAwaitingReply = false;
+			return;
+		}
+		//Is Awaiting Reply
+		if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - Tolerance && !IsAwaitingReply)
+		{
+			UE_LOG(LogTemp, Display, TEXT("Attend l input : %s"), *CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName());
+			
+			IsAwaitingReply = true;
+			return;
+		}
+		// check success
+		if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + Tolerance)
+		{
+			IsAwaitingReply = false ;
+			
+			if(HasAchievedQte())
+			{
+				//go next note
+				UE_LOG(LogTemp, Display, TEXT("Go next note"));
+				Tempo = Tolerance;
+				CurrentWaitingNoteIndex++;
+			}
+			else
+			{
+				StartCountDown();
+				CurrentWaitingNoteIndex = FMath::Max(0, CurrentWaitingNoteIndex-2);
+			}
+			
+			ResetReplies();
+		}
 	}
 }
 
@@ -92,7 +127,8 @@ void AMusicManager::InitMusicBySkeleton(F_Skeleton* Skeleton)
 {
 	CurrentSkeleton = Skeleton;
 	
-	SetActorTickEnabled(true);
+	//SetActorTickEnabled(true);
+	IsInWorldStateMusic = true;
 	StartCountDown();
 }
 
@@ -115,7 +151,8 @@ bool AMusicManager::HasAchievedQte()
 {
 	AGameManager* GameManager = AGameManager::Instance();
 	
-	return Replies >= GameManager->PipouCharacters.Num();
+	//return Replies >= GameManager->PipouCharacters.Num();
+	return Replies >= 1;
 }
 
 void AMusicManager::StartCountDown()
