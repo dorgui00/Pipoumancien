@@ -27,7 +27,7 @@ public :
 protected:
 	UPROPERTY()
 	TObjectPtr<UCameraComponent> CameraMain;
-
+	
 	void TickUpdateCameraZoom(float DeltaTime);
 	
 	void TickUpdateCameraPosition(float DeltaTime);
@@ -47,14 +47,23 @@ protected:
 	FVector CalculateAveragePositionBetweenTargets();
 
 	float CalculateGreatestDistanceBetweenTargets();
-
-	void TranslateFollowTargets();
 	
 #pragma endregion
 
+#pragma region Frustrum
+public :
+	bool ClampPositionInsideQuad(const FVector& InPos, FVector& OutPos); // in chara state
+	
+protected :
+	TArray<FVector> GetCameraQuadGroundBounds();
+#pragma endregion
+	
 #pragma region Misc
 protected:
 	UCameraComponent* FindCameraByTag(const FName& Tag) const;
+
+private :
+	void InitCameraRotationToPivot();
 	
 #pragma endregion
 
@@ -100,6 +109,11 @@ protected :
 
 	UFUNCTION()
 	void InitCameraZoomParameters();
+	
+#pragma endregion
+
+#pragma region MusicCamera
+	void SetMusicCamera();
 	
 #pragma endregion
 };

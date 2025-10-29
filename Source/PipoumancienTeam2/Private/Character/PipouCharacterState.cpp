@@ -2,8 +2,11 @@
 
 
 #include "Character/PipouCharacterState.h"
+
+#include "InputActionValue.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
+#include "Game/GameManager.h"
 
 UPipouCharacterState::UPipouCharacterState()
 {
@@ -32,3 +35,15 @@ void UPipouCharacterState::StateTick(float Deltatime)
 void UPipouCharacterState::StateExit(EPipouCharacterStateID NextStateID)
 {
 }
+
+
+
+void UPipouCharacterState::OnCharacterPressedInput(UInputAction* InputAction, FInputActionValue InputActionValue)
+{
+	if (AGameManager::Instance()->GetCurrentSkeleton() != nullptr)
+	{
+		UE_LOG(LogTemp, Display, TEXT("Add note"));
+		AGameManager::Instance()->AddNote(InputAction);
+	}
+}
+

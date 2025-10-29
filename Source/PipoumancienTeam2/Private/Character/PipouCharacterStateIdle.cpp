@@ -5,6 +5,7 @@
 #include "Character/PipouCharacter.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
+#include "Game/GameManager.h"
 
 EPipouCharacterStateID UPipouCharacterStateIdle::GetStateID()
 {
@@ -16,12 +17,7 @@ void UPipouCharacterStateIdle::StateEnter(EPipouCharacterStateID PreviousStateID
 	Super::StateEnter(PreviousStateID);
 	Character->GetMesh()->PlayAnimation(IdleAnim, true);
 		
-	GEngine->AddOnScreenDebugMessage(
-		-1,
-		3.f,
-		FColor::Red,
-		TEXT("Enter StateIdle")
-	);
+	Character->InputPressedEvent.AddDynamic(this, &UPipouCharacterStateIdle::OnCharacterPressedInput);
 }
 
 void UPipouCharacterStateIdle::StateTick(float Deltatime)
@@ -38,10 +34,12 @@ void UPipouCharacterStateIdle::StateExit(EPipouCharacterStateID NextStateID)
 {
 	Super::StateExit(NextStateID);
 
-	GEngine->AddOnScreenDebugMessage(
-		-1,
-		3.f,
-		FColor::Red,
-		TEXT("Exit StateIdle")
-	);
+	Character->InputPressedEvent.RemoveDynamic(this, &UPipouCharacterStateIdle::OnCharacterPressedInput);
 }
+
+void UPipouCharacterStateIdle::OnCharacterPressedInput(UInputAction* InputAction, FInputActionValue InputActionValue)
+{
+	Super::OnCharacterPressedInput(InputAction, InputActionValue);
+
+}
+
