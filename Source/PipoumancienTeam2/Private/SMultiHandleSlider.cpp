@@ -3,6 +3,15 @@
 #include "Styling/CoreStyle.h"
 #include "Framework/Application/SlateApplication.h"
 
+static FPaintGeometry MakePG(const FGeometry& Geo, const FVector2D& Pos, const FVector2D& Size)
+{
+	return Geo.ToPaintGeometry(
+		FVector2f(Size),
+		FSlateLayoutTransform(FVector2f(Pos))
+	);
+}
+
+
 void SMultiHandleSlider::Construct(const FArguments& InArgs)
 {
 	Orientation = InArgs._Orientation;
@@ -50,14 +59,14 @@ int32 SMultiHandleSlider::OnPaint(const FPaintArgs& Args, const FGeometry& Geo,
 			const float Y = LanePosY(Geo, Lane);
 			const FVector2D P(HandleRadius, Y - 0.5f * TrackThickness);
 			const FVector2D S(Size.X - 2.f * HandleRadius, TrackThickness);
-			FSlateDrawElement::MakeBox(Out, ++LayerId, Geo.ToPaintGeometry(P, S), Brush, ESlateDrawEffect::None, TrackColor);
+			FSlateDrawElement::MakeBox(Out, ++LayerId, MakePG(Geo, P, S), Brush, ESlateDrawEffect::None, TrackColor);
 		}
 		else
 		{
 			const float X = LanePosX(Geo, Lane);
 			const FVector2D P(X - 0.5f * TrackThickness, HandleRadius);
 			const FVector2D S(TrackThickness, Size.Y - 2.f * HandleRadius);
-			FSlateDrawElement::MakeBox(Out, ++LayerId, Geo.ToPaintGeometry(P, S), Brush, ESlateDrawEffect::None, TrackColor);
+			FSlateDrawElement::MakeBox(Out, ++LayerId, MakePG(Geo, P, S), Brush, ESlateDrawEffect::None, TrackColor);
 		}
 	}
 
@@ -73,7 +82,7 @@ int32 SMultiHandleSlider::OnPaint(const FPaintArgs& Args, const FGeometry& Geo,
 				const float X = Value01ToPixel(Geo, V);
 				const FVector2D P(X - HandleRadius, Y - HandleRadius);
 				const FVector2D S(HandleRadius * 2.f, HandleRadius * 2.f);
-				FSlateDrawElement::MakeBox(Out, ++LayerId, Geo.ToPaintGeometry(P, S), Brush, ESlateDrawEffect::None, FLinearColor::White);
+				FSlateDrawElement::MakeBox(Out, ++LayerId, MakePG(Geo, P, S), Brush, ESlateDrawEffect::None, TrackColor);
 			}
 		}
 		else
@@ -84,7 +93,7 @@ int32 SMultiHandleSlider::OnPaint(const FPaintArgs& Args, const FGeometry& Geo,
 				const float Y = Value01ToPixel(Geo, V);
 				const FVector2D P(X - HandleRadius, Y - HandleRadius);
 				const FVector2D S(HandleRadius * 2.f, HandleRadius * 2.f);
-				FSlateDrawElement::MakeBox(Out, ++LayerId, Geo.ToPaintGeometry(P, S), Brush, ESlateDrawEffect::None, FLinearColor::White);
+				FSlateDrawElement::MakeBox(Out, ++LayerId, MakePG(Geo, P, S), Brush, ESlateDrawEffect::None, TrackColor);
 			}
 		}
 	}

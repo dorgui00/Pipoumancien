@@ -7,6 +7,7 @@ DECLARE_DELEGATE_OneParam(FOnMultiSliderLanesChanged, const TArray<TArray<float>
 
 class SMultiHandleSlider : public SLeafWidget
 {
+
 public:
 	SLATE_BEGIN_ARGS(SMultiHandleSlider)
 		: _Orientation(Orient_Horizontal)

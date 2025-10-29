@@ -17,6 +17,7 @@ public class PipoumancienTeam2 : ModuleRules
             "UMG",
             "Slate",
             "SlateCore",
+            "EditorScriptingUtilities",
             //
             "EnhancedInput",
             "LocalMultiplayer",
