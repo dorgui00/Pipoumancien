@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Components/SplineComponent.h"
 #include "AC_SkeletonFollower.generated.h"
 
 
