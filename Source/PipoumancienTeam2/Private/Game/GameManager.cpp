@@ -115,5 +115,5 @@ void AGameManager::SetWorldMusicState()
 	// BlockMovement()
 	// SetCameraMusic()
 	// DisplayUI()
-	AMusicManager::Instance()->InitMusicBySkeleton(CurrentSkeleton);
+	AMusicManager::Instance(GetWorld())->InitMusicBySkeleton(CurrentSkeleton);
 }
