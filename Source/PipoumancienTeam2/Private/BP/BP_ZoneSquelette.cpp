@@ -25,6 +25,7 @@ ABP_ZoneSquelette::ABP_ZoneSquelette()
 	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ABP_ZoneSquelette::ABP_ZoneSquelette::BeginOverlaps);
 	SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ABP_ZoneSquelette::endOverlaps);
 
+	
 	//HUD
 	PlayerHUDClass = nullptr;
 	PlayerHUD = nullptr;
