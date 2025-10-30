@@ -50,8 +50,14 @@ void UMultiHandleSlider::SynchronizeProperties()
 		TArray<TArray<float>> LaneValues;
 		BuildSlateLaneArray(LaneValues);
 		MySlateWidget->SetLaneValues(LaneValues);
+
+		MySlateWidget->SetHandleRadius(HandleRadius);
+		MySlateWidget->SetBarThickness(BarThickness);
+		MySlateWidget->SetOrientation(Orientation);
+
 		MySlateWidget->Invalidate(EInvalidateWidget::LayoutAndVolatility);
 	}
+
 
 	auto SnapToStep = [this](float x)
 		{

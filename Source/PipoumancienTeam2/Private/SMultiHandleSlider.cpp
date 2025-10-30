@@ -42,7 +42,8 @@ void SMultiHandleSlider::SetLaneValues(const TArray<TArray<float>>& In)
 	for (TArray<float>& L : LaneValues) { L.Sort(); }
 }
 
-int32 SMultiHandleSlider::OnPaint(const FPaintArgs& Args, const FGeometry& Geo,
+int32 SMultiHandleSlider::OnPaint(
+	const FPaintArgs& Args, const FGeometry& Geo,
 	const FSlateRect& Cull, FSlateWindowElementList& Out, int32 LayerId,
 	const FWidgetStyle& Style, bool bParentEnabled) const
 {
@@ -67,6 +68,79 @@ int32 SMultiHandleSlider::OnPaint(const FPaintArgs& Args, const FGeometry& Geo,
 			const FVector2D P(X - 0.5f * TrackThickness, HandleRadius);
 			const FVector2D S(TrackThickness, Size.Y - 2.f * HandleRadius);
 			FSlateDrawElement::MakeBox(Out, ++LayerId, MakePG(Geo, P, S), Brush, ESlateDrawEffect::None, TrackColor);
+		}
+	}
+
+	const FLinearColor TickColor = FLinearColor(0.6f, 0.6f, 0.6f, 1.f);
+	const float TickStep = 0.05f;
+
+	const float TrackLen = (Orientation == Orient_Horizontal)
+		? (Size.X - 2.f * HandleRadius)
+		: (Size.Y - 2.f * HandleRadius);
+
+	const float TickLen = FMath::Max(1.f, TrackLen * 0.08f);
+	const float HalfTick = 0.5f * TickLen;
+
+	const float BaseThickness = 1.0f;
+	const float CenterThickness = 5.0f;
+	const float CenterT = 0.5f;
+	const float CenterTolerance = TickStep * 0.25f;
+
+	for (int32 Lane = 0; Lane < NumLanes; ++Lane)
+	{
+		if (Orientation == Orient_Horizontal)
+		{
+			const float Y = LanePosY(Geo, Lane);
+
+			for (float T = 0.0f; T <= 1.0f + KINDA_SMALL_NUMBER; T += TickStep)
+			{
+				const float X = Value01ToPixel(Geo, T);
+				const float Thickness = FMath::IsNearlyEqual(T, CenterT, CenterTolerance)
+					? CenterThickness
+					: BaseThickness;
+
+				TArray<FVector2D> LinePts;
+				LinePts.Add(FVector2D(X, Y - HalfTick));
+				LinePts.Add(FVector2D(X, Y + HalfTick));
+
+				FSlateDrawElement::MakeLines(
+					Out,
+					++LayerId,
+					Geo.ToPaintGeometry(),
+					LinePts,
+					ESlateDrawEffect::None,
+					TickColor,
+					true,
+					Thickness
+				);
+			}
+		}
+		else
+		{
+			const float X = LanePosX(Geo, Lane);
+
+			for (float T = 0.0f; T <= 1.0f + KINDA_SMALL_NUMBER; T += TickStep)
+			{
+				const float Y = Value01ToPixel(Geo, T);
+				const float Thickness = FMath::IsNearlyEqual(T, CenterT, CenterTolerance)
+					? CenterThickness
+					: BaseThickness;
+
+				TArray<FVector2D> LinePts;
+				LinePts.Add(FVector2D(X - HalfTick, Y));
+				LinePts.Add(FVector2D(X + HalfTick, Y));
+
+				FSlateDrawElement::MakeLines(
+					Out,
+					++LayerId,
+					Geo.ToPaintGeometry(),
+					LinePts,
+					ESlateDrawEffect::None,
+					TickColor,
+					true,
+					Thickness
+				);
+			}
 		}
 	}
 
@@ -101,9 +175,61 @@ int32 SMultiHandleSlider::OnPaint(const FPaintArgs& Args, const FGeometry& Geo,
 	return LayerId;
 }
 
+
 FReply SMultiHandleSlider::OnMouseButtonDown(const FGeometry& Geo, const FPointerEvent& E)
 {
-	if (E.GetEffectingButton() != EKeys::LeftMouseButton) return FReply::Unhandled();
+	if (E.GetEffectingButton() == EKeys::RightMouseButton)
+	{
+		const FVector2D Local = Geo.AbsoluteToLocal(E.GetScreenSpacePosition());
+		const float PickRadius = HandleRadius * 1.6f;
+
+		int32 HitLane = INDEX_NONE;
+		int32 HitIndex = INDEX_NONE;
+		float BestDist = FLT_MAX;
+
+		for (int32 Lane = 0; Lane < LaneValues.Num(); ++Lane)
+		{
+			const float LaneAxis = (Orientation == Orient_Horizontal) ? LanePosY(Geo, Lane) : LanePosX(Geo, Lane);
+
+			for (int32 i = 0; i < LaneValues[Lane].Num(); ++i)
+			{
+				const float AxisAlong = Value01ToPixel(Geo, LaneValues[Lane][i]);
+				const FVector2D HandleCenter = (Orientation == Orient_Horizontal)
+					? FVector2D(AxisAlong, LaneAxis)
+					: FVector2D(LaneAxis, AxisAlong);
+
+				const float Dist = (HandleCenter - Local).Size();
+				if (Dist < BestDist && Dist <= PickRadius)
+				{
+					BestDist = Dist;
+					HitLane = Lane;
+					HitIndex = i;
+				}
+			}
+		}
+
+		if (HitLane != INDEX_NONE)
+		{
+			LaneValues[HitLane].RemoveAt(HitIndex);
+
+			Values = (LaneValues.Num() > 0) ? LaneValues[0] : TArray<float>();
+
+			if (OnValuesChanged.IsBound()) OnValuesChanged.Execute(Values);
+			if (OnLanesChanged.IsBound())  OnLanesChanged.Execute(LaneValues);
+
+			ActiveLane = INDEX_NONE;
+			ActiveIndex = INDEX_NONE;
+
+			return FReply::Handled();
+		}
+
+		return FReply::Handled();
+	}
+
+	if (E.GetEffectingButton() != EKeys::LeftMouseButton)
+	{
+		return FReply::Unhandled();
+	}
 
 	const FVector2D Local = Geo.AbsoluteToLocal(E.GetScreenSpacePosition());
 
@@ -120,7 +246,8 @@ FReply SMultiHandleSlider::OnMouseButtonDown(const FGeometry& Geo, const FPointe
 		{
 			const float AxisAlong = Value01ToPixel(Geo, LaneValues[Lane][i]);
 			const FVector2D HandleCenter = (Orientation == Orient_Horizontal)
-				? FVector2D(AxisAlong, LaneAxis) : FVector2D(LaneAxis, AxisAlong);
+				? FVector2D(AxisAlong, LaneAxis)
+				: FVector2D(LaneAxis, AxisAlong);
 
 			const float Dist = (HandleCenter - Local).Size();
 			if (Dist < BestDist && Dist <= PickRadius)
@@ -150,8 +277,8 @@ FReply SMultiHandleSlider::OnMouseButtonDown(const FGeometry& Geo, const FPointe
 		ActiveIndex = NewIdx;
 
 		if (LaneValues.Num() > 0) { Values = LaneValues[0]; }
-		if (OnValuesChanged.IsBound())      OnValuesChanged.Execute(Values);
-		if (OnLanesChanged.IsBound())       OnLanesChanged.Execute(LaneValues);
+		if (OnValuesChanged.IsBound()) OnValuesChanged.Execute(Values);
+		if (OnLanesChanged.IsBound())  OnLanesChanged.Execute(LaneValues);
 	}
 
 	FSlateApplication::Get().SetKeyboardFocus(AsShared());

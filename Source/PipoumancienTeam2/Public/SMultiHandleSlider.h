@@ -40,6 +40,10 @@ public:
 
 		void SetLaneValues(const TArray<TArray<float>>& In);
 
+		void SetHandleRadius(float R) { HandleRadius = R; }
+		void SetBarThickness(float T) { BarThickness = T; }
+		void SetOrientation(EOrientation O) { Orientation = O; }
+
 private:
 	float PixelToValue01(const FGeometry& Geo, float Pixel) const;
 	float Value01ToPixel(const FGeometry& Geo, float V01) const;
@@ -59,7 +63,7 @@ private:
 
 	EOrientation Orientation = Orient_Horizontal;
 	float BarThickness = 4.f;
-	float HandleRadius = 6.f;
+	float HandleRadius = 20.f;
 	float StepSize = 0.f;
 
 	mutable int32 ActiveLane = INDEX_NONE;
