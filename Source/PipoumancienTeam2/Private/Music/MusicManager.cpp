@@ -88,8 +88,8 @@ void AMusicManager::Tick(float DeltaTime)
 		// Not yet time for qte => !IsAwaitingReply
 		if (Tempo < CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency-Tolerance)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("Attend l input : %s"), *CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName());
-			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Attend l input : %f"), CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Pitch);
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Attend l input : %s"), *CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName()));
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("Attend l input : %f"), CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Pitch));
 			
 			IsAwaitingReply = false;
 			return;
@@ -98,7 +98,7 @@ void AMusicManager::Tick(float DeltaTime)
 		//Is Awaiting Reply
 		if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - Tolerance && !IsAwaitingReply)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("PRESS"));
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("PRESS")));
 			// UE_LOG(LogTemp, Display, TEXT("Attend l input : %s"), *CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName());
 			
 			IsAwaitingReply = true;
@@ -113,7 +113,7 @@ void AMusicManager::Tick(float DeltaTime)
 			if(HasAchievedQte())
 			{
 				//go next note
-				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, TEXT("Go Next Note"));
+				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Go Next Note")));
 				
 				// UE_LOG(LogTemp, Display, TEXT("Go next note"));
 				Tempo = Tolerance;
@@ -177,7 +177,7 @@ void AMusicManager::CheckReceivedInput()
 void AMusicManager::StartCountDown()
 {
 	// UE_LOG(LogTemp, Display, TEXT("Start Count Down de 3sec"));
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, TEXT("Start CountDown de 3 sec"));
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Start CountDown de 3 sec")));
 	
 	Tempo = 0.f;
 	IsInCountDown = true;

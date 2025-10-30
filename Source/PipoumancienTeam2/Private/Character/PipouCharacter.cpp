@@ -19,11 +19,6 @@ APipouCharacter::APipouCharacter()
 	InteractionCollider->SetupAttachment(GetRootComponent());
 }
 
-// APipouCharacter::~APipouCharacter()
-// {
-// 	
-// }
-
 void APipouCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -67,7 +62,6 @@ APipouHUD* APipouCharacter::GetHUD() const
 {
 	return PipouHUD;
 }
-
 
 void APipouCharacter::Tick(float DeltaTime)
 {

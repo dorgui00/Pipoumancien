@@ -70,14 +70,14 @@ bool AGameManager::HasValidFirstNotes()
 		if (CurrentSkeleton->Notes[i].InputAction != InputPressed[i])
 		{
 			// UE_LOG(LogTemp, Display, TEXT("Enchainement de 3 notes raté"));
-			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, TEXT("Enchainement de 3 notes raté"));
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Enchainement de 3 notes raté")));
 			
 			return false;
 		}
 	}
 
 	// UE_LOG(LogTemp, Display, TEXT("Enchainement de 3 notes réussi"));
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, TEXT("Enchainement de 3 notes réussi"));
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Enchainement de 3 notes réussi")));
 	
 	return true;
 }
@@ -121,5 +121,5 @@ void AGameManager::DisplayResurrectionUI()
 	APipouHUD* PipoouHUD = PipouCharacters[0]->GetHUD();
 	if (PipoouHUD == nullptr) return;
 	
-	PipoouHUD()->AddWBPResurrection(PipouCharacters[0]->GetController<APlayerController>());
+	PipoouHUD->AddWBPResurrection(PipouCharacters[0]->GetController<APlayerController>());
 }

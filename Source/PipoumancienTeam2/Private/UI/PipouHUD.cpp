@@ -13,6 +13,6 @@ void APipouHUD::AddWBPResurrection(APlayerController* PlayerController)
 	
 	if (WBPResurrectionInstance != nullptr)
 	{
-		WBPResurrectionInstance->AddToPlayerScreen();
+		WBPResurrectionInstance->AddToViewport();
 	}
 }

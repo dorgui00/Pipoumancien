@@ -34,7 +34,6 @@ class PIPOUMANCIENTEAM2_API APipouCharacter : public ACharacter, public ICameraF
 
 public:
 	APipouCharacter();
-	// ~APipouCharacter();
 
 	// Dead Zone
 	UPROPERTY(EditAnywhere, Category="Dead Zone")

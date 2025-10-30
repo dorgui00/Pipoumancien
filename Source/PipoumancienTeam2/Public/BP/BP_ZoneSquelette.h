@@ -38,10 +38,10 @@ protected:
 		UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<class UWBP_UIReanimation> PlayerHUDClass;
+	TSubclassOf<class UResurrectionWidget> PlayerHUDClass;
 
 	UPROPERTY()
-	class UWBP_UIReanimation* PlayerHUD;
+	class UResurrectionWidget* PlayerHUD;
 
 public:
 	// Called every frame

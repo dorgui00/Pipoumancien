@@ -11,7 +11,7 @@ void UResurrectionWidget::InitWidget()
 }
 
 // Music
-void UResurrectionWidget::SetSliderPitch(float NewPitch)
+void UResurrectionWidget::SetSliderPitch(float NewPitch) const
 {
 	if (PitchSlider == nullptr) return;
 	PitchSlider->SetValue(NewPitch);

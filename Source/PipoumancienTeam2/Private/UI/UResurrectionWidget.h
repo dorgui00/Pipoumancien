@@ -24,6 +24,6 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	USlider* PitchSlider;
 	
-	void SetSliderPitch(float NewPitch);
+	void SetSliderPitch(float NewPitch) const;
 
 };

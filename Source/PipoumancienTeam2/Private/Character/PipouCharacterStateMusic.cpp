@@ -87,7 +87,7 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 		MusicManager->CurrentCursorValue = FMath::Clamp(MusicManager->CurrentCursorValue + InputActionValue.Get<float>(),
 			-1.f, 1.0f);
 
-		if (Character->GetHUD != nullptr)
+		if (Character->GetHUD() != nullptr)
 		{
 			Character->GetHUD()->WBPResurrectionInstance->SetSliderPitch(MusicManager->CurrentCursorValue);
 		}
