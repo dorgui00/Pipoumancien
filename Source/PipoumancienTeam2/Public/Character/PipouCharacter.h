@@ -6,6 +6,7 @@
 #include "InputActionValue.h"
 #include "Camera/CameraFollowTarget.h"
 #include "GameFramework/Character.h"
+#include "UI/PipouHUD.h"
 #include "PipouCharacter.generated.h"
 
 class USphereComponent;
@@ -44,7 +45,10 @@ public:
 	EPipouCharacterClass PipouClass;
 
 	EPipouCharacterClass GetPipouCharacterClass() const;
-		
+
+	// UI
+	APipouHUD* GetHUD() const;
+	
 	// State Machine
 	void CreateStateMachine();
 	void InitStateMachine();
@@ -125,6 +129,11 @@ protected:
 
 	UPROPERTY()
 	float InputPitch = 0;
+
+	UPROPERTY()
+	APipouHUD* PipouHUD;
+
+	void InitPipouHUD();
 	
 public:
 	virtual void Tick(float DeltaTime) override;

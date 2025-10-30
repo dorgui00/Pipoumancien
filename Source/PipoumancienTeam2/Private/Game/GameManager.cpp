@@ -69,12 +69,16 @@ bool AGameManager::HasValidFirstNotes()
 	{
 		if (CurrentSkeleton->Notes[i].InputAction != InputPressed[i])
 		{
-			UE_LOG(LogTemp, Display, TEXT("Enchainement de 3 notes raté"));
+			// UE_LOG(LogTemp, Display, TEXT("Enchainement de 3 notes raté"));
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, TEXT("Enchainement de 3 notes raté"));
+			
 			return false;
 		}
 	}
 
-	UE_LOG(LogTemp, Display, TEXT("Enchainement de 3 notes réussi"));
+	// UE_LOG(LogTemp, Display, TEXT("Enchainement de 3 notes réussi"));
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, TEXT("Enchainement de 3 notes réussi"));
+	
 	return true;
 }
 
@@ -90,21 +94,8 @@ void AGameManager::BeginPlay()
 
 void AGameManager::SetWorldMusicState()
 {
-
 	WorldState = EWorldState::WorldMusic;
 
-	// TO EDIT -- secu pour avoir un TArray<APipouCharacter> à jour (ordre d'execution/initialisation)
-	// if (PipouCharacters.Num() == 0)
-	// {
-	// 	TArray<AActor*> Characters;
-	// 	UGameplayStatics::GetAllActorsOfClass(GetWorld(),APipouCharacter::StaticClass(), Characters);
-	// 	for (auto Character : Characters)
-	// 	{
-	// 		APipouCharacter* PipouCharacter = Cast<APipouCharacter>(Character);
-	// 		PipouCharacters.Add(PipouCharacter);
-	// 	}
-	// }
-	
 	//change state for players
 	for (auto Character : PipouCharacters) 
 	{
@@ -118,6 +109,17 @@ void AGameManager::SetWorldMusicState()
 	// SetAllMusicBehavior()
 	// BlockMovement()
 	// SetCameraMusic()
-	// DisplayUI()
+	DisplayResurrectionUI();
 	AMusicManager::Instance(GetWorld())->InitMusicBySkeleton(CurrentSkeleton);
+}
+
+void AGameManager::DisplayResurrectionUI()
+{
+	APlayerController* PlayerController = PipouCharacters[0]->GetController<APlayerController>();
+	if (PlayerController == nullptr) return;
+
+	APipouHUD* PipoouHUD = PipouCharacters[0]->GetHUD();
+	if (PipoouHUD == nullptr) return;
+	
+	PipoouHUD()->AddWBPResurrection(PipouCharacters[0]->GetController<APlayerController>());
 }

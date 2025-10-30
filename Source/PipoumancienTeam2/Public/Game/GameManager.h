@@ -57,6 +57,8 @@ private :
 	static AGameManager* MyInstance;
 
 	void SetWorldMusicState();
+
+	void DisplayResurrectionUI();
 	
 };
 

@@ -8,6 +8,7 @@
 #include "Data/F_Note.h"
 #include "Game/GameManager.h"
 #include "Music/MusicManager.h"
+#include "UI/UResurrectionWidget.h"
 
 EPipouCharacterStateID UPipouCharacterStateMusic::GetStateID()
 {
@@ -81,17 +82,24 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 {
 	if (CurrentRole == EPipouCharacterRoles::Conductor)
 	{
+		if (InputActionValue.Get<float>() >= -0.1f && InputActionValue.Get<float>() <= 0.1f) return;
+		
 		MusicManager->CurrentCursorValue = FMath::Clamp(MusicManager->CurrentCursorValue + InputActionValue.Get<float>(),
 			-1.f, 1.0f);
 
-		UE_LOG(LogTemp, Display, TEXT("CurrentCursorValue: %f"), MusicManager->CurrentCursorValue);
-
-		if (MusicManager->IsAwaitingReply &&
-			(MusicManager->GetWaitingNote()->Pitch >= MusicManager->CurrentCursorValue - PitchTolerance ||
-			MusicManager->GetWaitingNote()->Pitch <= MusicManager->CurrentCursorValue + PitchTolerance))
+		if (Character->GetHUD != nullptr)
 		{
-			MusicManager->ReceiveInput();
+			Character->GetHUD()->WBPResurrectionInstance->SetSliderPitch(MusicManager->CurrentCursorValue);
 		}
+		
+		// UE_LOG(LogTemp, Display, TEXT("CurrentCursorValue: %f"), MusicManager->CurrentCursorValue);
+		//
+		// if (MusicManager->IsAwaitingReply &&
+		// 	(MusicManager->GetWaitingNote()->Pitch >= MusicManager->CurrentCursorValue - PitchTolerance ||
+		// 	MusicManager->GetWaitingNote()->Pitch <= MusicManager->CurrentCursorValue + PitchTolerance))
+		// {
+		// 	MusicManager->ReceiveInput();
+		// }
 	}
 }
 
@@ -101,7 +109,7 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 	{
 		if (MusicManager->IsAwaitingReply && MusicManager->GetWaitingNote()->InputAction == InputAction)
 		{
-			MusicManager->ReceiveInput();
+			MusicManager->CheckReceivedInput();
 		}
 	}
 }

@@ -52,11 +52,19 @@ private :
 public :
 	F_Note* GetWaitingNote();
 	
+	void CheckReceivedInput();
+	
 private :
 	F_Skeleton* CurrentSkeleton = nullptr;
 	
 	UPROPERTY(EditDefaultsOnly)
 	float Tolerance = 0.5f;
+
+	UPROPERTY()
+	bool HasMusicianReceivedInput = false;
+	
+	UPROPERTY(EditDefaultsOnly)
+	float PitchTolerance = 0.1f;
 
 	int CurrentWaitingNoteIndex = 0;
 	

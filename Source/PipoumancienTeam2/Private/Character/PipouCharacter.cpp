@@ -30,7 +30,8 @@ void APipouCharacter::BeginPlay()
 	
 	InteractionCollider->OnComponentBeginOverlap.AddDynamic(this, &APipouCharacter::OnComponentBeginOverlap);
 	InteractionCollider->OnComponentEndOverlap.AddDynamic(this, &APipouCharacter::OnComponentEndOverlap);
-	
+
+	InitPipouHUD();
 	CreateStateMachine();
 	InitStateMachine();
 	SetCameraView();
@@ -56,6 +57,18 @@ void APipouCharacter::SetCameraView() const
 	PlayerController->SetViewTargetWithBlend(CameraActor);
 }
 
+// UI
+void APipouCharacter::InitPipouHUD()
+{
+	PipouHUD = Cast<APipouHUD>(GetController<APlayerController>()->GetHUD());
+}
+
+APipouHUD* APipouCharacter::GetHUD() const
+{
+	return PipouHUD;
+}
+
+
 void APipouCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -79,6 +92,7 @@ EPipouCharacterClass APipouCharacter::GetPipouCharacterClass() const
 {
 	return PipouClass;
 }
+
 
 // State Machine
 void APipouCharacter::CreateStateMachine()
