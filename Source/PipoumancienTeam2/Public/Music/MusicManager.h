@@ -40,7 +40,7 @@ private :
 private :
 	bool IsInCountDown = false;
 	
-	float TimerCountDown = 5.f;
+	float TimerCountDown = 3.f;
 	float Tempo = 0.f;
 
 	void StartCountDown();
@@ -95,6 +95,8 @@ public :
 	
 private :
 	bool IsInWorldStateMusic = false;
+
+	bool HasPrint = false;
 
 #pragma endregion
 	

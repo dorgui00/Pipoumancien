@@ -84,7 +84,7 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 	{
 		if (InputActionValue.Get<float>() >= -0.1f && InputActionValue.Get<float>() <= 0.1f) return;
 		
-		MusicManager->CurrentCursorValue = FMath::Clamp(MusicManager->CurrentCursorValue + InputActionValue.Get<float>(),
+		MusicManager->CurrentCursorValue = FMath::Clamp(MusicManager->CurrentCursorValue + InputActionValue.Get<float>() * 0.1f,
 			-1.f, 1.0f);
 
 		if (Character->GetHUD() != nullptr)

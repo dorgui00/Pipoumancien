@@ -14,8 +14,8 @@ class PIPOUMANCIENTEAM2_API APipouHUD : public AHUD
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<class UResurrectionWidget> WBPResurrectionClass;
+	UPROPERTY(EditAnywhere, Category="Resurrection")
+	TSubclassOf<UResurrectionWidget> WBPResurrectionClass;
 
 	UPROPERTY()
 	UResurrectionWidget* WBPResurrectionInstance;

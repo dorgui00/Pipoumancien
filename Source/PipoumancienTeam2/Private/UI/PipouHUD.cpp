@@ -7,7 +7,7 @@
 
 void APipouHUD::AddWBPResurrection(APlayerController* PlayerController)
 {
-	if (WBPResurrectionInstance == nullptr) return;
+	if (WBPResurrectionClass == nullptr) return;
 	
 	WBPResurrectionInstance = CreateWidget<UResurrectionWidget>(PlayerController, WBPResurrectionClass);
 	
