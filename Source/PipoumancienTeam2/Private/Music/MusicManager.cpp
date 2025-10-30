@@ -62,7 +62,10 @@ void AMusicManager::Tick(float DeltaTime)
 			// UE_LOG(LogTemp, Display, TEXT("Finish Countdown"));
 			
 		 	IsInCountDown = false;
-			TimerCountDown = 5.f;
+			TimerCountDown = 3.f;
+
+			// sortir du worldstate musique, change state idl
+			IsInWorldStateMusic = false;
 		}
 	}
 	else // 
@@ -163,7 +166,7 @@ void AMusicManager::ResetReplies()
 bool AMusicManager::HasAchievedQte()
 {
 	if (HasMusicianReceivedInput && (GetWaitingNote()->Pitch >= CurrentCursorValue - PitchTolerance &&
-			GetWaitingNote()->Pitch < CurrentCursorValue + PitchTolerance))
+			GetWaitingNote()->Pitch <= CurrentCursorValue + PitchTolerance))
 	{
 		return true;
 	}

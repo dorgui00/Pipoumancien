@@ -5,7 +5,7 @@
 #include "LocalMultiplayerSettings.h"
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputSubsystems.h"
-#include "InputState.h"
+//#include "InputState.h"
 #include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputSubsystemInterface.h"
 
 // Cr�er et initialise des PlayerControllers en fonction de settings clavier ou gamepad
