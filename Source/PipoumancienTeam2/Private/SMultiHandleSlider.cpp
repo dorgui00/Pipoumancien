@@ -103,7 +103,58 @@ int32 SMultiHandleSlider::OnPaint(const FPaintArgs& Args, const FGeometry& Geo,
 
 FReply SMultiHandleSlider::OnMouseButtonDown(const FGeometry& Geo, const FPointerEvent& E)
 {
-	if (E.GetEffectingButton() != EKeys::LeftMouseButton) return FReply::Unhandled();
+	if (E.GetEffectingButton() == EKeys::RightMouseButton)
+	{
+		const FVector2D Local = Geo.AbsoluteToLocal(E.GetScreenSpacePosition());
+		const float PickRadius = HandleRadius * 1.6f;
+
+		int32 HitLane = INDEX_NONE;
+		int32 HitIndex = INDEX_NONE;
+		float BestDist = FLT_MAX;
+
+		for (int32 Lane = 0; Lane < LaneValues.Num(); ++Lane)
+		{
+			const float LaneAxis = (Orientation == Orient_Horizontal) ? LanePosY(Geo, Lane) : LanePosX(Geo, Lane);
+
+			for (int32 i = 0; i < LaneValues[Lane].Num(); ++i)
+			{
+				const float AxisAlong = Value01ToPixel(Geo, LaneValues[Lane][i]);
+				const FVector2D HandleCenter = (Orientation == Orient_Horizontal)
+					? FVector2D(AxisAlong, LaneAxis)
+					: FVector2D(LaneAxis, AxisAlong);
+
+				const float Dist = (HandleCenter - Local).Size();
+				if (Dist < BestDist && Dist <= PickRadius)
+				{
+					BestDist = Dist;
+					HitLane = Lane;
+					HitIndex = i;
+				}
+			}
+		}
+
+		if (HitLane != INDEX_NONE)
+		{
+			LaneValues[HitLane].RemoveAt(HitIndex);
+
+			Values = (LaneValues.Num() > 0) ? LaneValues[0] : TArray<float>();
+
+			if (OnValuesChanged.IsBound()) OnValuesChanged.Execute(Values);
+			if (OnLanesChanged.IsBound())  OnLanesChanged.Execute(LaneValues);
+
+			ActiveLane = INDEX_NONE;
+			ActiveIndex = INDEX_NONE;
+
+			return FReply::Handled();
+		}
+
+		return FReply::Handled();
+	}
+
+	if (E.GetEffectingButton() != EKeys::LeftMouseButton)
+	{
+		return FReply::Unhandled();
+	}
 
 	const FVector2D Local = Geo.AbsoluteToLocal(E.GetScreenSpacePosition());
 
@@ -120,7 +171,8 @@ FReply SMultiHandleSlider::OnMouseButtonDown(const FGeometry& Geo, const FPointe
 		{
 			const float AxisAlong = Value01ToPixel(Geo, LaneValues[Lane][i]);
 			const FVector2D HandleCenter = (Orientation == Orient_Horizontal)
-				? FVector2D(AxisAlong, LaneAxis) : FVector2D(LaneAxis, AxisAlong);
+				? FVector2D(AxisAlong, LaneAxis)
+				: FVector2D(LaneAxis, AxisAlong);
 
 			const float Dist = (HandleCenter - Local).Size();
 			if (Dist < BestDist && Dist <= PickRadius)
@@ -150,8 +202,8 @@ FReply SMultiHandleSlider::OnMouseButtonDown(const FGeometry& Geo, const FPointe
 		ActiveIndex = NewIdx;
 
 		if (LaneValues.Num() > 0) { Values = LaneValues[0]; }
-		if (OnValuesChanged.IsBound())      OnValuesChanged.Execute(Values);
-		if (OnLanesChanged.IsBound())       OnLanesChanged.Execute(LaneValues);
+		if (OnValuesChanged.IsBound()) OnValuesChanged.Execute(Values);
+		if (OnLanesChanged.IsBound())  OnLanesChanged.Execute(LaneValues);
 	}
 
 	FSlateApplication::Get().SetKeyboardFocus(AsShared());
