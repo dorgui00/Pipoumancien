@@ -16,3 +16,14 @@ void APipouHUD::AddWBPResurrection(APlayerController* PlayerController)
 		WBPResurrectionInstance->AddToViewport();
 	}
 }
+
+void APipouHUD::RemoveResurrection()
+{
+	if (WBPResurrectionInstance != nullptr)
+	{
+		WBPResurrectionInstance->RemoveFromParent();
+		WBPResurrectionInstance = nullptr;
+	}
+}
+
+

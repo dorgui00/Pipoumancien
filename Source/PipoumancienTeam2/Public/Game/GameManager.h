@@ -47,6 +47,9 @@ public :
 	bool HasValidFirstNotes();
 	void ResetInputsArray();
 
+	/// TO EDIT
+	void RemoveResurrectionUI();
+	
 private :
 	virtual void BeginPlay() override;
 

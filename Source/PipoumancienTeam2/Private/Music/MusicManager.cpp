@@ -5,8 +5,11 @@
 
 #include "EngineUtils.h"
 #include "InputAction.h"
+#include "Character/PipouCharacterStateID.h"
+#include "Character/PipouCharacterStateMachine.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
+#include "Game/GameManager.h"
 
 class UPipouCharacterStateMusic;
 AMusicManager* AMusicManager::MyInstance;
@@ -81,6 +84,18 @@ void AMusicManager::Tick(float DeltaTime)
 			IsInWorldStateMusic = false;
 			
 			Tempo = 0.f;
+
+			if (AGameManager::Instance(GetWorld()) != nullptr)
+			{
+				for (auto PipouCharacter : AGameManager::Instance(GetWorld())->PipouCharacters)
+				{
+					PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
+				}
+
+				AGameManager::Instance(GetWorld())->RemoveResurrectionUI();
+			}
+
+			CurrentWaitingNoteIndex = 0;
 
 			return;
 		}
