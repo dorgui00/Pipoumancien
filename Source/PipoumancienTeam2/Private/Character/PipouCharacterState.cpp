@@ -48,7 +48,7 @@ void UPipouCharacterState::OnCharacterPressedNote(UInputAction* InputAction)
 	if (AGameManager::Instance(GetWorld())->GetCurrentSkeleton() != nullptr)
 	{
 		// UE_LOG(LogTemp, Display, TEXT("Add note"));
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Add note")));
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Add note")), true, FVector2D{2, 2});
 		
 		AGameManager::Instance(GetWorld())->AddNote(InputAction);
 	}
