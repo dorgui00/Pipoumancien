@@ -58,7 +58,7 @@ private :
 	F_Skeleton* CurrentSkeleton = nullptr;
 	
 	UPROPERTY(EditDefaultsOnly)
-	float Tolerance = 0.5f;
+	float Tolerance = 0.8f;
 
 	UPROPERTY()
 	bool HasMusicianReceivedInput = false;

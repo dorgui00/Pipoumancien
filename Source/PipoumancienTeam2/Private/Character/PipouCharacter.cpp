@@ -7,6 +7,8 @@
 #include "Camera/CameraWorldSubsystem.h"
 
 #include "Components/SphereComponent.h"
+#include "Data/F_Note.h"
+#include "Data/F_Skeleton.h"
 #include "Game/GameManager.h"
 #include "PNJ/SkeletonController.h"
 
@@ -302,6 +304,14 @@ void APipouCharacter::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCom
 	if (SkeletonController)
 	{
 		AGameManager::Instance(GetWorld())->SetCurrentSkeleton(SkeletonController->MySkeleton);
+
+		for (int i = 0; i < 3; ++i)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
+			FString::Printf(TEXT("INPUT : %s"), *AGameManager::Instance(GetWorld())->GetCurrentSkeleton()->Notes[i].InputAction->GetName()));
+		}
+		
+		
 		UE_LOG(LogTemp, Display, TEXT("Begin Overlap Skeleton"));
 	}
 }
