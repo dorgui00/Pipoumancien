@@ -95,7 +95,7 @@ void AMusicManager::Tick(float DeltaTime)
 				AGameManager::Instance(GetWorld())->RemoveResurrectionUI();
 			}
 
-			
+			CurrentWaitingNoteIndex = 0;
 
 			return;
 		}
