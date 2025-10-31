@@ -42,9 +42,10 @@ class PIPOUMANCIENTEAM2_API UMultiHandleSlider : public UWidget
 	GENERATED_BODY()
 
 public:
+//#if WITH_EDITOR
 	UFUNCTION(BlueprintCallable, Category = "Slider")
 	void GetSortedHandles(TArray<FMultiSliderHandleSorted>& OutSorted) const;
-
+//#endif
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slider")
 	TEnumAsByte<EOrientation> Orientation = Orient_Horizontal;
 
