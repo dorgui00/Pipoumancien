@@ -58,7 +58,7 @@ void AMusicManager::Tick(float DeltaTime)
 		
 		if (TimerCountDown<=0)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Finish CountDown")));
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Finish CountDown")), true, FVector2D(2, 2));
 			// UE_LOG(LogTemp, Display, TEXT("Finish Countdown"));
 			
 		 	IsInCountDown = false;
@@ -74,7 +74,7 @@ void AMusicManager::Tick(float DeltaTime)
 		
 		if (CurrentWaitingNoteIndex == CurrentSkeleton->Notes.Num())
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")));
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")), true, FVector2D(2, 2));
 			// UE_LOG(LogTemp, Display, TEXT("Melodie finie et réussie"));
 			
 			//SetActorTickEnabled(false);
@@ -105,8 +105,8 @@ void AMusicManager::Tick(float DeltaTime)
 		//Is Awaiting Reply
 		if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - Tolerance && !IsAwaitingReply)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, Tolerance * 2, FColor::Red, FString::Printf(TEXT("INPUT : %s"), *CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName()));
-			GEngine->AddOnScreenDebugMessage(-1, Tolerance * 2, FColor::Blue, FString::Printf(TEXT("PITCH : %f"), CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Pitch));
+			GEngine->AddOnScreenDebugMessage(-1, Tolerance * 2, FColor::Red, FString::Printf(TEXT("INPUT : %s"), *CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName()), true, FVector2D(2, 2));
+			GEngine->AddOnScreenDebugMessage(-1, Tolerance * 2, FColor::Blue, FString::Printf(TEXT("PITCH : %f"), CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Pitch), true, FVector2D(2, 2));
 			// UE_LOG(LogTemp, Display, TEXT("Attend l input : %s"), *CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName());
 			
 			IsAwaitingReply = true;
@@ -121,7 +121,7 @@ void AMusicManager::Tick(float DeltaTime)
 			if(HasAchievedQte())
 			{
 				//go next note
-				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Go Next Note")));
+				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Go Next Note")), true, FVector2D(2, 2));
 				
 				// UE_LOG(LogTemp, Display, TEXT("Go next note"));
 				Tempo = Tolerance;
@@ -129,7 +129,7 @@ void AMusicManager::Tick(float DeltaTime)
 			}
 			else
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Black, FString::Printf(TEXT("Tu as raté  la note")));
+				GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Black, FString::Printf(TEXT("Tu as raté  la note")), true, FVector2D(2, 2));
 				CurrentWaitingNoteIndex = FMath::Max(0, CurrentWaitingNoteIndex-2);
 				StartCountDown();
 			}
@@ -185,7 +185,7 @@ void AMusicManager::CheckReceivedInput()
 void AMusicManager::StartCountDown()
 {
 	// UE_LOG(LogTemp, Display, TEXT("Start Count Down de 3sec"));
-	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Black, FString::Printf(TEXT("Start CountDown de 3 sec")));
+	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Black, FString::Printf(TEXT("Start CountDown de 3 sec")), true, FVector2D(2, 2));
 	
 	Tempo = 0.f;
 	IsInCountDown = true;

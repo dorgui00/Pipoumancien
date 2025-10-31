@@ -24,7 +24,7 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 	InitInputPitch();
 	SetMusicManager();
 
-	UE_LOG(LogTemp, Display, TEXT("Entre dans le state music"));
+	// UE_LOG(LogTemp, Display, TEXT("Entre dans le state music"));
 
 	Character->InputPressedNoteEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputPitchEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);

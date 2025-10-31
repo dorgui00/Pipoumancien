@@ -308,7 +308,7 @@ void APipouCharacter::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCom
 		for (int i = 0; i < 3; ++i)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
-			FString::Printf(TEXT("INPUT : %s"), *AGameManager::Instance(GetWorld())->GetCurrentSkeleton()->Notes[i].InputAction->GetName()));
+			FString::Printf(TEXT("INPUT : %s"), *AGameManager::Instance(GetWorld())->GetCurrentSkeleton()->Notes[i].InputAction->GetName()), true, FVector2D(2, 2));
 		}
 		
 		
