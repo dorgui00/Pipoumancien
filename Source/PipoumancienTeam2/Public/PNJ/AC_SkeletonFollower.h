@@ -27,7 +27,7 @@ public:
     USplineComponent* SplineToFollow = nullptr;
 
     UPROPERTY(EditAnywhere, Category = "Follow|Spline", meta = (ClampMin = "0"))
-    float SplineFollowSpeed = 300.f;
+    float SplineFollowSpeed = 300.f;    
 
     UPROPERTY(EditAnywhere, Category = "Follow|Spline")
     bool bOrientToSpline = true;
