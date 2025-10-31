@@ -45,3 +45,13 @@ void UWBPSlote::NativeConstruct()
 		PlayAnimation(SloteDefette, 5.0f, 1, EUMGSequencePlayMode::Forward, 1.0f, false);
 	}
 }
+
+void UWBPSlote::SlotDefette()
+{
+	PlayAnimation(SloteDefette, 0.0f, 1, EUMGSequencePlayMode::Forward, 1.0f, false);
+}
+
+void UWBPSlote::SlotVictoir()
+{
+	PlayAnimation(SloteDefette, 0.0f, 1, EUMGSequencePlayMode::Forward, 1.0f, false);
+}

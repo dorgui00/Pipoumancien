@@ -42,6 +42,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ChoitMusique(E_Musique Musique);
 
+	void SlotDefette();
+	void SlotVictoir();
+
 
 protected:
 	
