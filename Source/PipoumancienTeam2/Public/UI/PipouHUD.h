@@ -21,4 +21,5 @@ public:
 	UResurrectionWidget* WBPResurrectionInstance;
 
 	void AddWBPResurrection(APlayerController* PlayerController);
+	void RemoveResurrection();
 };

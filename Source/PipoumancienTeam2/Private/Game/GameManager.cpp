@@ -123,3 +123,14 @@ void AGameManager::DisplayResurrectionUI()
 	
 	PipoouHUD->AddWBPResurrection(PipouCharacters[0]->GetController<APlayerController>());
 }
+
+void AGameManager::RemoveResurrectionUI()
+{
+	APlayerController* PlayerController = PipouCharacters[0]->GetController<APlayerController>();
+	if (PlayerController == nullptr) return;
+
+	APipouHUD* PipoouHUD = PipouCharacters[0]->GetHUD();
+	if (PipoouHUD == nullptr) return;
+	
+	PipoouHUD->RemoveResurrection();
+}
