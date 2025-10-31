@@ -32,3 +32,16 @@ void UWBPSlote::ChoitMusique(E_Musique Musique)
 		break;
 	}
 }
+
+void UWBPSlote::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	if (Slote)
+	{
+		// Joue l'animation une seule fois en avant, à vitesse normale
+		PlayAnimation(Slote, 0.0f, 1, EUMGSequencePlayMode::Forward, 1.0f, false);
+
+		PlayAnimation(SloteDefette, 5.0f, 1, EUMGSequencePlayMode::Forward, 1.0f, false);
+	}
+}

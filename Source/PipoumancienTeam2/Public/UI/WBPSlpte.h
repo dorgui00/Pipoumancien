@@ -25,8 +25,19 @@ class PIPOUMANCIENTEAM2_API UWBPSlote : public UUserWidget
 	GENERATED_BODY()
 
 public:
+
+	
 	UPROPERTY(meta = (BindWidget))
 	UImage* Image_012;
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* Slote;
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* SloteDefette;
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* SloteVictoir;
 	
 	UFUNCTION(BlueprintCallable)
 	void ChoitMusique(E_Musique Musique);
@@ -49,4 +60,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Textures")
 	UTexture2D* Texture5;
+
+	virtual void NativeConstruct() override;
 };

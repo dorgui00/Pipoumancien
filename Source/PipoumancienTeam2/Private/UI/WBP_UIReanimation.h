@@ -18,4 +18,5 @@ public:
 	// Par exemple, une fonction d'initialisation que tu pourras appeler dans Blueprint ou en C++
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void InitWidget();
+	
 };
