@@ -5,7 +5,7 @@
 #include "Engine/DataTable.h"
 
 #include "Data/F_Note.h"
-#include "MultiHandleSlider.h"
+#include "Tools/Slider/MultiHandleSlider.h"
 
 #include "MusicDT_BPLibrary.generated.h"
 

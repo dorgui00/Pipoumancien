@@ -1,5 +1,5 @@
-#include "MultiHandleSlider.h"
-#include "SMultiHandleSlider.h"
+#include "Tools/Slider/MultiHandleSlider.h"
+#include "Tools/Slider/SMultiHandleSlider.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
 
 void UMultiHandleSlider::ReleaseSlateResources(bool bReleaseChildren)

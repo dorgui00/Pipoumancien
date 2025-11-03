@@ -1,8 +1,8 @@
-#include "GridGenerator.h"
+#include "Tools/GridGenerator.h"
 
 #include "Engine/StaticMesh.h"
-#include "GridPlaceableActor.h"
-#include "GridSnapComponent.h"
+#include "Tools/GridPlaceableActor.h"
+#include "Tools/GridSnapComponent.h"
 
 #if WITH_EDITOR
 #include "UnrealEdGlobals.h"

@@ -1,4 +1,4 @@
-#include "SplinePathGenerator.h"
+#include "Tools/SplinePathGenerator.h"
 #include "Components/SplineComponent.h"
 #include "Components/BillboardComponent.h"
 #include "DrawDebugHelpers.h"

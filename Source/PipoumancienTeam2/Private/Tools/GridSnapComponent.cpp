@@ -1,6 +1,6 @@
 
-#include "GridSnapComponent.h"
-#include "GridGenerator.h"
+#include "Tools/GridSnapComponent.h"
+#include "Tools/GridGenerator.h"
 #include "EngineUtils.h"
 #include "GameFramework/Actor.h"
 
