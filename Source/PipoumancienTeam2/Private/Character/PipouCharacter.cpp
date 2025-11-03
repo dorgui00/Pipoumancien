@@ -21,6 +21,16 @@ APipouCharacter::APipouCharacter()
 	InteractionCollider->SetupAttachment(GetRootComponent());
 }
 
+APipouCharacter::~APipouCharacter()
+{
+	// if (InteractionCollider)
+	// {
+	// 	InteractionCollider->OnComponentBeginOverlap.RemoveDynamic(this, &APipouCharacter::OnComponentBeginOverlap);
+	// 	InteractionCollider->OnComponentEndOverlap.RemoveDynamic(this, &APipouCharacter::OnComponentEndOverlap);
+	// }
+}
+
+
 void APipouCharacter::BeginPlay()
 {
 	Super::BeginPlay();

@@ -4,6 +4,7 @@
 #include "Game/GameManager.h"
 
 #include "EngineUtils.h"
+#include "Camera/CameraWorldSubsystem.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
 #include "Data/F_Note.h"
@@ -101,16 +102,14 @@ void AGameManager::SetWorldMusicState()
 	{
 		if (Character && Character->StateMachine)
 		{
-			Character->StateMachine->ChangeState(EPipouCharacterStateID::Music);
+			Character->StateMachine->ChangeState(EPipouCharacterStateID::Music); // BlockMovement()
 		}
 	}
 	
-	//// Pailletas
-	// SetAllMusicBehavior()
-	// BlockMovement()
-	// SetCameraMusic()
-	DisplayResurrectionUI();
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallMusicCamera(); // SetCameraMusic()
+	DisplayResurrectionUI(); // Display UI
 	AMusicManager::Instance(GetWorld())->InitMusicBySkeleton(CurrentSkeleton);
+	
 }
 
 void AGameManager::DisplayResurrectionUI()
