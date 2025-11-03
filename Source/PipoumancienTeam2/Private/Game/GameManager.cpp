@@ -122,6 +122,11 @@ void AGameManager::DisplayResurrectionUI()
 	if (PipoouHUD == nullptr) return;
 	
 	PipoouHUD->AddWBPResurrection(PipouCharacters[0]->GetController<APlayerController>());
+
+	for (F_Note Note : CurrentSkeleton->Notes)
+	{
+		PipoouHUD->AddWbpSlotInstance(PlayerController, Note.Pitch, Note.InputAction);
+	}
 }
 
 void AGameManager::RemoveResurrectionUI()
