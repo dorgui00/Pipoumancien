@@ -7,7 +7,7 @@
 #include "Character/PipouCharacterInputData.h"
 #include "Data/F_Note.h"
 #include "Game/GameManager.h"
-#include "Music/MusicManager.h"
+#include "Music/MusicWorldSubsystem.h"
 #include "UI/UResurrectionWidget.h"
 
 EPipouCharacterStateID UPipouCharacterStateMusic::GetStateID()
@@ -73,7 +73,7 @@ void UPipouCharacterStateMusic::InitInputPitch()
 
 void UPipouCharacterStateMusic::SetMusicManager()
 {
-	MusicManager = AMusicManager::Instance(GetWorld());
+	MusicWorldSubsystem = GetWorld()->GetSubsystem<UMusicWorldSubsystem>();
 }
 
 
@@ -84,12 +84,12 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 	{
 		if (InputActionValue.Get<float>() >= -0.1f && InputActionValue.Get<float>() <= 0.1f) return;
 		
-		MusicManager->CurrentCursorValue = FMath::Clamp(MusicManager->CurrentCursorValue + InputActionValue.Get<float>() * 0.1f,
+		MusicWorldSubsystem->CurrentCursorValue = FMath::Clamp(MusicWorldSubsystem->CurrentCursorValue + InputActionValue.Get<float>() * 0.1f,
 			-1.f, 1.0f);
 
 		if (Character->GetHUD() != nullptr)
 		{
-			Character->GetHUD()->WBPResurrectionInstance->SetSliderPitch(MusicManager->CurrentCursorValue);
+			Character->GetHUD()->WBPResurrectionInstance->SetSliderPitch(MusicWorldSubsystem->CurrentCursorValue);
 		}
 		
 		// UE_LOG(LogTemp, Display, TEXT("CurrentCursorValue: %f"), MusicManager->CurrentCursorValue);
@@ -107,9 +107,9 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 {
 	if (CurrentRole == EPipouCharacterRoles::Musician)
 	{
-		if (MusicManager->IsAwaitingReply && MusicManager->GetWaitingNote()->InputAction == InputAction)
+		if (MusicWorldSubsystem->IsAwaitingReply && MusicWorldSubsystem->GetWaitingNote()->InputAction == InputAction)
 		{
-			MusicManager->CheckReceivedInput();
+			MusicWorldSubsystem->CheckReceivedInput();
 		}
 	}
 }

@@ -1,9 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Music/MusicManager.h"
+#include "Music/MusicWorldSubsystem.h"
 
-#include "EngineUtils.h"
 #include "InputAction.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
@@ -11,47 +10,21 @@
 #include "Data/F_Skeleton.h"
 #include "Game/GameManager.h"
 
-class UPipouCharacterStateMusic;
-AMusicManager* AMusicManager::MyInstance;
-
-AMusicManager::AMusicManager()
+void UMusicWorldSubsystem::PostInitialize()
 {
-	PrimaryActorTick.bCanEverTick = true;
-}
-	
-AMusicManager* AMusicManager::Instance(UWorld* World)
-{
-	if (IsValid(MyInstance))
-		return MyInstance;
-
-	for (TActorIterator<AMusicManager> It(World); It; ++It)
-	{
-		MyInstance = *It;
-		break;
-	}
-
-	if (!MyInstance)
-	{
-		MyInstance = World->SpawnActor<AMusicManager>(AMusicManager::StaticClass());
-	}
-
-	return MyInstance;
+	Super::PostInitialize();
 }
 
-
-void AMusicManager::BeginPlay()
+void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
-	Super::BeginPlay();
+	Super::OnWorldBeginPlay(InWorld);
 
-	//SetActorTickEnabled(false);
 	IsInWorldStateMusic = false;
 }
 
-
-void AMusicManager::Tick(float DeltaTime)
+void UMusicWorldSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	//UE_LOG(LogTemp, Display, TEXT("jveux ticker"));
 
 	if (!IsInWorldStateMusic) return; // TO EDIT
 	
@@ -155,8 +128,7 @@ void AMusicManager::Tick(float DeltaTime)
 	}
 }
 
-
-void AMusicManager::InitMusicBySkeleton(F_Skeleton* Skeleton)
+void UMusicWorldSubsystem::InitMusicBySkeleton(F_Skeleton* Skeleton)
 {
 	CurrentSkeleton = Skeleton;
 	
@@ -165,22 +137,22 @@ void AMusicManager::InitMusicBySkeleton(F_Skeleton* Skeleton)
 	StartCountDown();
 }
 
-F_Note* AMusicManager::GetWaitingNote()
+F_Note* UMusicWorldSubsystem::GetWaitingNote()
 {
 	return &CurrentSkeleton->Notes[CurrentWaitingNoteIndex];
 }
 
-void AMusicManager::ReceiveInput()
+void UMusicWorldSubsystem::ReceiveInput()
 {
 	Replies++;	
 }
 
-void AMusicManager::ResetReplies()
+void UMusicWorldSubsystem::ResetReplies()
 {
 	HasMusicianReceivedInput = false;
 }
 
-bool AMusicManager::HasAchievedQte()
+bool UMusicWorldSubsystem::HasAchievedQte()
 {
 	if (HasMusicianReceivedInput && (GetWaitingNote()->Pitch >= CurrentCursorValue - PitchTolerance &&
 			GetWaitingNote()->Pitch <= CurrentCursorValue + PitchTolerance))
@@ -191,13 +163,13 @@ bool AMusicManager::HasAchievedQte()
 	return false;
 }
 
-void AMusicManager::CheckReceivedInput()
+void UMusicWorldSubsystem::CheckReceivedInput()
 {
 	if (HasMusicianReceivedInput) return;
 	HasMusicianReceivedInput = true;
 }
 
-void AMusicManager::StartCountDown()
+void UMusicWorldSubsystem::StartCountDown()
 {
 	// UE_LOG(LogTemp, Display, TEXT("Start Count Down de 3sec"));
 	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Black, FString::Printf(TEXT("Start CountDown de 3 sec")), true, FVector2D(2, 2));

@@ -8,8 +8,7 @@
 #include "Character/PipouCharacterStateMachine.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
-#include "Kismet/GameplayStatics.h"
-#include "Music/MusicManager.h"
+#include "Music/MusicWorldSubsystem.h"
 
 
 AGameManager* AGameManager::MyInstance ;
@@ -110,7 +109,7 @@ void AGameManager::SetWorldMusicState()
 	// BlockMovement()
 	// SetCameraMusic()
 	DisplayResurrectionUI();
-	AMusicManager::Instance(GetWorld())->InitMusicBySkeleton(CurrentSkeleton);
+	GetWorld()->GetSubsystem<UMusicWorldSubsystem>()->InitMusicBySkeleton(CurrentSkeleton);
 }
 
 void AGameManager::DisplayResurrectionUI()

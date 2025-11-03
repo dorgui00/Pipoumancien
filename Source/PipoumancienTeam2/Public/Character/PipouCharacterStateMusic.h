@@ -7,6 +7,7 @@
 #include "PipouCharacterState.h"
 #include "PipouCharacterStateMusic.generated.h"
 
+class UMusicWorldSubsystem;
 class AMusicManager;
 struct FInputActionValue;
 class UInputAction;
@@ -39,7 +40,7 @@ public:
 	UInputAction* InputPitch;
 
 	UPROPERTY()
-	AMusicManager* MusicManager;
+	UMusicWorldSubsystem* MusicWorldSubsystem;
 	
 	virtual void OnCharacterPressedNote(UInputAction* InputAction) override;
 	virtual void OnCharacterPitch(FInputActionValue InputActionValue) override;

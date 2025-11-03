@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/Object.h"
-#include "MusicManager.generated.h"
+#include "Subsystems/WorldSubsystem.h"
+#include "MusicWorldSubsystem.generated.h"
 
 /**
  * 
@@ -12,30 +12,19 @@
 struct F_Note;
 struct F_Skeleton;
 
-UCLASS()
-class PIPOUMANCIENTEAM2_API AMusicManager : public AActor
+UCLASS(Blueprintable)
+class PIPOUMANCIENTEAM2_API UMusicWorldSubsystem : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
 	
-public :
-#pragma region Override
-	
-	AMusicManager();
-	
-	// Called every frame
+#pragma region SubsystemOverride
+	virtual void PostInitialize() override;
+	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Tick(float DeltaTime) override;
-
-	virtual void BeginPlay() override;
+	virtual TStatId GetStatId() const override {return TStatId();};
 	
 #pragma endregion
 	
-#pragma region Instance
-public :
-	static AMusicManager* Instance(UWorld* World);
-private :
-	static AMusicManager* MyInstance;
-#pragma endregion
-
 #pragma region Timer
 private :
 	bool IsInCountDown = false;
@@ -56,7 +45,7 @@ public :
 	
 private :
 	F_Skeleton* CurrentSkeleton = nullptr;
-	
+
 	UPROPERTY(EditDefaultsOnly)
 	float Tolerance = 0.8f;
 
@@ -99,5 +88,4 @@ private :
 	bool HasPrint = false;
 
 #pragma endregion
-	
 };
