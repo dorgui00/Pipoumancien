@@ -3,6 +3,7 @@
 
 #include "Game/GameManager.h"
 
+#include "EngineUtils.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
 #include "Data/F_Note.h"
@@ -13,12 +14,21 @@
 
 AGameManager* AGameManager::MyInstance ;
 
-AGameManager* AGameManager::Instance()
+AGameManager* AGameManager::Instance(UWorld* World)
 {
-	// if (!MyInstance)
-	// {
-	// 	MyInstance = NewObject<AGameManager>();
-	// }
+	if (IsValid(MyInstance))
+		return MyInstance;
+
+	for (TActorIterator<AGameManager> It(World); It; ++It)
+	{
+		MyInstance = *It;
+		break;
+	}
+
+	if (!MyInstance)
+	{
+		MyInstance = World->SpawnActor<AGameManager>(AGameManager::StaticClass());
+	}
 
 	return MyInstance;
 }
@@ -59,12 +69,16 @@ bool AGameManager::HasValidFirstNotes()
 	{
 		if (CurrentSkeleton->Notes[i].InputAction != InputPressed[i])
 		{
-			UE_LOG(LogTemp, Display, TEXT("Enchainement de 3 notes raté"));
+			// UE_LOG(LogTemp, Display, TEXT("Enchainement de 3 notes raté"));
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Enchainement de 3 notes raté")), true, FVector2D(2, 2));
+			
 			return false;
 		}
 	}
 
-	UE_LOG(LogTemp, Display, TEXT("Enchainement de 3 notes réussi"));
+	// UE_LOG(LogTemp, Display, TEXT("Enchainement de 3 notes réussi"));
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Enchainement de 3 notes réussi")), true, FVector2D(2, 2));
+	
 	return true;
 }
 
@@ -76,31 +90,12 @@ void AGameManager::ResetInputsArray()
 void AGameManager::BeginPlay()
 {
 	Super::BeginPlay();
-
-	//Init instance in the begin play
-	if (!MyInstance)
-	{
-		MyInstance = Cast<AGameManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AGameManager::StaticClass()));
-	}
 }
 
 void AGameManager::SetWorldMusicState()
 {
-
 	WorldState = EWorldState::WorldMusic;
 
-	// TO EDIT -- secu pour avoir un TArray<APipouCharacter> à jour (ordre d'execution/initialisation)
-	if (PipouCharacters.Num() ==0)
-	{
-		TArray<AActor*> Characters;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(),APipouCharacter::StaticClass(), Characters);
-		for (auto Character : Characters)
-		{
-			APipouCharacter* PipouCharacter = Cast<APipouCharacter>(Character);
-			PipouCharacters.Add(PipouCharacter);
-		}
-	}
-	
 	//change state for players
 	for (auto Character : PipouCharacters) 
 	{
@@ -114,6 +109,28 @@ void AGameManager::SetWorldMusicState()
 	// SetAllMusicBehavior()
 	// BlockMovement()
 	// SetCameraMusic()
-	// DisplayUI()
-	AMusicManager::Instance()->InitMusicBySkeleton(CurrentSkeleton);
+	DisplayResurrectionUI();
+	AMusicManager::Instance(GetWorld())->InitMusicBySkeleton(CurrentSkeleton);
+}
+
+void AGameManager::DisplayResurrectionUI()
+{
+	APlayerController* PlayerController = PipouCharacters[0]->GetController<APlayerController>();
+	if (PlayerController == nullptr) return;
+
+	APipouHUD* PipoouHUD = PipouCharacters[0]->GetHUD();
+	if (PipoouHUD == nullptr) return;
+	
+	PipoouHUD->AddWBPResurrection(PipouCharacters[0]->GetController<APlayerController>());
+}
+
+void AGameManager::RemoveResurrectionUI()
+{
+	APlayerController* PlayerController = PipouCharacters[0]->GetController<APlayerController>();
+	if (PlayerController == nullptr) return;
+
+	APipouHUD* PipoouHUD = PipouCharacters[0]->GetHUD();
+	if (PipoouHUD == nullptr) return;
+	
+	PipoouHUD->RemoveResurrection();
 }

@@ -17,25 +17,25 @@ public class PipoumancienTeam2 : ModuleRules
             "UMG",
             "Slate",
             "SlateCore",
-            "EditorScriptingUtilities",
+            //"EditorScriptingUtilities",
             //
             "EnhancedInput",
             "LocalMultiplayer",
             "DeveloperSettings"
         });
 
-        //j'ajoute ca les bros
-        PrivateDependencyModuleNames.AddRange(new string[]
-        {
-            "UnrealEd",
-            "LevelEditor",
-            "EditorFramework",
-            "Slate",
-            "SlateCore",
-            "EditorSubsystem",
-            "Blutility",
-            "Projects"
-        });
+        // //j'ajoute ca les bros
+        // PrivateDependencyModuleNames.AddRange(new string[]
+        // {
+        //     //"UnrealEd",
+        //     //"LevelEditor",
+        //     //"EditorFramework",
+        //     "Slate",
+        //     "SlateCore",
+        //     //"EditorSubsystem",
+        //     "Blutility",
+        //     "Projects"
+        // });
 
         if (Target.bBuildEditor)
         {
@@ -43,15 +43,17 @@ public class PipoumancienTeam2 : ModuleRules
             {
                 "UnrealEd",
                 "LevelEditor",
-                "Slate",
-                "SlateCore",
                 "EditorFramework",
                 "EditorSubsystem",
+                "Blutility",
+                "Projects",
+                "EditorScriptingUtilities",
                 "CoreUObject",
-                "Engine"
+                "Engine",
+                "Slate",
+                "SlateCore",
             });
         }
         //jusqu'ici
-        //jtm Gaetan mon gatté GAETTé :^)
     }
 }

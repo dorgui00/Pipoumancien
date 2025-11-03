@@ -27,7 +27,7 @@ class PIPOUMANCIENTEAM2_API AGameManager : public AActor
 	GENERATED_BODY()
 	
 public :
-	static AGameManager* Instance();
+	static AGameManager* Instance(UWorld* World);
 	
 	UPROPERTY()
 	TArray<APipouCharacter*> PipouCharacters;
@@ -47,6 +47,9 @@ public :
 	bool HasValidFirstNotes();
 	void ResetInputsArray();
 
+	/// TO EDIT
+	void RemoveResurrectionUI();
+	
 private :
 	virtual void BeginPlay() override;
 
@@ -57,6 +60,8 @@ private :
 	static AGameManager* MyInstance;
 
 	void SetWorldMusicState();
+
+	void DisplayResurrectionUI();
 	
 };
 

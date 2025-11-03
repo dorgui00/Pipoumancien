@@ -8,6 +8,7 @@
 #include "Data/F_Note.h"
 #include "Game/GameManager.h"
 #include "Music/MusicManager.h"
+#include "UI/UResurrectionWidget.h"
 
 EPipouCharacterStateID UPipouCharacterStateMusic::GetStateID()
 {
@@ -22,10 +23,11 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 	InitSkeletons();
 	InitInputPitch();
 	SetMusicManager();
-	
-	Character->InputPressedEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedInput);
 
-	UE_LOG(LogTemp, Display, TEXT("Entre dans le state music"));
+	// UE_LOG(LogTemp, Display, TEXT("Entre dans le state music"));
+
+	Character->InputPressedNoteEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
+	Character->InputPitchEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);
 }
 
 void UPipouCharacterStateMusic::StateTick(float Deltatime)
@@ -36,7 +38,9 @@ void UPipouCharacterStateMusic::StateTick(float Deltatime)
 void UPipouCharacterStateMusic::StateExit(EPipouCharacterStateID NextStateID)
 {
 	Super::StateExit(NextStateID);
-	Character->InputPressedEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedInput);
+
+	Character->InputPressedNoteEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
+	Character->InputPitchEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);
 }
 
 // Music
@@ -46,9 +50,11 @@ void UPipouCharacterStateMusic::InitRoles()
 	{
 	case EPipouCharacterClass::Necro:
 		CurrentRole = EPipouCharacterRoles::Musician;
+		break;
 		
 	case EPipouCharacterClass::Phantom:
 		CurrentRole = EPipouCharacterRoles::Conductor;
+		break;
 		
 	default:
 		CurrentRole = EPipouCharacterRoles::None;
@@ -57,7 +63,7 @@ void UPipouCharacterStateMusic::InitRoles()
 
 void UPipouCharacterStateMusic::InitSkeletons()
 {
-	Skeleton = AGameManager::Instance()->GetCurrentSkeleton();
+	Skeleton = AGameManager::Instance(GetWorld())->GetCurrentSkeleton();
 }
 
 void UPipouCharacterStateMusic::InitInputPitch()
@@ -67,33 +73,46 @@ void UPipouCharacterStateMusic::InitInputPitch()
 
 void UPipouCharacterStateMusic::SetMusicManager()
 {
-	MusicManager = AMusicManager::Instance();
+	MusicManager = AMusicManager::Instance(GetWorld());
 }
 
 
 // Event Delegates
-void UPipouCharacterStateMusic::OnCharacterPressedInput(UInputAction* InputAction, FInputActionValue InputActionValue)
+void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionValue)
+{
+	if (CurrentRole == EPipouCharacterRoles::Conductor)
+	{
+		if (InputActionValue.Get<float>() >= -0.1f && InputActionValue.Get<float>() <= 0.1f) return;
+		
+		MusicManager->CurrentCursorValue = FMath::Clamp(MusicManager->CurrentCursorValue + InputActionValue.Get<float>() * 0.1f,
+			-1.f, 1.0f);
+
+		if (Character->GetHUD() != nullptr)
+		{
+			Character->GetHUD()->WBPResurrectionInstance->SetSliderPitch(MusicManager->CurrentCursorValue);
+		}
+		
+		// UE_LOG(LogTemp, Display, TEXT("CurrentCursorValue: %f"), MusicManager->CurrentCursorValue);
+		//
+		// if (MusicManager->IsAwaitingReply &&
+		// 	(MusicManager->GetWaitingNote()->Pitch >= MusicManager->CurrentCursorValue - PitchTolerance ||
+		// 	MusicManager->GetWaitingNote()->Pitch <= MusicManager->CurrentCursorValue + PitchTolerance))
+		// {
+		// 	MusicManager->ReceiveInput();
+		// }
+	}
+}
+
+void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction)
 {
 	if (CurrentRole == EPipouCharacterRoles::Musician)
 	{
 		if (MusicManager->IsAwaitingReply && MusicManager->GetWaitingNote()->InputAction == InputAction)
 		{
-			MusicManager->ReceiveInput();
-		}
-	}
-	else if (CurrentRole == EPipouCharacterRoles::Conductor)
-	{
-		if (InputAction == InputPitch)
-		{
-			MusicManager->CurrentCursorValue += InputActionValue.Get<float>();
-
-			if (MusicManager->IsAwaitingReply &&
-				(MusicManager->GetWaitingNote()->Pitch >= MusicManager->CurrentCursorValue - PitchTolerance ||
-				MusicManager->GetWaitingNote()->Pitch <= MusicManager->CurrentCursorValue + PitchTolerance))
-			{
-				MusicManager->ReceiveInput();
-			}
+			MusicManager->CheckReceivedInput();
 		}
 	}
 }
+
+
 

@@ -6,6 +6,7 @@
 #include "InputActionValue.h"
 #include "Camera/CameraFollowTarget.h"
 #include "GameFramework/Character.h"
+#include "UI/PipouHUD.h"
 #include "PipouCharacter.generated.h"
 
 class USphereComponent;
@@ -23,7 +24,8 @@ enum class EPipouCharacterClass : uint8
 	Phantom,
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInputPressedEvent, UInputAction*,  InputAction, FInputActionValue, InputActionValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInputPressedNoteEvent, UInputAction*,  InputAction);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInputPitchEvent, FInputActionValue, InputActionValue);
 
 UCLASS()
 class PIPOUMANCIENTEAM2_API APipouCharacter : public ACharacter, public ICameraFollowTarget
@@ -38,11 +40,14 @@ public:
 	float DeadZone = 0.5f;
 
 	// Pipou State
-	UPROPERTY(EditAnywhere, Category="Pipou Character")
+	UPROPERTY(EditDefaultsOnly, Category="Pipou Character")
 	EPipouCharacterClass PipouClass;
 
 	EPipouCharacterClass GetPipouCharacterClass() const;
-		
+
+	// UI
+	APipouHUD* GetHUD() const;
+	
 	// State Machine
 	void CreateStateMachine();
 	void InitStateMachine();
@@ -80,7 +85,10 @@ public:
 	bool GetInputNoteY() const;
 
 	UPROPERTY()
-	FInputPressedEvent InputPressedEvent;
+	FInputPressedNoteEvent InputPressedNoteEvent;
+
+	UPROPERTY()
+	FInputPitchEvent InputPitchEvent;
 	
 	// Collider
 	UPROPERTY(VisibleAnywhere)
@@ -88,6 +96,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	// Camera
 	void SetCameraView() const;
@@ -119,6 +128,11 @@ protected:
 
 	UPROPERTY()
 	float InputPitch = 0;
+
+	UPROPERTY()
+	APipouHUD* PipouHUD;
+
+	void InitPipouHUD();
 	
 public:
 	virtual void Tick(float DeltaTime) override;

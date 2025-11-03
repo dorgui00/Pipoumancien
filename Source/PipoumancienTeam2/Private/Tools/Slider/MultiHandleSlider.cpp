@@ -83,7 +83,6 @@ void UMultiHandleSlider::SynchronizeProperties()
 }
 #if WITH_EDITOR
 
-#if WITH_EDITOR
 void UMultiHandleSlider::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -155,8 +154,6 @@ void UMultiHandleSlider::GetSortedHandles(TArray<FMultiSliderHandleSorted>& OutS
 			return A.InputKey.LexicalLess(B.InputKey);
 		});
 }
-
-#endif
 
 void UMultiHandleSlider::Slate_OnValuesChanged(const TArray<float>& NewLane0)
 {

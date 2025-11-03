@@ -85,6 +85,7 @@ FVector AGridGenerator::GetSnappedLocation(const FVector& WorldLocation) const
     Snapped.Z = FMath::GridSnap(Snapped.Z, GridSize);
     return Snapped;
 }
+#endif
 
 #if WITH_EDITOR
 void AGridGenerator::PlaceItemAtCursor()
@@ -154,8 +155,8 @@ void AGridGenerator::PlaceItemAtCursor()
 
 }
 #endif
-#endif
 
+#if WITH_EDITOR
 #pragma region Buttons
 void AGridGenerator::SelectNextItem()
 {
@@ -163,22 +164,28 @@ void AGridGenerator::SelectNextItem()
     SelectedItemIndex = (SelectedItemIndex + 1) % PlaceableItems.Num();
     UE_LOG(LogTemp, Log, TEXT("Selected actor: %s"), *GetNameSafe(PlaceableItems[SelectedItemIndex].Get()));
 }
+#endif
 
+#if WITH_EDITOR
 void AGridGenerator::SelectPreviousItem()
 {
     if (PlaceableItems.Num() == 0) return;
     SelectedItemIndex = (SelectedItemIndex - 1 + PlaceableItems.Num()) % PlaceableItems.Num();
     UE_LOG(LogTemp, Log, TEXT("Selected actor: %s"), *GetNameSafe(PlaceableItems[SelectedItemIndex].Get()));
 }
+#endif
 
+#if WITH_EDITOR
 void AGridGenerator::PlaceSelectedItem()
 {
     PlaceItemAtCursor();
 }
+#endif
 
+
+#if WITH_EDITOR
 void AGridGenerator::ToggleDebugLines()
 {
-#if WITH_EDITOR
     bShowGrid = !bShowGrid;
 
     if (!bShowGrid && GetWorld())
@@ -187,17 +194,19 @@ void AGridGenerator::ToggleDebugLines()
     }
 
     RerunConstructionScripts();
-#endif
-}
 
+}
+#endif
+
+#if WITH_EDITOR
 void AGridGenerator::RefreshGrid()
 {
-#if WITH_EDITOR
     if (GetWorld() && !GetWorld()->IsGameWorld())
     {
         FlushPersistentDebugLines(GetWorld());
         RerunConstructionScripts();
     }
-#endif
+
 }
+#endif
 #pragma endregion

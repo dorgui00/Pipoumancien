@@ -3,6 +3,7 @@
 #include "F_Note.generated.h"
 
 class UInputAction;
+class USoundCue;
 
 USTRUCT(BlueprintType)
 struct F_Note

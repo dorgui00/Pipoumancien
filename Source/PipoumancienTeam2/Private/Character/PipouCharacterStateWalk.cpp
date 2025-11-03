@@ -22,12 +22,12 @@ void UPipouCharacterStateWalk::StateEnter(EPipouCharacterStateID PreviousStateID
 
 	Character->GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
 	
-	GEngine->AddOnScreenDebugMessage(
-		-1,
-		3.f,
-		FColor::Red,
-		TEXT("Enter StateWalk")
-	);
+	// GEngine->AddOnScreenDebugMessage(
+	// 	-1,
+	// 	3.f,
+	// 	FColor::Red,
+	// 	TEXT("Enter StateWalk")
+	// );
 }
 
 void UPipouCharacterStateWalk::StateTick(float Deltatime)
@@ -66,10 +66,10 @@ void UPipouCharacterStateWalk::StateExit(EPipouCharacterStateID NextStateID)
 {
 	Super::StateExit(NextStateID);
 
-	GEngine->AddOnScreenDebugMessage(
-		-1,
-		3.f,
-		FColor::Red,
-		TEXT("Exit StateWalk")
-	);
+	// GEngine->AddOnScreenDebugMessage(
+	// 	-1,
+	// 	3.f,
+	// 	FColor::Red,
+	// 	TEXT("Exit StateWalk")
+	// );
 }
