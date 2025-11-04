@@ -2,8 +2,6 @@
 
 
 #include "UI/PipouHUD.h"
-
-#include "InputTriggers.h"
 #include "Blueprint/UserWidget.h"
 #include "UResurrectionWidget.h"
 #include "Character/PipouCharacterInputData.h"
@@ -11,6 +9,19 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Components/PanelSlot.h"
 #include "UI/USlot.h"
+
+void APipouHUD::BeginPlay()
+{
+	Super::BeginPlay();
+
+	MusicNoteFromInputAction =
+	{
+		{ InputData->InputNoteA, EMusicNoteType::A },
+		{ InputData->InputNoteB, EMusicNoteType::B },
+		{ InputData->InputNoteY, EMusicNoteType::Y },
+		{ InputData->InputNoteX, EMusicNoteType::X }
+	};
+}
 
 void APipouHUD::AddWBPResurrection(APlayerController* PlayerController)
 {

@@ -20,7 +20,7 @@ class PIPOUMANCIENTEAM2_API APipouHUD : public AHUD
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, Category="Input Data")
+	UPROPERTY(EditDefaultsOnly, Category="Input Data")
 	UPipouCharacterInputData* InputData;
 	
 	UPROPERTY(EditAnywhere, Category="Resurrection")
@@ -41,16 +41,13 @@ public:
 	
 	UCanvasPanelSlot* AddWbpSlotInstance(APlayerController* PlayerController, float InputPitch, UInputAction* InputAction);
 
+protected:
+	virtual void BeginPlay() override;
+	
 private:
 	// Utilities Functions
 	UPROPERTY()
-	TMap<UInputAction*, EMusicNoteType> MusicNoteFromInputAction =
-	{
-		{ InputData->InputNoteA, EMusicNoteType::A },
-		{ InputData->InputNoteB, EMusicNoteType::B },
-		{ InputData->InputNoteY, EMusicNoteType::Y },
-		{ InputData->InputNoteX, EMusicNoteType::X }
-	};
+	TMap<UInputAction*, EMusicNoteType> MusicNoteFromInputAction;
 	
 	EMusicNoteType GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const;
 	
