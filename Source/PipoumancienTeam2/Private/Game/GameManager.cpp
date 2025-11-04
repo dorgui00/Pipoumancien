@@ -107,8 +107,16 @@ void AGameManager::Tick(float DeltaTime)
 
 	if (NotePanelSlot != nullptr && WorldState == EWorldState::WorldMusic)
 	{
-		FVector2D NewPos = NotePanelSlot->GetPosition() * DeltaTime;
-		NotePanelSlot->SetPosition(NewPos);
+		NotePanelSlot->NoteAlpha += DeltaTime;
+		
+		if (NotePanelSlot->NoteAlpha >= 1.f)
+		{
+			NotePanelSlot->RemoveFromParent();
+			NotePanelSlot->NoteAlpha = 0.f;
+			return;
+		}
+		
+		NotePanelSlot->SetPositionInViewport(FMath::Lerp(NotePanelSlot->SpawnPoint->GetPosition(), NotePanelSlot->EndPoint->GetPosition(), NotePanelSlot->NoteAlpha * 0.5f));
 	}
 }
 

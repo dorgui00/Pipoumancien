@@ -39,7 +39,7 @@ public:
 	UPROPERTY()
 	USlot* WBPSlotInstance;
 	
-	UCanvasPanelSlot* AddWbpSlotInstance(APlayerController* PlayerController, float InputPitch, UInputAction* InputAction);
+	USlot* AddWbpSlotInstance(APlayerController* PlayerController, float InputPitch, UInputAction* InputAction);
 
 protected:
 	virtual void BeginPlay() override;

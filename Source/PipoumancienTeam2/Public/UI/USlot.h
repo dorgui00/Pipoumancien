@@ -7,6 +7,9 @@
 #include "Components/Image.h"
 #include "USlot.generated.h"
 
+class UCanvasPanelSlot;
+class UCanvasPanel;
+
 UENUM()
 enum class EMusicNoteType : uint8
 {
@@ -27,6 +30,14 @@ public:
 	UImage* NoteImage;
 
 	void SetSlotNote(EMusicNoteType NewNoteType);
+
+	UPROPERTY()
+	UCanvasPanelSlot* SpawnPoint;
+
+	UPROPERTY()
+	UCanvasPanelSlot* EndPoint;
+
+	float NoteAlpha = 0;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Textures")

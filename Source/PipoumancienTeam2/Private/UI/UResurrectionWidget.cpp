@@ -15,3 +15,8 @@ UUserWidget* UResurrectionWidget::GetSpawnPointFromInputPitch(float InputPitch)
 {
 	return SpawnPointFromInputPitch[InputPitch];
 }
+
+UUserWidget* UResurrectionWidget::GetEndPointFromInputPitch(float InputPitch)
+{
+	return EndPointFromInputPitch[InputPitch];
+}

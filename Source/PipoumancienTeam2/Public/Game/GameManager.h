@@ -65,7 +65,7 @@ private :
 
 	void DisplayResurrectionUI();
 
-	UCanvasPanelSlot* NotePanelSlot;
+	USlot* NotePanelSlot;
 	
 };
 

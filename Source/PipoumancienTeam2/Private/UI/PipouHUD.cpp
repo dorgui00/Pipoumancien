@@ -44,7 +44,7 @@ void APipouHUD::RemoveResurrection()
 	}
 }
 
-UCanvasPanelSlot* APipouHUD::AddWbpSlotInstance(APlayerController* PlayerController, float InputPitch, UInputAction* InputAction)
+USlot* APipouHUD::AddWbpSlotInstance(APlayerController* PlayerController, float InputPitch, UInputAction* InputAction)
 {
 	if (WBPSlotClass == nullptr) return nullptr;
 
@@ -52,20 +52,27 @@ UCanvasPanelSlot* APipouHUD::AddWbpSlotInstance(APlayerController* PlayerControl
 
 	if (WBPSlotInstance != nullptr)
 	{
-		WBPSlotInstance->AddToViewport();
+		if (WBPResurrectionInstance == nullptr) return nullptr;
+		WBPResurrectionInstance->SlotSpawnPoints->AddChildToCanvas(WBPSlotInstance);
 		
 		// Get WBP canvas note panel slot 
 		UCanvasPanelSlot* SlotInstancePanel = Cast<UCanvasPanelSlot>(WBPSlotInstance->Slot);
 		if (SlotInstancePanel == nullptr) return nullptr;
 
 		// Get SpawnPoint from ResurrectionWidget, from the input pitch of the input action of the notes
-		if (WBPResurrectionInstance == nullptr) return nullptr;
 		UUserWidget* SpawnPoint = WBPResurrectionInstance->GetSpawnPointFromInputPitch(InputPitch);
+		UUserWidget* EndPoint = WBPResurrectionInstance->GetEndPointFromInputPitch(InputPitch);
 
 		// Get slot canvas panel from spawnpoint
 		if (SpawnPoint == nullptr) return nullptr;
 		UCanvasPanelSlot* SpawnPointPanel = Cast<UCanvasPanelSlot>(SpawnPoint->Slot);
 
+		if (EndPoint == nullptr) return nullptr;
+		UCanvasPanelSlot* EndPointPanel = Cast<UCanvasPanelSlot>(EndPoint->Slot);
+
+		WBPSlotInstance->SpawnPoint = SpawnPointPanel;
+		WBPSlotInstance->EndPoint = EndPointPanel;
+		
 		// Set spawn position of the slot to the spawnpoint position 
 		SlotInstancePanel->SetPosition(SpawnPointPanel->GetPosition());
 
@@ -73,7 +80,7 @@ UCanvasPanelSlot* APipouHUD::AddWbpSlotInstance(APlayerController* PlayerControl
 		WBPSlotInstance->SetSlotNote(GetMusicNoteTypeFromInputAction(InputAction));
 
 		// Return the slot canvas panel 
-		return SlotInstancePanel;
+		return WBPSlotInstance;
 	}
 
 	return nullptr;
