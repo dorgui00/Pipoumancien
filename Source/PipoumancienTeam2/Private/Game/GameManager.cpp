@@ -6,13 +6,21 @@
 #include "EngineUtils.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
+#include "Components/CanvasPanel.h"
+#include "Components/CanvasPanelSlot.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
 #include "Kismet/GameplayStatics.h"
 #include "Music/MusicManager.h"
 
 
-AGameManager* AGameManager::MyInstance ;
+
+AGameManager::AGameManager()
+{
+	PrimaryActorTick.bCanEverTick = true;
+}
+
+AGameManager* AGameManager::MyInstance;
 
 AGameManager* AGameManager::Instance(UWorld* World)
 {
@@ -32,6 +40,7 @@ AGameManager* AGameManager::Instance(UWorld* World)
 
 	return MyInstance;
 }
+
 
 // to call in init pipou chara
 void AGameManager::SetCharacters(APipouCharacter* Character)
@@ -92,6 +101,17 @@ void AGameManager::BeginPlay()
 	Super::BeginPlay();
 }
 
+void AGameManager::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (NotePanelSlot != nullptr && WorldState == EWorldState::WorldMusic)
+	{
+		FVector2D NewPos = NotePanelSlot->GetPosition() * DeltaTime;
+		NotePanelSlot->SetPosition(NewPos);
+	}
+}
+
 void AGameManager::SetWorldMusicState()
 {
 	WorldState = EWorldState::WorldMusic;
@@ -125,7 +145,8 @@ void AGameManager::DisplayResurrectionUI()
 
 	for (F_Note Note : CurrentSkeleton->Notes)
 	{
-		PipoouHUD->AddWbpSlotInstance(PlayerController, Note.Pitch, Note.InputAction);
+		// Store the note canvas panel in the GameManager to make it move in the tick 
+		NotePanelSlot = PipoouHUD->AddWbpSlotInstance(PlayerController, Note.Pitch, Note.InputAction);
 	}
 }
 

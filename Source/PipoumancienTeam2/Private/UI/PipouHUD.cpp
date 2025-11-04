@@ -33,9 +33,9 @@ void APipouHUD::RemoveResurrection()
 	}
 }
 
-void APipouHUD::AddWbpSlotInstance(APlayerController* PlayerController, float InputPitch, UInputAction* InputAction)
+UCanvasPanelSlot* APipouHUD::AddWbpSlotInstance(APlayerController* PlayerController, float InputPitch, UInputAction* InputAction)
 {
-	if (WBPSlotClass == nullptr) return;
+	if (WBPSlotClass == nullptr) return nullptr;
 
 	WBPSlotInstance = CreateWidget<USlot>(PlayerController, WBPSlotClass);
 
@@ -43,43 +43,35 @@ void APipouHUD::AddWbpSlotInstance(APlayerController* PlayerController, float In
 	{
 		WBPSlotInstance->AddToViewport();
 		
-		// WBP canvas panel slot 
+		// Get WBP canvas note panel slot 
 		UCanvasPanelSlot* SlotInstancePanel = Cast<UCanvasPanelSlot>(WBPSlotInstance->Slot);
-		if (SlotInstancePanel == nullptr) return;
+		if (SlotInstancePanel == nullptr) return nullptr;
 
-		// Get SpawnPoint Height from InputPitch
-		if (WBPResurrectionInstance == nullptr) return;
+		// Get SpawnPoint from ResurrectionWidget, from the input pitch of the input action of the notes
+		if (WBPResurrectionInstance == nullptr) return nullptr;
 		UUserWidget* SpawnPoint = WBPResurrectionInstance->GetSpawnPointFromInputPitch(InputPitch);
 
 		// Get slot canvas panel from spawnpoint
-		if (SpawnPoint == nullptr) return;
+		if (SpawnPoint == nullptr) return nullptr;
 		UCanvasPanelSlot* SpawnPointPanel = Cast<UCanvasPanelSlot>(SpawnPoint->Slot);
 
-		// SetPosition of the slot 
+		// Set spawn position of the slot to the spawnpoint position 
 		SlotInstancePanel->SetPosition(SpawnPointPanel->GetPosition());
 
-		// Set Type
+		// Set Type of note the slot is
 		WBPSlotInstance->SetSlotNote(GetMusicNoteTypeFromInputAction(InputAction));
+
+		// Return the slot canvas panel 
+		return SlotInstancePanel;
 	}
+
+	return nullptr;
 }
 
 // Utilities functions
-EMusicNoteType APipouHUD::GetMusicNoteTypeFromInputAction(UInputAction* InputAction)
+EMusicNoteType APipouHUD::GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const
 {
-	switch (InputAction)
-	{
-	case (InputAction == InputData->InputNoteA):
-		return EMusicNoteType::A;
-	case (InputAction == InputData->InputNoteB):
-		return EMusicNoteType::B;
-	case (InputAction == InputData->InputNoteY):
-		return EMusicNoteType::Y;
-	case (InputAction == InputData->InputNoteX):
-		return EMusicNoteType::X;
-	default:
-		return EMusicNoteType::None;
-	}
-	return EMusicNoteType::None;
+	return MusicNoteFromInputAction[InputAction];
 }
 
 

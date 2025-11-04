@@ -28,6 +28,7 @@ class PIPOUMANCIENTEAM2_API AGameManager : public AActor
 	
 public :
 	static AGameManager* Instance(UWorld* World);
+	AGameManager();
 	
 	UPROPERTY()
 	TArray<APipouCharacter*> PipouCharacters;
@@ -52,6 +53,7 @@ public :
 	
 private :
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 
 	EWorldState WorldState = EWorldState::WorldFree;
 	
@@ -62,6 +64,8 @@ private :
 	void SetWorldMusicState();
 
 	void DisplayResurrectionUI();
+
+	UCanvasPanelSlot* NotePanelSlot;
 	
 };
 

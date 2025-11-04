@@ -3,9 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "USlot.h"
+#include "Character/PipouCharacterInputData.h"
 #include "GameFramework/HUD.h"
 #include "PipouHUD.generated.h"
 
+class UCanvasPanelSlot;
 class UInputAction;
 class USlot;
 class UResurrectionWidget;
@@ -36,10 +39,19 @@ public:
 	UPROPERTY()
 	USlot* WBPSlotInstance;
 	
-	void AddWbpSlotInstance(APlayerController* PlayerController, float InputPitch, UInputAction* InputAction);
+	UCanvasPanelSlot* AddWbpSlotInstance(APlayerController* PlayerController, float InputPitch, UInputAction* InputAction);
 
 private:
 	// Utilities Functions
-	EMusicNoteType GetMusicNoteTypeFromInputAction(UInputAction* InputAction);
+	UPROPERTY()
+	TMap<UInputAction*, EMusicNoteType> MusicNoteFromInputAction =
+	{
+		{ InputData->InputNoteA, EMusicNoteType::A },
+		{ InputData->InputNoteB, EMusicNoteType::B },
+		{ InputData->InputNoteY, EMusicNoteType::Y },
+		{ InputData->InputNoteX, EMusicNoteType::X }
+	};
+	
+	EMusicNoteType GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const;
 	
 };
