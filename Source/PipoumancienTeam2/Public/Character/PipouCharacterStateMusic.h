@@ -28,17 +28,14 @@ public:
 	UPROPERTY()
 	EPipouCharacterRoles CurrentRole;
 
-	void InitRoles();
+	void InitRole();
 	void InitSkeletons();
 	void InitInputPitch();
 	void SetMusicManager();
 
 	UPROPERTY()
-	float PitchTolerance = 0.1f;
-
-	UPROPERTY()
 	UInputAction* InputPitch;
-
+	
 	UPROPERTY()
 	UMusicWorldSubsystem* MusicWorldSubsystem;
 	

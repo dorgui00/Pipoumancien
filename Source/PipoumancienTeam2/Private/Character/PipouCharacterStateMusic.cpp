@@ -19,7 +19,7 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 {
 	Super::StateEnter(PreviousStateID);
 
-	InitRoles();
+	InitRole();
 	InitSkeletons();
 	InitInputPitch();
 	SetMusicManager();
@@ -44,7 +44,7 @@ void UPipouCharacterStateMusic::StateExit(EPipouCharacterStateID NextStateID)
 }
 
 // Music
-void UPipouCharacterStateMusic::InitRoles()
+void UPipouCharacterStateMusic::InitRole()
 {
 	switch (Character->GetPipouCharacterClass())
 	{
@@ -109,7 +109,7 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 	{
 		if (MusicWorldSubsystem->IsAwaitingReply && MusicWorldSubsystem->GetWaitingNote()->InputAction == InputAction)
 		{
-			MusicWorldSubsystem->CheckReceivedInput();
+			MusicWorldSubsystem->ReceivedMusicianInput();
 		}
 	}
 }

@@ -31,6 +31,9 @@ private :
 	
 	float TimerCountDown = 3.f;
 	float Tempo = 0.f;
+	
+	UPROPERTY(EditDefaultsOnly)
+	float TimeTolerance = 0.8f;
 
 	void StartCountDown();
 	
@@ -39,21 +42,15 @@ private :
 #pragma region Skeleton&Notes
 	
 public :
-	F_Note* GetWaitingNote();
+	F_Note* GetWaitingNote() const;
 	
-	void CheckReceivedInput();
+	void ReceivedMusicianInput();
 	
 private :
 	F_Skeleton* CurrentSkeleton = nullptr;
 
-	UPROPERTY(EditDefaultsOnly)
-	float Tolerance = 0.8f;
-
 	UPROPERTY()
 	bool HasMusicianReceivedInput = false;
-	
-	UPROPERTY(EditDefaultsOnly)
-	float PitchTolerance = 0.1f;
 
 	int CurrentWaitingNoteIndex = 0;
 	
@@ -63,29 +60,28 @@ private :
 public :
 	
 	bool IsAwaitingReply = false;
-
-	void ReceiveInput();
 	
 private :
+	UPROPERTY(EditDefaultsOnly)
+	float PitchTolerance = 0.1f;
+	
 	bool HasAchievedQte();
 	
 	int Replies = 0;
 
-	void ResetReplies();
+	void ResetMusicianReply();
 	
 #pragma endregion
 
 #pragma region Misc
 	
 public :
-	void InitMusicBySkeleton(F_Skeleton* Skeleton);
+	void InitMusic(F_Skeleton* Skeleton);
 	
 	float CurrentCursorValue = 0.f;
 	
 private :
 	bool IsInWorldStateMusic = false;
-
-	bool HasPrint = false;
 
 #pragma endregion
 };

@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "SkeletonController.generated.h"
 
+class UDataTableGameInstanceSubsystem;
 class ADB_Manager;
 struct F_Skeleton;
 
@@ -21,14 +22,9 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
-	UPROPERTY()
-	ADB_Manager* DB_Manager;
 
 	UPROPERTY(EditAnywhere, Category="Skeleton")
 	int ID = 0;
-
-	
 
 public:
 	// Called every frame

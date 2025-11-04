@@ -1,55 +1,31 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Game/GameManager.h"
-
-#include "EngineUtils.h"
-#include "Character/PipouCharacterStateID.h"
+#include "Game/GlobalGameSubsystem.h"
 #include "Character/PipouCharacterStateMachine.h"
+#include "Character/PipouCharacterStateID.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
 #include "Music/MusicWorldSubsystem.h"
 
-
-AGameManager* AGameManager::MyInstance ;
-
-AGameManager* AGameManager::Instance(UWorld* World)
-{
-	if (IsValid(MyInstance))
-		return MyInstance;
-
-	for (TActorIterator<AGameManager> It(World); It; ++It)
-	{
-		MyInstance = *It;
-		break;
-	}
-
-	if (!MyInstance)
-	{
-		MyInstance = World->SpawnActor<AGameManager>(AGameManager::StaticClass());
-	}
-
-	return MyInstance;
-}
-
 // to call in init pipou chara
-void AGameManager::SetCharacters(APipouCharacter* Character)
+void UGlobalGameSubsystem::SetCharacters(APipouCharacter* Character)
 {
 	PipouCharacters.Add(Character);
 }
 
-F_Skeleton* AGameManager::GetCurrentSkeleton()
+F_Skeleton* UGlobalGameSubsystem::GetCurrentSkeleton() const
 {
 	return CurrentSkeleton;
 }
 
-void AGameManager::SetCurrentSkeleton(F_Skeleton* Skeleton)
+void UGlobalGameSubsystem::SetCurrentSkeleton(F_Skeleton* Skeleton)
 {
 	CurrentSkeleton = Skeleton;
 }
 
 // Music
-void AGameManager::AddNote(UInputAction* InputAction)
+void UGlobalGameSubsystem::AddNote(UInputAction* InputAction)
 {
 	InputPressed.Add(InputAction);
 
@@ -62,7 +38,7 @@ void AGameManager::AddNote(UInputAction* InputAction)
 	}
 }
 
-bool AGameManager::HasValidFirstNotes()
+bool UGlobalGameSubsystem::HasValidFirstNotes()
 {
 	for (int i = 0; i < NbNotesToCheck; ++i)
 	{
@@ -81,38 +57,32 @@ bool AGameManager::HasValidFirstNotes()
 	return true;
 }
 
-void AGameManager::ResetInputsArray()
+void UGlobalGameSubsystem::ResetInputsArray()
 {
 	InputPressed.Empty();
 }
 
-void AGameManager::BeginPlay()
+void UGlobalGameSubsystem::SetWorldMusicState()
 {
-	Super::BeginPlay();
-}
+		//WorldState = EWorldState::WorldMusic; // TO EDIT
 
-void AGameManager::SetWorldMusicState()
-{
-	WorldState = EWorldState::WorldMusic;
-
-	//change state for players
-	for (auto Character : PipouCharacters) 
-	{
-		if (Character && Character->StateMachine)
+		//change state for players
+		for (auto Character : PipouCharacters) 
 		{
-			Character->StateMachine->ChangeState(EPipouCharacterStateID::Music);
+			if (Character && Character->StateMachine)
+			{
+				Character->StateMachine->ChangeState(EPipouCharacterStateID::Music);
+			}
 		}
-	}
 	
-	//// Pailletas
-	// SetAllMusicBehavior()
-	// BlockMovement()
-	// SetCameraMusic()
-	DisplayResurrectionUI();
-	GetWorld()->GetSubsystem<UMusicWorldSubsystem>()->InitMusic(CurrentSkeleton);
+		//// Pailletas
+		// SetCameraMusic()
+		DisplayResurrectionUI();
+		GetWorld()->GetSubsystem<UMusicWorldSubsystem>()->InitMusic(CurrentSkeleton);
 }
 
-void AGameManager::DisplayResurrectionUI()
+// UI
+void UGlobalGameSubsystem::DisplayResurrectionUI()
 {
 	APlayerController* PlayerController = PipouCharacters[0]->GetController<APlayerController>();
 	if (PlayerController == nullptr) return;
@@ -123,7 +93,7 @@ void AGameManager::DisplayResurrectionUI()
 	PipoouHUD->AddWBPResurrection(PipouCharacters[0]->GetController<APlayerController>());
 }
 
-void AGameManager::RemoveResurrectionUI()
+void UGlobalGameSubsystem::RemoveResurrectionUI()
 {
 	APlayerController* PlayerController = PipouCharacters[0]->GetController<APlayerController>();
 	if (PlayerController == nullptr) return;
