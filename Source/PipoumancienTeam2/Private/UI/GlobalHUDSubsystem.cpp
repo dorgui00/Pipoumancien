@@ -54,7 +54,10 @@ void UGlobalHUDSubsystem::AddWbpSlotInstance(float InputPitch, UInputAction* Inp
 {
 	if (WBPSlotClass == nullptr) return ;
 
-	WBPSlotInstance = CreateWidget<USlot>(GlobalGameSubsystem->PipouCharacters[0], WBPSlotClass);
+	APlayerController* PC = Cast<APlayerController>(GlobalGameSubsystem->PipouCharacters[0]->GetController());
+	if (!PC) return;
+	
+	WBPSlotInstance = CreateWidget<USlot>(PC, WBPSlotClass);
 
 	if (WBPSlotInstance != nullptr)
 	{

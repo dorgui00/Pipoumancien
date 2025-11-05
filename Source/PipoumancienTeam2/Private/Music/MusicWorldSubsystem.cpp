@@ -2,10 +2,13 @@
 
 
 #include "Music/MusicWorldSubsystem.h"
-
 #include "InputAction.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
+#include "Components/TimelineComponent.h"
+#include "Data/F_Note.h"
+#include "Data/F_Skeleton.h"
+#include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 
 void UMusicWorldSubsystem::PostInitialize()
@@ -21,17 +24,28 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
 
 	IsInWorldStateMusic = false;
+
+	for (F_Note Note : CurrentSkeleton->Notes)
+	{
+		float NewLength = Note.Frequency;
+		MusicTimeline->SetTimelineLength(NewLength);
+	}
+
+	MusicTimeline->SetTimelineLength(MusicTimeline->GetTimelineLength() + Offset);
+	
+	FloatTrack.BindUFunction(this, FName { TEXT("PlayNotePartition") });
 }
 
 void UMusicWorldSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
 
-	if (!IsInWorldStateMusic) return; // TO EDIT
-	
+void UMusicWorldSubsystem::PlayNotePartition(float Value)
+{
 	if (IsInCountDown)
 	{
-		TimerCountDown-=DeltaTime;
+		TimerCountDown -= GetWorld()->GetDeltaSeconds();
 
 		//Finish Countdown
 		if (TimerCountDown<=0)
@@ -42,9 +56,9 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			TimerCountDown = 3.f;
 		}
 	}
-	else // 
+	else 
 	{
-		Tempo += DeltaTime;
+		Tempo += GetWorld()->GetDeltaSeconds();
 
 		if (!CurrentSkeleton) return; // secu
 
@@ -57,7 +71,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			return;
 		}
 		
-		//Is Awaiting Reply
+		// Is Awaiting Reply
 		if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance && !IsAwaitingReply)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Red, FString::Printf(TEXT("INPUT : %s"), *CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName()), true, FVector2D(2, 2));
@@ -114,7 +128,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 				StartCountDown();
 			}
 			
-			//reset
+			// reset
 			ResetMusicianReply();
 		}
 	}

@@ -66,20 +66,20 @@ void UGlobalGameSubsystem::ResetInputsArray()
 
 void UGlobalGameSubsystem::SetWorldMusicState()
 {
-		//WorldState = EWorldState::WorldMusic; // TO EDIT
+	//WorldState = EWorldState::WorldMusic; // TO EDIT
 
-		//change state for players
-		for (auto Character : PipouCharacters) 
+	//change state for players
+	for (auto Character : PipouCharacters) 
+	{
+		if (Character && Character->StateMachine)
 		{
-			if (Character && Character->StateMachine)
-			{
-				Character->StateMachine->ChangeState(EPipouCharacterStateID::Music); // Block Movement
-			}
+			Character->StateMachine->ChangeState(EPipouCharacterStateID::Music); // Block Movement
 		}
-	
-		GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallMusicCamera(); // SetCameraMusic()
-		//DisplayResurrection(); // Display UI
-		GetWorld()->GetSubsystem<UMusicWorldSubsystem>()->InitMusic(CurrentSkeleton);
+	}
+
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallMusicCamera(); // SetCameraMusic()
+	//DisplayResurrection(); // Display UI
+	GetWorld()->GetSubsystem<UMusicWorldSubsystem>()->InitMusic(CurrentSkeleton);
 }
 
 

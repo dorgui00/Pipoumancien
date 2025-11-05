@@ -3,15 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Game/GlobalGameSubsystem.h"
+#include "Components/TimelineComponent.h"
 #include "Subsystems/WorldSubsystem.h"
-#include "Data/F_Note.h"
-#include "Data/F_Skeleton.h"
 #include "MusicWorldSubsystem.generated.h"
 
-/**
- * 
- */
+class UMusicTimeline;
+class UTimelineComponent;
+class UGlobalGameSubsystem;
+struct F_Note;
+struct F_Skeleton;
 
 UCLASS(Blueprintable)
 class PIPOUMANCIENTEAM2_API UMusicWorldSubsystem : public UTickableWorldSubsystem
@@ -19,15 +19,27 @@ class PIPOUMANCIENTEAM2_API UMusicWorldSubsystem : public UTickableWorldSubsyste
 	GENERATED_BODY()
 	
 #pragma region SubsystemOverride
+protected:
 	virtual void PostInitialize() override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override {return TStatId();};
+
+	UPROPERTY()
+	UTimelineComponent* MusicTimeline;
+
+	FOnTimelineFloat FloatTrack {};
+
+	UFUNCTION()
+	void PlayNotePartition(float Value);
+
+	UPROPERTY(EditAnywhere)
+	float Offset;
 	
 #pragma endregion
 	
 #pragma region Timer
-private :
+private:
 	bool IsInCountDown = false;
 	
 	float TimerCountDown = 3.f;
