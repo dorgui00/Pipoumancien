@@ -27,8 +27,15 @@ class PIPOUMANCIENTEAM2_API AGameManager : public AActor
 	GENERATED_BODY()
 	
 public :
-	static AGameManager* Instance(UWorld* World);
 	AGameManager();
+
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+
+	static AGameManager* Instance(UWorld* World);
+
+	UPROPERTY()
+	APipouHUD* PipouHUD;
 	
 	UPROPERTY()
 	TArray<APipouCharacter*> PipouCharacters;
@@ -52,9 +59,6 @@ public :
 	void RemoveResurrectionUI();
 	
 private :
-	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
-
 	EWorldState WorldState = EWorldState::WorldFree;
 	
 	F_Skeleton* CurrentSkeleton = nullptr;
@@ -65,7 +69,7 @@ private :
 
 	void DisplayResurrectionUI();
 
-	USlot* NotePanelSlot;
+	USlot* NotePanel;
 	
 };
 

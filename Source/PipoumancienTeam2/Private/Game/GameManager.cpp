@@ -2,7 +2,6 @@
 
 
 #include "Game/GameManager.h"
-
 #include "EngineUtils.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
@@ -10,15 +9,30 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
-#include "Kismet/GameplayStatics.h"
+#include "Logging/StructuredLog.h"
 #include "Music/MusicManager.h"
-
 
 
 AGameManager::AGameManager()
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
+
+void AGameManager::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+void AGameManager::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (WorldState == EWorldState::WorldMusic)
+	{
+		
+	}
+}
+
 
 AGameManager* AGameManager::MyInstance;
 
@@ -96,29 +110,6 @@ void AGameManager::ResetInputsArray()
 	InputPressed.Empty();
 }
 
-void AGameManager::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-void AGameManager::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	if (NotePanelSlot != nullptr && WorldState == EWorldState::WorldMusic)
-	{
-		NotePanelSlot->NoteAlpha += DeltaTime;
-		
-		if (NotePanelSlot->NoteAlpha >= 1.f)
-		{
-			NotePanelSlot->RemoveFromParent();
-			NotePanelSlot->NoteAlpha = 0.f;
-			return;
-		}
-		
-		NotePanelSlot->SetPositionInViewport(FMath::Lerp(NotePanelSlot->SpawnPoint->GetPosition(), NotePanelSlot->EndPoint->GetPosition(), NotePanelSlot->NoteAlpha * 0.5f));
-	}
-}
 
 void AGameManager::SetWorldMusicState()
 {
@@ -146,15 +137,15 @@ void AGameManager::DisplayResurrectionUI()
 	APlayerController* PlayerController = PipouCharacters[0]->GetController<APlayerController>();
 	if (PlayerController == nullptr) return;
 
-	APipouHUD* PipoouHUD = PipouCharacters[0]->GetHUD();
-	if (PipoouHUD == nullptr) return;
+	PipouHUD = PipouCharacters[0]->GetHUD();
+	if (PipouHUD == nullptr) return;
 	
-	PipoouHUD->AddWBPResurrection(PipouCharacters[0]->GetController<APlayerController>());
+	PipouHUD->AddWBPResurrection(PipouCharacters[0]->GetController<APlayerController>());
 
 	for (F_Note Note : CurrentSkeleton->Notes)
 	{
 		// Store the note canvas panel in the GameManager to make it move in the tick 
-		NotePanelSlot = PipoouHUD->AddWbpSlotInstance(PlayerController, Note.Pitch, Note.InputAction);
+		NotePanel = PipouHUD->AddWbpSlotInstance(PlayerController, Note.Pitch, Note.InputAction);
 	}
 }
 
@@ -163,8 +154,8 @@ void AGameManager::RemoveResurrectionUI()
 	APlayerController* PlayerController = PipouCharacters[0]->GetController<APlayerController>();
 	if (PlayerController == nullptr) return;
 
-	APipouHUD* PipoouHUD = PipouCharacters[0]->GetHUD();
-	if (PipoouHUD == nullptr) return;
+	PipouHUD = PipouCharacters[0]->GetHUD();
+	if (PipouHUD == nullptr) return;
 	
-	PipoouHUD->RemoveResurrection();
+	PipouHUD->RemoveResurrection();
 }

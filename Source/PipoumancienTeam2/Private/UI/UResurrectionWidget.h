@@ -16,27 +16,14 @@ class PIPOUMANCIENTEAM2_API UResurrectionWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	virtual void NativeConstruct() override;
+	
 	// Music
 	void SetSliderPitch(float NewPitch) const;
 
 	UPROPERTY()
-	TMap<float, UUserWidget*> SpawnPointFromInputPitch =
-	{
-		{ -1.f, SpawnPoint_1 },
-		{ -0.5f, SpawnPoint_2 },
-		{ 0.f, SpawnPoint_3 }, 
-		{ 0.5f, SpawnPoint_4 }, 
-		{ 1.f, SpawnPoint_5 }, 
-	};
-
-	TMap<float, UUserWidget*> EndPointFromInputPitch =
-	{
-		{ -1.f, EndPoint_1 },
-		{ -0.5f, EndPoint_2 },
-		{ 0.f, EndPoint_3 }, 
-		{ 0.5f, EndPoint_4 }, 
-		{ 1.f, EndPoint_5 }, 
-	};
+	TMap<float, UUserWidget*> SpawnPointFromInputPitch;
+	TMap<float, UUserWidget*> EndPointFromInputPitch;
 
 	UUserWidget* GetSpawnPointFromInputPitch(float InputPitch);
 	UUserWidget* GetEndPointFromInputPitch(float InputPitch);

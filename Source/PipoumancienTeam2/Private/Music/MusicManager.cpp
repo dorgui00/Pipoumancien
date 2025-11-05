@@ -12,6 +12,7 @@
 #include "Game/GameManager.h"
 
 class UPipouCharacterStateMusic;
+
 AMusicManager* AMusicManager::MyInstance;
 
 AMusicManager::AMusicManager()
@@ -105,14 +106,6 @@ void AMusicManager::Tick(float DeltaTime)
 		// Not yet time for qte => !IsAwaitingReply
 		if (Tempo < CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency-Tolerance)
 		{
-			// if (!HasPrint)
-			// {
-			// 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("Attend l input : %s"), *CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName()));
-			// 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("Attend l input : %f"), CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Pitch));
-			//
-			// 	HasPrint = true;
-			// }
-			
 			IsAwaitingReply = false;
 			return;
 		}
@@ -122,7 +115,6 @@ void AMusicManager::Tick(float DeltaTime)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, Tolerance * 2, FColor::Red, FString::Printf(TEXT("INPUT : %s"), *CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName()), true, FVector2D(2, 2));
 			GEngine->AddOnScreenDebugMessage(-1, Tolerance * 2, FColor::Blue, FString::Printf(TEXT("PITCH : %f"), CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Pitch), true, FVector2D(2, 2));
-			// UE_LOG(LogTemp, Display, TEXT("Attend l input : %s"), *CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName());
 			
 			IsAwaitingReply = true;
 			return;
