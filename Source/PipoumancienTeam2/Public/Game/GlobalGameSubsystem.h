@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Subsystems/GameInstanceSubsystem.h"
 #include "Character/PipouCharacter.h"
 #include "GlobalGameSubsystem.generated.h"
 
@@ -48,14 +47,6 @@ public :
 	bool HasValidFirstNotes();
 	void ResetInputsArray();
 
-	// UI
-	UPROPERTY()
-	APipouHUD* PipouHUD;
-
-	UPROPERTY()
-	USlot* NotePanel;
-	
-	void RemoveResurrectionUI(); // TO EDIT
 	
 private :
 
@@ -66,7 +57,4 @@ private :
 	
 	// Skeleton
 	F_Skeleton* CurrentSkeleton = nullptr;
-
-	// UI
-	void DisplayResurrectionUI();
 };

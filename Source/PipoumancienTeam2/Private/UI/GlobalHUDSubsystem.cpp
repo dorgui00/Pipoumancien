@@ -1,27 +1,26 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UI/PipouHUD.h"
-#include "Blueprint/UserWidget.h"
+#include "UI/GlobalHUDSubsystem.h"
 #include "UResurrectionWidget.h"
+#include "Blueprint/UserWidget.h"
 #include "Character/PipouCharacterInputData.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
-#include "Components/PanelSlot.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "UI/USlot.h"
 
-void APipouHUD::BeginPlay()
+
+void UGlobalHUDSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	Super::BeginPlay();
+	Super::Initialize(Collection);
 
 	Init();
 }
 
-
-void APipouHUD::Init()
+void UGlobalHUDSubsystem::Init()
 {
 	//Init Global Game Subsystem
 	GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
@@ -35,11 +34,14 @@ void APipouHUD::Init()
 	};
 }
 
-void APipouHUD::AddWBPResurrection(APlayerController* PlayerController)
+void UGlobalHUDSubsystem::AddWBPResurrection()
 {
 	if (WBPResurrectionClass == nullptr) return;
+
+	APlayerController* PC = Cast<APlayerController>(GlobalGameSubsystem->PipouCharacters[0]->GetController());
+	if (!PC) return;
 	
-	WBPResurrectionInstance = CreateWidget<UResurrectionWidget>(PlayerController, WBPResurrectionClass);
+	WBPResurrectionInstance = CreateWidget<UResurrectionWidget>(PC, WBPResurrectionClass);
 	
 	if (WBPResurrectionInstance != nullptr)
 	{
@@ -47,20 +49,12 @@ void APipouHUD::AddWBPResurrection(APlayerController* PlayerController)
 	}
 }
 
-void APipouHUD::RemoveResurrection()
-{
-	if (WBPResurrectionInstance != nullptr)
-	{
-		WBPResurrectionInstance->RemoveFromParent();
-		WBPResurrectionInstance = nullptr;
-	}
-}
 
-void APipouHUD::AddWbpSlotInstance(float InputPitch, UInputAction* InputAction)
+void UGlobalHUDSubsystem::AddWbpSlotInstance(float InputPitch, UInputAction* InputAction)
 {
 	if (WBPSlotClass == nullptr) return ;
 
-	WBPSlotInstance = CreateWidget<USlot>(GetOwningPlayerController(), WBPSlotClass);
+	WBPSlotInstance = CreateWidget<USlot>(GlobalGameSubsystem->PipouCharacters[0], WBPSlotClass);
 
 	if (WBPSlotInstance != nullptr)
 	{
@@ -93,17 +87,18 @@ void APipouHUD::AddWbpSlotInstance(float InputPitch, UInputAction* InputAction)
 	}
 }
 
+
 // Utilities functions
-EMusicNoteType APipouHUD::GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const
+EMusicNoteType UGlobalHUDSubsystem::GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const
 {
 	return MusicNoteFromInputAction[InputAction];
 }
 
 
 // 
-void APipouHUD::DisplayResurrectionUI()
+void UGlobalHUDSubsystem::DisplayResurrection()
 {
-	AddWBPResurrection(GetOwningPlayerController());
+	AddWBPResurrection();
 	
 	for (F_Note Note : GlobalGameSubsystem->GetCurrentSkeleton()->Notes)
 	{
@@ -112,3 +107,12 @@ void APipouHUD::DisplayResurrectionUI()
 	}
 }
 
+
+void UGlobalHUDSubsystem::RemoveResurrection()
+{
+	if (WBPResurrectionInstance != nullptr)
+	{
+		WBPResurrectionInstance->RemoveFromParent();
+		WBPResurrectionInstance = nullptr;
+	}
+}

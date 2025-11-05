@@ -15,7 +15,6 @@ class UInputMappingContext;
 class UAnimMontage;
 class UPipouCharacterInputData;
 class UPipouCharacterStateMachine;
-class ICameraFollowTarget;
 
 UENUM()
 enum class EPipouCharacterClass : uint8

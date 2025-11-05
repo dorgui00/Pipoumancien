@@ -78,35 +78,8 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 		}
 	
 		GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallMusicCamera(); // SetCameraMusic()
-		DisplayResurrectionUI(); // Display UI
+		//DisplayResurrection(); // Display UI
 		GetWorld()->GetSubsystem<UMusicWorldSubsystem>()->InitMusic(CurrentSkeleton);
 }
 
-// UI
-void UGlobalGameSubsystem::DisplayResurrectionUI()
-{
-	APlayerController* PlayerController = PipouCharacters[0]->GetController<APlayerController>();
-	if (PlayerController == nullptr) return;
 
-	PipouHUD = PipouCharacters[0]->GetHUD();
-	if (PipouHUD == nullptr) return;
-	
-	PipouHUD->AddWBPResurrection(PipouCharacters[0]->GetController<APlayerController>());
-
-	for (F_Note Note : CurrentSkeleton->Notes)
-	{
-		// Store the note canvas panel in the GameManager to make it move in the tick 
-		NotePanel = PipouHUD->AddWbpSlotInstance(PlayerController, Note.Pitch, Note.InputAction);
-	}
-}
-
-void UGlobalGameSubsystem::RemoveResurrectionUI()
-{
-	APlayerController* PlayerController = PipouCharacters[0]->GetController<APlayerController>();
-	if (PlayerController == nullptr) return;
-
-	PipouHUD = PipouCharacters[0]->GetHUD();
-	if (PipouHUD == nullptr) return;
-	
-	PipouHUD->RemoveResurrection();
-}

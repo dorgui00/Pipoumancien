@@ -66,7 +66,7 @@ private :
 	UPROPERTY(EditDefaultsOnly)
 	float PitchTolerance = 0.1f;
 	
-	bool HasAchievedQte();
+	bool HasAchievedQte() const;
 	
 	int Replies = 0;
 

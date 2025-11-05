@@ -90,7 +90,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 						PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
 					}
 
-					GlobalGameSubsystem->RemoveResurrectionUI();
+					// GlobalGameSubsystem->RemoveResurrection();
 					
 					CurrentWaitingNoteIndex = 0;
 				}
@@ -145,7 +145,7 @@ void UMusicWorldSubsystem::ResetMusicianReply()
 	HasMusicianReceivedInput = false;
 }
 
-bool UMusicWorldSubsystem::HasAchievedQte()
+bool UMusicWorldSubsystem::HasAchievedQte() const
 {
 	if (HasMusicianReceivedInput
 		&& GetWaitingNote()->Pitch >= CurrentCursorValue - PitchTolerance
