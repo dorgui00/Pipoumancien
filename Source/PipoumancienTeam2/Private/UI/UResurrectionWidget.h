@@ -6,24 +6,65 @@
 #include "Blueprint/UserWidget.h"
 #include "UResurrectionWidget.generated.h"
 
+class UCanvasPanel;
+class UImage;
 class USlider;
-/**
- * 
- */
+
 UCLASS()
 class PIPOUMANCIENTEAM2_API UResurrectionWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
 public:
-	// Par exemple, une fonction d'initialisation que tu pourras appeler dans Blueprint ou en C++
-	UFUNCTION(BlueprintCallable, Category = "UI")
-	void InitWidget();
+	virtual void NativeConstruct() override;
+	
+	// Music
+	void SetSliderPitch(float NewPitch) const;
 
+	UPROPERTY()
+	TMap<float, UUserWidget*> SpawnPointFromInputPitch;
+	TMap<float, UUserWidget*> EndPointFromInputPitch;
+
+	UUserWidget* GetSpawnPointFromInputPitch(float InputPitch);
+	UUserWidget* GetEndPointFromInputPitch(float InputPitch);
+
+	UPROPERTY(meta = (BindWidget))
+	UCanvasPanel* SlotSpawnPoints;
+
+private:
 	// Music
 	UPROPERTY(meta = (BindWidget))
 	USlider* PitchSlider;
 	
-	void SetSliderPitch(float NewPitch) const;
+	UPROPERTY(meta = (BindWidget))
+	UUserWidget* SpawnPoint_1;
 
+	UPROPERTY(meta = (BindWidget))
+	UUserWidget* SpawnPoint_2;
+
+	UPROPERTY(meta = (BindWidget))
+	UUserWidget* SpawnPoint_3;
+
+	UPROPERTY(meta = (BindWidget))
+	UUserWidget* SpawnPoint_4;
+
+	UPROPERTY(meta = (BindWidget))
+	UUserWidget* SpawnPoint_5;
+
+	UPROPERTY(meta = (BindWidget))
+	UUserWidget* EndPoint_1;
+
+	UPROPERTY(meta = (BindWidget))
+	UUserWidget* EndPoint_2;
+
+	UPROPERTY(meta = (BindWidget))
+	UUserWidget* EndPoint_3;
+
+	UPROPERTY(meta = (BindWidget))
+	UUserWidget* EndPoint_4;
+
+	UPROPERTY(meta = (BindWidget))
+	UUserWidget* EndPoint_5;
+
+		
 };
