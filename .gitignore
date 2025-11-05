@@ -90,3 +90,4 @@ DerivedDataCache/*
 #Rider
 .idea/
 Source/PipoumancienTeam2/Public/Character/PipouCharacter.h
+*.uasset

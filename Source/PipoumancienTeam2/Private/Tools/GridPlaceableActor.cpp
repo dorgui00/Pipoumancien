@@ -1,8 +1,8 @@
-#include "GridPlaceableActor.h"
+#include "Tools/GridPlaceableActor.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "EngineUtils.h"
-#include "GridGenerator.h"
+#include "Tools/GridGenerator.h"
 
 AGridPlaceableActor::AGridPlaceableActor()
 {
