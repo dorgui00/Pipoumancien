@@ -34,6 +34,7 @@ class PIPOUMANCIENTEAM2_API APipouCharacter : public ACharacter, public ICameraF
 
 public:
 	APipouCharacter();
+	virtual ~APipouCharacter() override;
 
 	// Dead Zone
 	UPROPERTY(EditAnywhere, Category="Dead Zone")

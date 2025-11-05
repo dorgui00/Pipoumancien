@@ -7,6 +7,7 @@
 #include "PipouCharacterState.h"
 #include "PipouCharacterStateMusic.generated.h"
 
+class UMusicWorldSubsystem;
 class AMusicManager;
 struct FInputActionValue;
 class UInputAction;
@@ -27,19 +28,16 @@ public:
 	UPROPERTY()
 	EPipouCharacterRoles CurrentRole;
 
-	void InitRoles();
+	void InitRole();
 	void InitSkeletons();
 	void InitInputPitch();
 	void SetMusicManager();
 
 	UPROPERTY()
-	float PitchTolerance = 0.1f;
-
-	UPROPERTY()
 	UInputAction* InputPitch;
-
+	
 	UPROPERTY()
-	AMusicManager* MusicManager;
+	UMusicWorldSubsystem* MusicWorldSubsystem;
 	
 	virtual void OnCharacterPressedNote(UInputAction* InputAction) override;
 	virtual void OnCharacterPitch(FInputActionValue InputActionValue) override;

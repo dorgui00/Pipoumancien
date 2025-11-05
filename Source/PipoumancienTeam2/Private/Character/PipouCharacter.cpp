@@ -21,6 +21,16 @@ APipouCharacter::APipouCharacter()
 	InteractionCollider->SetupAttachment(GetRootComponent());
 }
 
+APipouCharacter::~APipouCharacter()
+{
+	// if (InteractionCollider)
+	// {
+	// 	InteractionCollider->OnComponentBeginOverlap.RemoveDynamic(this, &APipouCharacter::OnComponentBeginOverlap);
+	// 	InteractionCollider->OnComponentEndOverlap.RemoveDynamic(this, &APipouCharacter::OnComponentEndOverlap);
+	// }
+}
+
+
 void APipouCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -293,8 +303,7 @@ void APipouCharacter::OnInputNoteYCompleted(const FInputActionValue& InputAction
 	InputNoteY = false;
 }
 
-void APipouCharacter::
-OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void APipouCharacter::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	

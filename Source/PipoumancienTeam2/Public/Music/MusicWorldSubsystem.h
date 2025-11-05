@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/Object.h"
-#include "MusicManager.generated.h"
+#include "Subsystems/WorldSubsystem.h"
+#include "MusicWorldSubsystem.generated.h"
 
 /**
  * 
@@ -12,36 +12,28 @@
 struct F_Note;
 struct F_Skeleton;
 
-UCLASS()
-class PIPOUMANCIENTEAM2_API AMusicManager : public AActor
+UCLASS(Blueprintable)
+class PIPOUMANCIENTEAM2_API UMusicWorldSubsystem : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
 	
-public :
-#pragma region Override
-	
-	AMusicManager();
-	
-	// Called every frame
+#pragma region SubsystemOverride
+	virtual void PostInitialize() override;
+	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Tick(float DeltaTime) override;
-
-	virtual void BeginPlay() override;
+	virtual TStatId GetStatId() const override {return TStatId();};
 	
 #pragma endregion
 	
-#pragma region Instance
-public :
-	static AMusicManager* Instance(UWorld* World);
-private :
-	static AMusicManager* MyInstance;
-#pragma endregion
-
 #pragma region Timer
 private :
 	bool IsInCountDown = false;
 	
 	float TimerCountDown = 3.f;
 	float Tempo = 0.f;
+	
+	UPROPERTY(EditDefaultsOnly)
+	float TimeTolerance = 0.8f;
 
 	void StartCountDown();
 	
@@ -50,21 +42,15 @@ private :
 #pragma region Skeleton&Notes
 	
 public :
-	F_Note* GetWaitingNote();
+	F_Note* GetWaitingNote() const;
 	
-	void CheckReceivedInput();
+	void ReceivedMusicianInput();
 	
 private :
 	F_Skeleton* CurrentSkeleton = nullptr;
-	
-	UPROPERTY(EditDefaultsOnly)
-	float Tolerance = 0.8f;
 
 	UPROPERTY()
 	bool HasMusicianReceivedInput = false;
-	
-	UPROPERTY(EditDefaultsOnly)
-	float PitchTolerance = 0.1f;
 
 	int CurrentWaitingNoteIndex = 0;
 	
@@ -74,30 +60,28 @@ private :
 public :
 	
 	bool IsAwaitingReply = false;
-
-	void ReceiveInput();
 	
 private :
+	UPROPERTY(EditDefaultsOnly)
+	float PitchTolerance = 0.1f;
+	
 	bool HasAchievedQte();
 	
 	int Replies = 0;
 
-	void ResetReplies();
+	void ResetMusicianReply();
 	
 #pragma endregion
 
 #pragma region Misc
 	
 public :
-	void InitMusicBySkeleton(F_Skeleton* Skeleton);
+	void InitMusic(F_Skeleton* Skeleton);
 	
 	float CurrentCursorValue = 0.f;
 	
 private :
 	bool IsInWorldStateMusic = false;
 
-	bool HasPrint = false;
-
 #pragma endregion
-	
 };

@@ -35,7 +35,16 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	//TickUpdateCameraZoom(DeltaTime);
+	
+	if (isSettingMusicCamera)
+	{
+		SetMusicCamera(DeltaTime);
+		return;
+	}
+	
 	TickUpdateCameraPosition(DeltaTime);
+
+	
 }
 
 void UCameraWorldSubsystem::AddFollowTarget(UObject* FollowTarget)
@@ -277,20 +286,29 @@ void UCameraWorldSubsystem::InitCameraZoomParameters()
 		CameraZoomYMax = CameraDistanceMax->GetActorLocation().Y;
 }
 
-void UCameraWorldSubsystem::SetMusicCamera()
+void UCameraWorldSubsystem::CallMusicCamera()
 {
-	// USceneComponent* MusicCameraScene = nullptr;
-	//
-	// TArray<UActorComponent*> SceneComponents =  CameraMain->GetOwner()->GetComponentsByTag(USceneComponent::StaticClass(),FName("MusicCamera"));
-	// if (SceneComponents.Num() != 0)
-	//     MusicCameraScene = Cast<USceneComponent>(SceneComponents[0]);
-	//
-	// if (MusicCameraScene == nullptr) return;
-	//
-	// CameraMain->SetWorldLocationAndRotation(MusicCameraScene->GetComponentLocation(),MusicCameraScene->GetComponentRotation());
-	// CameraMain->SetWorldLocation(FMath::Lerp(CameraMain->GetComponentLocation(),MusicCameraScene->GetComponentLocation(),CameraZoomYMin));
+	isSettingMusicCamera = true;
+	
+}
 
-	//FVector Lerp = FMath::Lerp(CameraMain->GetComponentLocation(),MusicCameraScene->GetComponentLocation(),DeltaTime);
+void UCameraWorldSubsystem::SetMusicCamera(float DeltaTime)
+{	
+	 UCameraComponent* MusicCamera = nullptr;
+	
+	 TArray<UActorComponent*> Components =  CameraMain->GetOwner()->GetComponentsByTag(USceneComponent::StaticClass(),FName("MusicCamera"));
+	 if (Components.Num() != 0)
+	     MusicCamera = Cast<UCameraComponent>(Components[0]);
+	
+	 if (MusicCamera == nullptr) return;
+
+	FVector NewPos = FMath::Lerp(CameraMain->GetComponentLocation(),MusicCamera->GetComponentLocation(),DeltaTime*1.f);
+	CameraMain->SetWorldLocation(NewPos);
+
+	if (FMath::IsNearlyEqual(CameraMain->GetComponentLocation().Z,MusicCamera->GetComponentLocation().Z))
+	{
+		isSettingMusicCamera = false;
+	}
 }
 
 UCameraComponent* UCameraWorldSubsystem::FindCameraByTag(const FName& Tag) const

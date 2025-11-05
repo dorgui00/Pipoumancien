@@ -2,17 +2,40 @@
 
 
 #include "Game/GameManager.h"
-
 #include "EngineUtils.h"
+#include "Camera/CameraWorldSubsystem.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
+#include "Components/CanvasPanel.h"
+#include "Components/CanvasPanelSlot.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
-#include "Kismet/GameplayStatics.h"
-#include "Music/MusicManager.h"
+#include "Music/MusicWorldSubsystem.h"
+#include "Logging/StructuredLog.h"
 
 
-AGameManager* AGameManager::MyInstance ;
+AGameManager::AGameManager()
+{
+	PrimaryActorTick.bCanEverTick = true;
+}
+
+void AGameManager::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+void AGameManager::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (WorldState == EWorldState::WorldMusic)
+	{
+		
+	}
+}
+
+
+AGameManager* AGameManager::MyInstance;
 
 AGameManager* AGameManager::Instance(UWorld* World)
 {
@@ -32,6 +55,7 @@ AGameManager* AGameManager::Instance(UWorld* World)
 
 	return MyInstance;
 }
+
 
 // to call in init pipou chara
 void AGameManager::SetCharacters(APipouCharacter* Character)
@@ -87,10 +111,6 @@ void AGameManager::ResetInputsArray()
 	InputPressed.Empty();
 }
 
-void AGameManager::BeginPlay()
-{
-	Super::BeginPlay();
-}
 
 void AGameManager::SetWorldMusicState()
 {
@@ -101,16 +121,13 @@ void AGameManager::SetWorldMusicState()
 	{
 		if (Character && Character->StateMachine)
 		{
-			Character->StateMachine->ChangeState(EPipouCharacterStateID::Music);
+			Character->StateMachine->ChangeState(EPipouCharacterStateID::Music); // BlockMovement()
 		}
 	}
 	
-	//// Pailletas
-	// SetAllMusicBehavior()
-	// BlockMovement()
-	// SetCameraMusic()
-	DisplayResurrectionUI();
-	AMusicManager::Instance(GetWorld())->InitMusicBySkeleton(CurrentSkeleton);
+	SetCameraMusic()GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallMusicCamera(); // SetCameraMusic()
+	DisplayResurrectionUI(); // Display UI
+	GetWorld()->GetSubsystem<UMusicWorldSubsystem>()->InitMusic(CurrentSkeleton);
 }
 
 void AGameManager::DisplayResurrectionUI()
@@ -118,10 +135,16 @@ void AGameManager::DisplayResurrectionUI()
 	APlayerController* PlayerController = PipouCharacters[0]->GetController<APlayerController>();
 	if (PlayerController == nullptr) return;
 
-	APipouHUD* PipoouHUD = PipouCharacters[0]->GetHUD();
-	if (PipoouHUD == nullptr) return;
+	PipouHUD = PipouCharacters[0]->GetHUD();
+	if (PipouHUD == nullptr) return;
 	
-	PipoouHUD->AddWBPResurrection(PipouCharacters[0]->GetController<APlayerController>());
+	PipouHUD->AddWBPResurrection(PipouCharacters[0]->GetController<APlayerController>());
+
+	for (F_Note Note : CurrentSkeleton->Notes)
+	{
+		// Store the note canvas panel in the GameManager to make it move in the tick 
+		NotePanel = PipouHUD->AddWbpSlotInstance(PlayerController, Note.Pitch, Note.InputAction);
+	}
 }
 
 void AGameManager::RemoveResurrectionUI()
@@ -129,8 +152,8 @@ void AGameManager::RemoveResurrectionUI()
 	APlayerController* PlayerController = PipouCharacters[0]->GetController<APlayerController>();
 	if (PlayerController == nullptr) return;
 
-	APipouHUD* PipoouHUD = PipouCharacters[0]->GetHUD();
-	if (PipoouHUD == nullptr) return;
+	PipouHUD = PipouCharacters[0]->GetHUD();
+	if (PipouHUD == nullptr) return;
 	
-	PipoouHUD->RemoveResurrection();
+	PipouHUD->RemoveResurrection();
 }

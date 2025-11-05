@@ -113,7 +113,12 @@ protected :
 #pragma endregion
 
 #pragma region MusicCamera
-	void SetMusicCamera();
+public :
+	void CallMusicCamera();
+
+protected :
+	void SetMusicCamera(float DeltaTime);
+	bool isSettingMusicCamera = false;
 	
 #pragma endregion
 };
