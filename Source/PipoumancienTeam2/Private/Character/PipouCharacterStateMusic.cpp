@@ -6,7 +6,8 @@
 #include "Character/PipouCharacter.h"
 #include "Character/PipouCharacterInputData.h"
 #include "Data/F_Note.h"
-#include "Game/GameManager.h"
+#include "Game/GlobalGameSubsystem.h"
+#include "Kismet/GameplayStatics.h"
 #include "Music/MusicWorldSubsystem.h"
 #include "UI/UResurrectionWidget.h"
 
@@ -63,7 +64,7 @@ void UPipouCharacterStateMusic::InitRole()
 
 void UPipouCharacterStateMusic::InitSkeletons()
 {
-	Skeleton = AGameManager::Instance(GetWorld())->GetCurrentSkeleton();
+	Skeleton = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>()->GetCurrentSkeleton();
 }
 
 void UPipouCharacterStateMusic::InitInputPitch()

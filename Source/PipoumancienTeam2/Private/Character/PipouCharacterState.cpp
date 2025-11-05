@@ -4,10 +4,10 @@
 #include "Character/PipouCharacterState.h"
 
 #include "InputActionValue.h"
-#include "Character/PipouCharacterInputData.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
-#include "Game/GameManager.h"
+#include "Game/GlobalGameSubsystem.h"
+#include "Kismet/GameplayStatics.h"
 
 UPipouCharacterState::UPipouCharacterState()
 {
@@ -45,12 +45,14 @@ void UPipouCharacterState::OnCharacterPitch(FInputActionValue InputActionValue)
 
 void UPipouCharacterState::OnCharacterPressedNote(UInputAction* InputAction)
 {
-	if (AGameManager::Instance(GetWorld())->GetCurrentSkeleton() != nullptr)
+	UGlobalGameSubsystem*  GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
+	
+	if (GlobalGameSubsystem->GetCurrentSkeleton() != nullptr)
 	{
 		// UE_LOG(LogTemp, Display, TEXT("Add note"));
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Add note")), true, FVector2D{2, 2});
 		
-		AGameManager::Instance(GetWorld())->AddNote(InputAction);
+		GlobalGameSubsystem->AddNote(InputAction);
 	}
 }
 
