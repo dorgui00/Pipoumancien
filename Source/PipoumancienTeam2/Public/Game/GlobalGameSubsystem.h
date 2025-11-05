@@ -31,7 +31,7 @@ public :
 	// Characters
 	UPROPERTY()
 	TArray<APipouCharacter*> PipouCharacters;
-	
+
 	void SetCharacters(APipouCharacter* Character);
 
 	// Current Skeleton
@@ -49,6 +49,12 @@ public :
 	void ResetInputsArray();
 
 	// UI
+	UPROPERTY()
+	APipouHUD* PipouHUD;
+
+	UPROPERTY()
+	USlot* NotePanel;
+	
 	void RemoveResurrectionUI(); // TO EDIT
 	
 private :

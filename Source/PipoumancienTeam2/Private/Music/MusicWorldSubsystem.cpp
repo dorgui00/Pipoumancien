@@ -6,9 +6,7 @@
 #include "InputAction.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
-#include "Data/F_Note.h"
-#include "Data/F_Skeleton.h"
-#include "Game/GameManager.h"
+#include "Kismet/GameplayStatics.h"
 
 void UMusicWorldSubsystem::PostInitialize()
 {
@@ -18,6 +16,9 @@ void UMusicWorldSubsystem::PostInitialize()
 void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
+
+	//get GlobalGameSubsystem
+	GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
 
 	IsInWorldStateMusic = false;
 }
@@ -84,16 +85,13 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			
 					Tempo = 0.f;
 
-					if (AGameManager::Instance(GetWorld()) != nullptr)
+					for (auto PipouCharacter : GlobalGameSubsystem->PipouCharacters)
 					{
-						for (auto PipouCharacter : AGameManager::Instance(GetWorld())->PipouCharacters)
-						{
-							PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
-						}
-
-						AGameManager::Instance(GetWorld())->RemoveResurrectionUI();
+						PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
 					}
 
+					GlobalGameSubsystem->RemoveResurrectionUI();
+					
 					CurrentWaitingNoteIndex = 0;
 				}
 				// go next note

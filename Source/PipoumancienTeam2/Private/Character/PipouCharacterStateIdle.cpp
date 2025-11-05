@@ -5,7 +5,6 @@
 #include "Character/PipouCharacter.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
-#include "Game/GameManager.h"
 
 EPipouCharacterStateID UPipouCharacterStateIdle::GetStateID()
 {

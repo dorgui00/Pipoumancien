@@ -2,6 +2,8 @@
 
 
 #include "Game/GlobalGameSubsystem.h"
+
+#include "Camera/CameraWorldSubsystem.h"
 #include "Character/PipouCharacterStateMachine.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Data/F_Note.h"
@@ -71,13 +73,12 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 		{
 			if (Character && Character->StateMachine)
 			{
-				Character->StateMachine->ChangeState(EPipouCharacterStateID::Music);
+				Character->StateMachine->ChangeState(EPipouCharacterStateID::Music); // Block Movement
 			}
 		}
 	
-		//// Pailletas
-		// SetCameraMusic()
-		DisplayResurrectionUI();
+		GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallMusicCamera(); // SetCameraMusic()
+		DisplayResurrectionUI(); // Display UI
 		GetWorld()->GetSubsystem<UMusicWorldSubsystem>()->InitMusic(CurrentSkeleton);
 }
 
@@ -87,10 +88,16 @@ void UGlobalGameSubsystem::DisplayResurrectionUI()
 	APlayerController* PlayerController = PipouCharacters[0]->GetController<APlayerController>();
 	if (PlayerController == nullptr) return;
 
-	APipouHUD* PipoouHUD = PipouCharacters[0]->GetHUD();
-	if (PipoouHUD == nullptr) return;
+	PipouHUD = PipouCharacters[0]->GetHUD();
+	if (PipouHUD == nullptr) return;
 	
-	PipoouHUD->AddWBPResurrection(PipouCharacters[0]->GetController<APlayerController>());
+	PipouHUD->AddWBPResurrection(PipouCharacters[0]->GetController<APlayerController>());
+
+	for (F_Note Note : CurrentSkeleton->Notes)
+	{
+		// Store the note canvas panel in the GameManager to make it move in the tick 
+		NotePanel = PipouHUD->AddWbpSlotInstance(PlayerController, Note.Pitch, Note.InputAction);
+	}
 }
 
 void UGlobalGameSubsystem::RemoveResurrectionUI()
@@ -98,8 +105,8 @@ void UGlobalGameSubsystem::RemoveResurrectionUI()
 	APlayerController* PlayerController = PipouCharacters[0]->GetController<APlayerController>();
 	if (PlayerController == nullptr) return;
 
-	APipouHUD* PipoouHUD = PipouCharacters[0]->GetHUD();
-	if (PipoouHUD == nullptr) return;
+	PipouHUD = PipouCharacters[0]->GetHUD();
+	if (PipouHUD == nullptr) return;
 	
-	PipoouHUD->RemoveResurrection();
+	PipouHUD->RemoveResurrection();
 }

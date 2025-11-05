@@ -3,14 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Game/GlobalGameSubsystem.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "Data/F_Note.h"
+#include "Data/F_Skeleton.h"
 #include "MusicWorldSubsystem.generated.h"
 
 /**
  * 
  */
-struct F_Note;
-struct F_Skeleton;
 
 UCLASS(Blueprintable)
 class PIPOUMANCIENTEAM2_API UMusicWorldSubsystem : public UTickableWorldSubsystem
@@ -82,6 +83,8 @@ public :
 	
 private :
 	bool IsInWorldStateMusic = false;
+
+	UGlobalGameSubsystem* GlobalGameSubsystem;
 
 #pragma endregion
 };
