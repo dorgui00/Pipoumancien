@@ -37,7 +37,7 @@ protected:
 	UFUNCTION()
 	void endOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
-
+	
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UWBP_UIReanimation> PlayerHUDClass;
 
@@ -47,4 +47,6 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
+
 };
