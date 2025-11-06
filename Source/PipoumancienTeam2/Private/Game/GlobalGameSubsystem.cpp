@@ -11,6 +11,10 @@
 #include "Music/MusicWorldSubsystem.h"
 #include "UI/GlobalHUDSubsystem.h"
 
+// void UGlobalGameSubsystem::Tick(float DeltaTime)
+// {
+// }
+
 // to call in init pipou chara
 void UGlobalGameSubsystem::SetCharacters(APipouCharacter* Character)
 {
@@ -28,11 +32,11 @@ void UGlobalGameSubsystem::SetCurrentSkeleton(F_Skeleton* Skeleton)
 }
 
 // Music
-void UGlobalGameSubsystem::AddNote(UInputAction* InputAction)
+void UGlobalGameSubsystem::AddNoteForSkeletonInteraction(UInputAction* InputAction)
 {
 	InputPressed.Add(InputAction);
 
-	if (InputPressed.Num() >= NbNotesToCheck)
+	if (InputPressed.Num() >= SkeletonNotesToCheck)
 	{
 		if (HasValidFirstNotes()) 
 			SetWorldMusicState();
@@ -43,7 +47,7 @@ void UGlobalGameSubsystem::AddNote(UInputAction* InputAction)
 
 bool UGlobalGameSubsystem::HasValidFirstNotes()
 {
-	for (int i = 0; i < NbNotesToCheck; ++i)
+	for (int i = 0; i < SkeletonNotesToCheck; ++i)
 	{
 		if (CurrentSkeleton->Notes[i].InputAction != InputPressed[i])
 		{
@@ -64,6 +68,7 @@ void UGlobalGameSubsystem::ResetInputsArray()
 {
 	InputPressed.Empty();
 }
+
 
 void UGlobalGameSubsystem::SetWorldMusicState()
 {

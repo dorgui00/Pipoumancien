@@ -10,6 +10,7 @@
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
 #include "Game/GlobalGameSubsystem.h"
+#include "Interaction/Interact.h"
 #include "PNJ/SkeletonController.h"
 
 APipouCharacter::APipouCharacter()
@@ -257,6 +258,8 @@ void APipouCharacter::OnInputNoteAStarted(const FInputActionValue& InputActionVa
 {
 	InputNoteA = true;
 	InputPressedNoteEvent.Broadcast(InputData->InputNoteA);
+
+	// play son A
 }
 
 void APipouCharacter::OnInputNoteACompleted(const FInputActionValue& InputActionValue)
@@ -268,6 +271,8 @@ void APipouCharacter::OnInputNoteBStarted(const FInputActionValue& InputActionVa
 {
 	InputNoteB = true;
 	InputPressedNoteEvent.Broadcast(InputData->InputNoteB);
+
+	// play son B
 }
 
 void APipouCharacter::OnInputNoteBCompleted(const FInputActionValue& InputActionValue)
@@ -279,6 +284,8 @@ void APipouCharacter::OnInputNoteXStarted(const FInputActionValue& InputActionVa
 {
 	InputNoteX = true;
 	InputPressedNoteEvent.Broadcast(InputData->InputNoteX);
+
+	// play son x
 }
 
 void APipouCharacter::OnInputNoteXCompleted(const FInputActionValue& InputActionValue)
@@ -290,6 +297,8 @@ void APipouCharacter::OnInputNoteYStarted(const FInputActionValue& InputActionVa
 {
 	InputNoteY = true;
 	InputPressedNoteEvent.Broadcast(InputData->InputNoteY);
+
+	// play son Y
 }
 
 void APipouCharacter::OnInputNoteYCompleted(const FInputActionValue& InputActionValue)
@@ -302,7 +311,18 @@ void APipouCharacter::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCom
 {
 	
 	UE_LOG(LogTemp, Display, TEXT("Begin Overlap"));
-	
+
+	// World Interaction
+	//if interactable
+	if (OtherActor->Implements<UInteract>())
+	{
+		if (IInteract* InInteractor = Cast<IInteract>(OtherActor))
+		{
+				Interactor = InInteractor; // update current interactor
+		}
+	};
+
+	// Skeleton Interaction
 	ASkeletonController* SkeletonController = Cast<ASkeletonController>(OtherActor);
 
 	if (SkeletonController)
@@ -326,6 +346,18 @@ void APipouCharacter::OnComponentEndOverlap(UPrimitiveComponent* OverlappedCompo
 {
 	UE_LOG(LogTemp, Display, TEXT("End Overlap"));
 
+	// World Interaction
+	//if interactable
+	if (OtherActor->Implements<UInteract>())
+	{
+		if (IInteract* InInteractor = Cast<IInteract>(OtherActor))
+		{
+			if (InInteractor==Interactor)
+				Interactor = nullptr; // update current interactor
+		}
+	};
+	
+	// Skeleton Interaction
 	if (ASkeletonController* SkeletonController = Cast<ASkeletonController>(OtherActor))
 	{
 		GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>()->SetCurrentSkeleton(nullptr);

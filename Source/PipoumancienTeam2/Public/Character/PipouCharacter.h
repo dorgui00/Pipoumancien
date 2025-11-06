@@ -9,6 +9,7 @@
 #include "UI/PipouHUD.h"
 #include "PipouCharacter.generated.h"
 
+class IInteract;
 class USphereComponent;
 struct FInputActionValue;
 class UInputMappingContext;
@@ -130,11 +131,14 @@ protected:
 	APipouHUD* PipouHUD;
 
 	void InitPipouHUD();
-	
+
 public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
+	// Interact 
+	IInteract* Interactor ; // Is Overlaping this Interactable Actor
 
 private:
 	// Move

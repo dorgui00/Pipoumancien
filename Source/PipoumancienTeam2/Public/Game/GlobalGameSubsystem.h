@@ -27,6 +27,9 @@ class PIPOUMANCIENTEAM2_API UGlobalGameSubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 
 public :
+	// Override
+	//virtual void Tick(float DeltaTime) override;
+	
 	// Characters
 	UPROPERTY()
 	TArray<APipouCharacter*> PipouCharacters;
@@ -38,15 +41,16 @@ public :
 	void SetCurrentSkeleton(F_Skeleton* Skeleton);
 
 	// Music
-	int NbNotesToCheck = 3;
+	
+	// Skeleton Interaction
+	int SkeletonNotesToCheck = 3; // check 3 skeleton notes to trigger main music meca
 	
 	UPROPERTY()
 	TArray<UInputAction*> InputPressed;
-	
-	void AddNote(UInputAction* InputAction); // add input
+
+	void AddNoteForSkeletonInteraction(UInputAction* InputAction); // add input
 	bool HasValidFirstNotes();
 	void ResetInputsArray();
-
 	
 private :
 
