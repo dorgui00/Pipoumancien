@@ -22,4 +22,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animation")
 	UAnimationAsset* IdleAnim;
+
+	// Music
+	virtual void OnCharacterPressedNote(UInputAction* InputAction) override;
 };

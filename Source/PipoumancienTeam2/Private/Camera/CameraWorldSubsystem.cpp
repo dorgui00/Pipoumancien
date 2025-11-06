@@ -16,20 +16,35 @@ void UCameraWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	Super::OnWorldBeginPlay(InWorld);
 	CameraMain = FindCameraByTag(TEXT("CameraMain"));
 
-	AActor* CameraBoundsActor = FindCameraBoundsActor();
-	if (CameraBoundsActor != nullptr)
-	{
-		InitCameraBounds(CameraBoundsActor);
-	}
+	// camera look at rotation
+	InitCameraRotationToPivot();
 
+	//bounds
+	// AActor* CameraBoundsActor = FindCameraBoundsActor();
+	// if (CameraBoundsActor != nullptr)
+	// {
+	// 	InitCameraBounds(CameraBoundsActor);
+	// }
+
+	//zoom
 	//InitCameraZoomParameters();
+	
 }
 
 void UCameraWorldSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	//TickUpdateCameraZoom(DeltaTime);
+	
+	if (isSettingMusicCamera)
+	{
+		SetMusicCamera(DeltaTime);
+		return;
+	}
+	
 	TickUpdateCameraPosition(DeltaTime);
+
+	
 }
 
 void UCameraWorldSubsystem::AddFollowTarget(UObject* FollowTarget)
@@ -44,17 +59,144 @@ void UCameraWorldSubsystem::RemoveFollowTarget(UObject* FollowTarget)
 	FollowTargets.Remove(FollowTarget);
 }
 
+
+TArray<FVector> UCameraWorldSubsystem::GetCameraQuadGroundBounds()
+{
+    TArray<FVector> Points;
+    if (!CameraMain || !GetWorld()) return Points;
+
+    const FVector GroundNormal = FVector::UpVector;
+    const float GroundZ = 0.f; // default
+
+    // Get viewport size from player controller
+    APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+    if (!PC) return Points;
+
+    int32 ViewX = 0, ViewY = 0;
+    PC->GetViewportSize(ViewX, ViewY);
+    if (ViewX == 0 || ViewY == 0) return Points;
+
+    // Screen corners 
+    TArray<FVector2D> ScreenCorners = {
+        FVector2D(0, 0),
+        FVector2D(ViewX, 0),
+        FVector2D(ViewX, ViewY),
+        FVector2D(0, ViewY)
+    };
+
+	// from screen to ground world space
+    for (const FVector2D& ScreenPos : ScreenCorners)
+    {
+        FVector WorldOrigin, WorldDir;
+        PC->DeprojectScreenPositionToWorld(ScreenPos.X, ScreenPos.Y, WorldOrigin, WorldDir);
+
+        float Denom = FVector::DotProduct(WorldDir, GroundNormal);
+        if (FMath::Abs(Denom) > KINDA_SMALL_NUMBER)
+        {
+            float t = (GroundZ - WorldOrigin.Z) / Denom;
+            FVector HitPoint = WorldOrigin + t * WorldDir;
+            Points.Add(HitPoint);
+        }
+        else
+        {
+            // secu
+            Points.Add(WorldOrigin + WorldDir * 100000.f);
+        }
+    }
+
+	//debug quad
+    // if (Points.Num() >= 4)
+    // {
+    //     for (int i = 0; i < 4; ++i)
+    //     {
+    //         DrawDebugLine(GetWorld(), Points[i], Points[(i + 1) % 4], FColor::Blue, false, 2.f, 0, 2.f);
+    //     }
+    // }
+
+    return Points;
+}
+
+// return true if inside / return false if outside
+bool UCameraWorldSubsystem::ClampPositionInsideQuad(const FVector& InPos, FVector& OutPos)
+{
+    TArray<FVector> Points = GetCameraQuadGroundBounds();
+
+    if (Points.Num() < 3)
+    {
+        OutPos = InPos;
+        return true; // default inside
+    }
+
+    // 3d to quad2D
+    TArray<FVector2D> Quad;
+    Quad.Reserve(Points.Num());
+    for (const FVector& P3 : Points) Quad.Add(FVector2D(P3.X, P3.Y));
+
+    FVector2D CameraPos2D(InPos.X, InPos.Y);
+
+    // check if point (camera) is in quad
+    auto PointInQuad = [](const FVector2D& Point, const TArray<FVector2D>& Quad) -> bool
+    {
+        bool Inside = false; 
+        int32 Num = Quad.Num();
+        for (int32 i = 0, j = Num - 1; i < Num; j = i++)
+        {
+            const FVector2D& Pi = Quad[i];
+            const FVector2D& Pj = Quad[j];
+
+        	//
+            bool intersect = ((Pi.Y > Point.Y) != (Pj.Y > Point.Y)) && // point on IJ
+                             (Point.X < (Pj.X - Pi.X) * (Point.Y - Pi.Y) / (Pj.Y - Pi.Y + KINDA_SMALL_NUMBER) + Pi.X); // if on IJ, check if point is on the left (p.x <) of intersect
+            if (intersect)
+                Inside = !Inside; // intersection is pair => outside / impair => inside
+        }
+        return Inside;
+    };
+
+    bool IsInside = PointInQuad(CameraPos2D, Quad);
+
+    if (IsInside)
+    {
+        OutPos = InPos;
+        return true; //inside
+    }
+
+    // if outside projection on closest point of quad
+    auto ClosestPointOnSegment2D = [](const FVector2D& A, const FVector2D& B, const FVector2D& Point) -> FVector2D
+    {
+        FVector2D AB = B - A;
+        float Den = FVector2D::DotProduct(AB, AB);
+        if (Den <= KINDA_SMALL_NUMBER) return A;
+        float t = FVector2D::DotProduct(Point - A, AB) / Den;
+        t = FMath::Clamp(t, 0.f, 1.f);
+        return A + AB * t;
+    };
+
+    float BestDistSqr = FLT_MAX;
+    FVector2D BestClosest = FVector2D::ZeroVector;
+    int32 NumEdges = Quad.Num();
+    for (int i = 0; i < NumEdges; ++i)
+    {
+        const FVector2D& A = Quad[i];
+        const FVector2D& B = Quad[(i + 1) % NumEdges];
+        FVector2D Cand = ClosestPointOnSegment2D(A, B, CameraPos2D);
+        float DistSqr = FVector2D::DistSquared(Cand, CameraPos2D);
+        if (DistSqr < BestDistSqr)
+        {
+            BestDistSqr = DistSqr;
+            BestClosest = Cand;
+        }
+    }
+
+    OutPos = FVector(BestClosest.X, BestClosest.Y, InPos.Z);
+
+    return false;
+}
+
 void UCameraWorldSubsystem::TickUpdateCameraZoom(float DeltaTime)
 {
 	if (CameraMain==nullptr) return;
 	float GreatestDistanceBetweenTargets = CalculateGreatestDistanceBetweenTargets();
-
-	//find current % of distance using
-	// - GreatestDistanceBetweenTargets
-	// - CameraZoomDistanceBetwweenTargetsMin
-	// - CameraZoomDistanceBetwweenTargetsMax
-	//inverse lerp unreal has find name
-	//clamp percent btw 0& 1
 	
 	float percent = FMath::GetRangePct(CameraZoomDistanceBetweenTargetsMin,CameraZoomDistanceBetweenTargetsMax,GreatestDistanceBetweenTargets);
 	percent = FMath::Clamp(percent, 0.0f, 1.0f);
@@ -70,11 +212,9 @@ void UCameraWorldSubsystem::TickUpdateCameraPosition(float DeltaTime)
 {
 	FVector AveragePosition = CalculateAveragePositionBetweenTargets();
 	
-	//Met à jour la position de la caméra (en fonction des cibles à suivre).
-	//CameraMain->SetWorldLocation(FVector(AveragePosition.X,AveragePosition.Y,CameraMain->GetComponentLocation().Z));
-	if (CameraMain!=nullptr)
-		CameraMain->GetOwner()->SetActorLocation(AveragePosition);
-	//TranslateFollowTargets();
+	//followtarget
+	 if (CameraMain!=nullptr)
+	 	CameraMain->GetOwner()->SetActorLocation(AveragePosition);
 }
 
 FVector UCameraWorldSubsystem::CalculateAveragePositionBetweenTargets()
@@ -131,65 +271,6 @@ float UCameraWorldSubsystem::CalculateGreatestDistanceBetweenTargets()
 	return GreatestDistance;
 }
 
-void UCameraWorldSubsystem::TranslateFollowTargets()
-{
-	if (!CameraMain || !GetWorld()) return;
-
-    // 
-    FCollisionObjectQueryParams ObjectQueryParams;
-    ObjectQueryParams.AddObjectTypesToQuery(ECC_GameTraceChannel2); 
-
-    // 
-    FVector CameraPos = CameraMain->GetComponentLocation();
-    FVector LineEnd = CameraPos + CameraMain->GetForwardVector() * 1000.f;
-
-    // 
-    FHitResult ForwardHit;
-    DrawDebugLine(GetWorld(), CameraPos, LineEnd, FColor::Green, false, 1.f, 0, 1.f);
-    if (GetWorld()->LineTraceSingleByObjectType(ForwardHit, CameraPos, LineEnd, ObjectQueryParams))
-    {
-        DrawDebugSphere(GetWorld(), ForwardHit.ImpactPoint, 50.f, 20, FColor::Red, false, 1.f);
-        UE_LOG(LogTemp, Warning, TEXT("Hit forward at %s (actor %s)"),
-               *ForwardHit.ImpactPoint.ToString(),
-               ForwardHit.GetActor() ? *ForwardHit.GetActor()->GetName() : TEXT("None"));
-    }
-
-    // vecteur directionnel
-    FVector TraceStart = CameraPos;
-    FVector TraceEnd = CameraPos - FVector(0.f, 0.f, 3000.f); // vers le bas
-    FHitResult GroundHit;
-
-    if (GetWorld()->LineTraceSingleByObjectType(GroundHit, TraceStart, TraceEnd, ObjectQueryParams))
-    {
-        FVector GroundPoint = GroundHit.ImpactPoint;
-
-        // Debug
-        DrawDebugSphere(GetWorld(), GroundPoint, 50.f, 20, FColor::Purple, false, 3.f);
-
-        // 
-        FVector CenterOfPlayers = CalculateAveragePositionBetweenTargets();
-        DrawDebugSphere(GetWorld(), CenterOfPlayers, 50.f, 20, FColor::Yellow, false, 3.f);
-
-        //
-        FVector CameraXY = CameraPos;
-        FVector CenterXY = FVector(CenterOfPlayers.X, CenterOfPlayers.Y, CameraXY.Z);
-
-        FVector DirectionXY = CameraXY - CenterXY;
-        DirectionXY.Z = 0.f; // lock Z
-
-        // debug
-        DrawDebugLine(GetWorld(), CenterXY, CenterXY + DirectionXY, FColor::Orange, false, 3.f, 0, 1.f);
-    	
-        FVector NewCameraPos = CenterXY + DirectionXY;
-
-        CameraMain->SetWorldLocation(NewCameraPos);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("No ground hit for orthogonal projection"));
-    }
-}
-
 void UCameraWorldSubsystem::InitCameraZoomParameters()
 {
 	//Find CameraDistanceMin (using tag) and Update CameraZoomYMin according to Y position if found
@@ -205,6 +286,31 @@ void UCameraWorldSubsystem::InitCameraZoomParameters()
 		CameraZoomYMax = CameraDistanceMax->GetActorLocation().Y;
 }
 
+void UCameraWorldSubsystem::CallMusicCamera()
+{
+	isSettingMusicCamera = true;
+	
+}
+
+void UCameraWorldSubsystem::SetMusicCamera(float DeltaTime)
+{	
+	 UCameraComponent* MusicCamera = nullptr;
+	
+	 TArray<UActorComponent*> Components =  CameraMain->GetOwner()->GetComponentsByTag(USceneComponent::StaticClass(),FName("MusicCamera"));
+	 if (Components.Num() != 0)
+	     MusicCamera = Cast<UCameraComponent>(Components[0]);
+	
+	 if (MusicCamera == nullptr) return;
+
+	FVector NewPos = FMath::Lerp(CameraMain->GetComponentLocation(),MusicCamera->GetComponentLocation(),DeltaTime*1.f);
+	CameraMain->SetWorldLocation(NewPos);
+
+	if (FMath::IsNearlyEqual(CameraMain->GetComponentLocation().Z,MusicCamera->GetComponentLocation().Z))
+	{
+		isSettingMusicCamera = false;
+	}
+}
+
 UCameraComponent* UCameraWorldSubsystem::FindCameraByTag(const FName& Tag) const
 {
 	//Retourne un composant UCameraComponent en recherchant un actor dans la scène à l’aide de son tag.
@@ -212,13 +318,30 @@ UCameraComponent* UCameraWorldSubsystem::FindCameraByTag(const FName& Tag) const
 	TArray<AActor*> Cameras;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), Tag,Cameras);
 	
-	UCameraComponent* Camera = nullptr;
+	UCameraComponent* CameraComponent = nullptr;
 	if (Cameras.Num() > 0)
 	{
-		Camera = Cameras[0]->FindComponentByClass<UCameraComponent>();
+		CameraComponent = Cameras[0]->FindComponentByClass<UCameraComponent>();
 	}
 	
-	return Camera;
+	return CameraComponent;
+}
+
+void UCameraWorldSubsystem::InitCameraRotationToPivot()
+{
+	if (CameraMain ==nullptr) return;
+
+	AActor* CameraActor = CameraMain->GetOwner();
+	if (CameraActor ==nullptr) return;
+
+	FVector PivotPos = CameraActor->GetActorLocation();
+
+	// cam component look at pivot
+	FVector CamLocation = CameraMain->GetComponentLocation();
+	FVector DirToPivot = (PivotPos - CamLocation).GetSafeNormal();
+	FRotator LookAtRotation = DirToPivot.Rotation();
+
+	CameraMain->SetWorldRotation(LookAtRotation);
 }
 
 AActor* UCameraWorldSubsystem::FindCameraBoundsActor()
@@ -243,8 +366,8 @@ void UCameraWorldSubsystem::InitCameraBounds(AActor* CameraBoundsActor)
 	CameraBoundsActor->GetActorBounds(false,BoundsCenter,BoundsExtents);
 
 	//Fill CameraBounds and CameraYProjectionCenter according to bounds
-	CameraBoundsMin = FVector2D(BoundsCenter.X-BoundsExtents.X/2,BoundsCenter.Y-BoundsExtents.Y/2);
-	CameraBoundsMax = FVector2D(BoundsCenter.X+BoundsExtents.X/2,BoundsCenter.Y+BoundsExtents.Y/2);
+	CameraBoundsMin = FVector2D(BoundsCenter.X-BoundsExtents.X,BoundsCenter.Y-BoundsExtents.Y);
+	CameraBoundsMax = FVector2D(BoundsCenter.X+BoundsExtents.X,BoundsCenter.Y+BoundsExtents.Y);
 	CameraBoundsYProjectionCenter = BoundsCenter.Y; 
 }
 

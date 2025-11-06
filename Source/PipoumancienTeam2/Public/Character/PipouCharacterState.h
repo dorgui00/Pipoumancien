@@ -7,9 +7,20 @@
 #include "PipouCharacterStateID.h"
 #include "PipouCharacterState.generated.h"
 
+class UInputAction;
+struct FInputActionValue;
 class APipouCharacter;
 class UPipouCharacterStateMachine;
 enum class EPipouCharacterStateID : uint8;
+struct F_Skeleton;
+
+UENUM()
+enum class EPipouCharacterRoles : uint8
+{
+	None,
+	Musician,
+	Conductor,
+};
 
 UCLASS(Abstract)
 class PIPOUMANCIENTEAM2_API UPipouCharacterState : public UActorComponent
@@ -18,7 +29,7 @@ class PIPOUMANCIENTEAM2_API UPipouCharacterState : public UActorComponent
 
 public:
 	UPipouCharacterState();
-
+	
 	// Manage State
 	virtual EPipouCharacterStateID GetStateID();
 	virtual void StateInit(UPipouCharacterStateMachine* InStateMachine);
@@ -32,4 +43,13 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UPipouCharacterStateMachine> StateMachine;
+
+	// NE PEUX PAS AVOIR UN UPROPERTY
+	F_Skeleton* Skeleton = nullptr;
+
+	UFUNCTION()
+	virtual void OnCharacterPressedNote(UInputAction* InputAction);
+
+	UFUNCTION()
+	virtual void OnCharacterPitch(FInputActionValue InputActionValue);
 };
