@@ -12,6 +12,7 @@
 #include "Editor/PipouCharacterSettings.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
+#include "Settings/SubsystemSettings.h"
 #include "UI/USlot.h"
 
 
@@ -29,6 +30,13 @@ void UGlobalHUDSubsystem::Init()
 	//Init Global Game Subsystem
 	GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
 
+	// Init fields via Settings
+	const USubsystemSettings* Settings = GetDefault<USubsystemSettings>();
+
+	//InputData = Settings->InputData; // TO EDIT
+	WBPResurrectionClass = Settings->WBPResurrectionClass;
+	WBPNoteClass = Settings->WBPNoteClass;
+	
 	InputData = LoadObject<UPipouCharacterInputData>(nullptr, TEXT("/Game/Pipoumancien/Inputs/DA_Character_Inputs.DA_Character_Inputs"));
 	// WBPResurrectionClass = LoadClass<UResurrectionWidget>(nullptr, TEXT("/Game/Pipoumancien/Blueprint/UI/WBP_UI_Reanimation.WBP_UI_Reanimation"));
 	// WBPNoteClass = LoadClass<USlot>(nullptr, TEXT("/Game/Pipoumancien/Blueprint/UI/WBP_UI_Reanimation.WBP_UI_Reanimation"));

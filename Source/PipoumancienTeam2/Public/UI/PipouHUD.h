@@ -3,8 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "USlot.h"
-#include "Character/PipouCharacterInputData.h"
 #include "GameFramework/HUD.h"
 #include "PipouHUD.generated.h"
 
