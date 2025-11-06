@@ -9,9 +9,13 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
+#include "Editor/PipouCharacterSettings.h"
 #include "Game/GlobalGameSubsystem.h"
+#include "Kismet/GameplayStatics.h"
 #include "UI/USlot.h"
 
+
+class UPipouCharacterSettings;
 
 void UGlobalHUDSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -25,6 +29,10 @@ void UGlobalHUDSubsystem::Init()
 	//Init Global Game Subsystem
 	GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
 
+	InputData = LoadObject<UPipouCharacterInputData>(nullptr, TEXT("/Game/Pipoumancien/Inputs/DA_Character_Inputs.DA_Character_Inputs"));
+	// WBPResurrectionClass = LoadClass<UResurrectionWidget>(nullptr, TEXT("/Game/Pipoumancien/Blueprint/UI/WBP_UI_Reanimation.WBP_UI_Reanimation"));
+	// WBPNoteClass = LoadClass<USlot>(nullptr, TEXT("/Game/Pipoumancien/Blueprint/UI/WBP_UI_Reanimation.WBP_UI_Reanimation"));
+	
 	MusicNoteFromInputAction =
 	{
 		{ InputData->InputNoteA, EMusicNoteType::A },
@@ -34,14 +42,14 @@ void UGlobalHUDSubsystem::Init()
 	};
 }
 
-void UGlobalHUDSubsystem::AddWBPResurrection()
+void UGlobalHUDSubsystem::DisplayResurrectionWidget()
 {
-	if (WBPResurrectionClass == nullptr) return;
+	// if (WBPResurrectionClass == nullptr) return;
 
 	APlayerController* PC = Cast<APlayerController>(GlobalGameSubsystem->PipouCharacters[0]->GetController());
 	if (!PC) return;
 	
-	WBPResurrectionInstance = CreateWidget<UResurrectionWidget>(PC, WBPResurrectionClass);
+	WBPResurrectionInstance = CreateWidget<UResurrectionWidget>(PC, UResurrectionWidget::StaticClass());
 	
 	if (WBPResurrectionInstance != nullptr)
 	{
@@ -49,69 +57,7 @@ void UGlobalHUDSubsystem::AddWBPResurrection()
 	}
 }
 
-
-void UGlobalHUDSubsystem::AddWbpSlotInstance(float InputPitch, UInputAction* InputAction)
-{
-	if (WBPSlotClass == nullptr) return ;
-
-	APlayerController* PC = Cast<APlayerController>(GlobalGameSubsystem->PipouCharacters[0]->GetController());
-	if (!PC) return;
-	
-	WBPSlotInstance = CreateWidget<USlot>(PC, WBPSlotClass);
-
-	if (WBPSlotInstance != nullptr)
-	{
-		if (WBPResurrectionInstance == nullptr) 
-		WBPResurrectionInstance->SlotSpawnPoints->AddChildToCanvas(WBPSlotInstance);
-		
-		// Get WBP canvas note panel slot 
-		UCanvasPanelSlot* SlotInstancePanel = Cast<UCanvasPanelSlot>(WBPSlotInstance->Slot);
-		if (SlotInstancePanel ==nullptr) return;
-
-		// Get SpawnPoint from ResurrectionWidget, from the input pitch of the input action of the notes
-		UUserWidget* SpawnPoint = WBPResurrectionInstance->GetSpawnPointFromInputPitch(InputPitch);
-		UUserWidget* EndPoint = WBPResurrectionInstance->GetEndPointFromInputPitch(InputPitch);
-
-		// Get slot canvas panel from spawnpoint
-		if (SpawnPoint == nullptr) return ;
-		UCanvasPanelSlot* SpawnPointPanel = Cast<UCanvasPanelSlot>(SpawnPoint->Slot);
-
-		if (EndPoint == nullptr) return ;
-		UCanvasPanelSlot* EndPointPanel = Cast<UCanvasPanelSlot>(EndPoint->Slot);
-
-		WBPSlotInstance->SpawnPoint = SpawnPointPanel;
-		WBPSlotInstance->EndPoint = EndPointPanel;
-		
-		// Set spawn position of the slot to the spawnpoint position 
-		SlotInstancePanel->SetPosition(SpawnPointPanel->GetPosition());
-
-		// Set Type of note the slot is
-		WBPSlotInstance->SetSlotNote(GetMusicNoteTypeFromInputAction(InputAction));
-	}
-}
-
-
-// Utilities functions
-EMusicNoteType UGlobalHUDSubsystem::GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const
-{
-	return MusicNoteFromInputAction[InputAction];
-}
-
-
-// 
-void UGlobalHUDSubsystem::DisplayResurrection()
-{
-	AddWBPResurrection();
-	
-	for (F_Note Note : GlobalGameSubsystem->GetCurrentSkeleton()->Notes)
-	{
-		// Store the note canvas panel in the GameManager to make it move in the tick 
-		AddWbpSlotInstance(Note.Pitch, Note.InputAction);
-	}
-}
-
-
-void UGlobalHUDSubsystem::RemoveResurrection()
+void UGlobalHUDSubsystem::RemoveResurrectionWidget()
 {
 	if (WBPResurrectionInstance != nullptr)
 	{
@@ -119,3 +65,60 @@ void UGlobalHUDSubsystem::RemoveResurrection()
 		WBPResurrectionInstance = nullptr;
 	}
 }
+
+
+void UGlobalHUDSubsystem::SpawnNotesPartition(F_Skeleton* CurrentSkeleton)
+{
+	// if (WBPNoteClass == nullptr) return ;
+
+	APlayerController* PC = Cast<APlayerController>(GlobalGameSubsystem->PipouCharacters[0]->GetController());
+	if (!PC) return;
+
+	float DistancePreviousFrequencies = 0;
+	
+	for (F_Note Note : CurrentSkeleton->Notes)
+	{
+		if (!WBPResurrectionInstance) return;
+		
+		// Create Slot
+		WBPNoteInstance = CreateWidget<USlot>(PC, USlot::StaticClass());
+		if (!WBPNoteInstance) return;
+
+		// Add the note to the parent spawn notes
+		WBPResurrectionInstance->SpawnNotes->AddChildToCanvas(WBPNoteInstance);
+		
+		// Get Note Slot
+		UCanvasPanelSlot* NoteSlotInstance = Cast<UCanvasPanelSlot>(WBPNoteInstance->Slot);
+		if (!NoteSlotInstance) return;
+
+		// Get SpawnPoint
+		UUserWidget* SpawnPointFromPitch = WBPResurrectionInstance->GetSpawnPointFromInputPitch(Note.Pitch);
+		if (!SpawnPointFromPitch) return;
+
+		// Get SpawnPoint Slot
+		UCanvasPanelSlot* SpawnPointSlot = Cast<UCanvasPanelSlot>(SpawnPointFromPitch->Slot);
+		if (!SpawnPointSlot) return;
+		
+		// Calculate Note Slot Pos Y
+		float PosY = SpawnPointSlot->GetPosition().Y;
+		
+		// Calculate Note Slot Pos X
+		float PosX = (Note.Frequency / RatioDistance) + DistancePreviousFrequencies;
+		
+		// Set Slot Pos
+		FVector2D NotePos = FVector2D(PosX, PosY);
+		NoteSlotInstance->SetPosition(NotePos);
+		
+		// Set Music Note Type
+		WBPNoteInstance->SetSlotNote(GetMusicNoteTypeFromInputAction(Note.InputAction));
+		
+		DistancePreviousFrequencies += Note.Frequency / RatioDistance;
+	}
+}
+
+// Utilities functions
+EMusicNoteType UGlobalHUDSubsystem::GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const
+{
+	return MusicNoteFromInputAction[InputAction];
+}
+

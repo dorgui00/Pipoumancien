@@ -16,16 +16,6 @@ void UResurrectionWidget::NativeConstruct()
 		{ 0.5f, SpawnPoint_4 }, 
 		{ 1.f, SpawnPoint_5 }, 
 	};
-
-	EndPointFromInputPitch =
-	{
-		{ -1.f, EndPoint_1 },
-		{ -0.5f, EndPoint_2 },
-		{ 0.f, EndPoint_3 }, 
-		{ 0.5f, EndPoint_4 }, 
-		{ 1.f, EndPoint_5 }, 
-	};
-
 }
 
 // Music
@@ -38,9 +28,4 @@ void UResurrectionWidget::SetSliderPitch(float NewPitch) const
 UUserWidget* UResurrectionWidget::GetSpawnPointFromInputPitch(float InputPitch)
 {
 	return SpawnPointFromInputPitch[InputPitch];
-}
-
-UUserWidget* UResurrectionWidget::GetEndPointFromInputPitch(float InputPitch)
-{
-	return EndPointFromInputPitch[InputPitch];
 }

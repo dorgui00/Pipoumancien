@@ -45,9 +45,6 @@ public:
 
 	EPipouCharacterClass GetPipouCharacterClass() const;
 
-	// UI
-	APipouHUD* GetHUD() const;
-	
 	// State Machine
 	void CreateStateMachine();
 	void InitStateMachine();

@@ -9,6 +9,7 @@
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Music/MusicWorldSubsystem.h"
+#include "UI/GlobalHUDSubsystem.h"
 #include "UI/UResurrectionWidget.h"
 
 EPipouCharacterStateID UPipouCharacterStateMusic::GetStateID()
@@ -88,10 +89,10 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 		MusicWorldSubsystem->CurrentCursorValue = FMath::Clamp(MusicWorldSubsystem->CurrentCursorValue + InputActionValue.Get<float>() * 0.1f,
 			-1.f, 1.0f);
 
-		if (Character->GetHUD() != nullptr)
-		{
-			Character->GetHUD()->WBPResurrectionInstance->SetSliderPitch(MusicWorldSubsystem->CurrentCursorValue);
-		}
+		UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
+		if (!HUDSubsystem) return;
+
+		HUDSubsystem->WBPResurrectionInstance->SetSliderPitch(MusicWorldSubsystem->CurrentCursorValue);
 		
 		// UE_LOG(LogTemp, Display, TEXT("CurrentCursorValue: %f"), MusicManager->CurrentCursorValue);
 		//

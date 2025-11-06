@@ -9,6 +9,7 @@
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
 #include "Music/MusicWorldSubsystem.h"
+#include "UI/GlobalHUDSubsystem.h"
 
 // to call in init pipou chara
 void UGlobalGameSubsystem::SetCharacters(APipouCharacter* Character)
@@ -66,7 +67,7 @@ void UGlobalGameSubsystem::ResetInputsArray()
 
 void UGlobalGameSubsystem::SetWorldMusicState()
 {
-	//WorldState = EWorldState::WorldMusic; // TO EDIT
+	WorldState = EWorldState::WorldMusic; // TO EDIT
 
 	//change state for players
 	for (auto Character : PipouCharacters) 
@@ -78,7 +79,13 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 	}
 
 	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallMusicCamera(); // SetCameraMusic()
-	//DisplayResurrection(); // Display UI
+	
+	UGlobalHUDSubsystem* HUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
+	if (!HUDSubsystem) return;
+	
+	// Display UI
+	HUDSubsystem->DisplayResurrectionWidget();
+	
 	GetWorld()->GetSubsystem<UMusicWorldSubsystem>()->InitMusic(CurrentSkeleton);
 }
 

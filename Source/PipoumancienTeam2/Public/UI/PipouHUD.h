@@ -18,43 +18,5 @@ UCLASS()
 class PIPOUMANCIENTEAM2_API APipouHUD : public AHUD
 {
 	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditDefaultsOnly, Category="Input Data")
-	UPipouCharacterInputData* InputData;
 	
-	UPROPERTY(EditAnywhere, Category="Resurrection")
-	TSubclassOf<UResurrectionWidget> WBPResurrectionClass;
-
-	UPROPERTY()
-	UResurrectionWidget* WBPResurrectionInstance;
-
-	void AddWBPResurrection(APlayerController* PlayerController);
-	void RemoveResurrection();
-
-	// WBP Slot
-	UPROPERTY(EditAnywhere, Category="Resurrection")
-	TSubclassOf<USlot> WBPSlotClass;
-	
-	UPROPERTY()
-	USlot* WBPSlotInstance;
-	
-	void AddWbpSlotInstance(float InputPitch, UInputAction* InputAction);
-
-protected:
-	virtual void BeginPlay() override;
-	
-private:
-	// Utilities Functions
-	UPROPERTY()
-	TMap<UInputAction*, EMusicNoteType> MusicNoteFromInputAction;
-	
-	EMusicNoteType GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const;
-	void DisplayResurrectionUI();
-	void RemoveResurrectionUI();
-
-	// Game Subsystem
-	UGlobalGameSubsystem* GlobalGameSubsystem;
-
-	void Init();
 };

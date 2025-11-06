@@ -24,15 +24,7 @@ protected:
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override {return TStatId();};
-
-	UPROPERTY()
-	UTimelineComponent* MusicTimeline;
-
-	FOnTimelineFloat FloatTrack {};
-
-	UFUNCTION()
-	void PlayNotePartition(float Value);
-
+	
 	UPROPERTY(EditAnywhere)
 	float Offset;
 	
@@ -58,6 +50,9 @@ public :
 	F_Note* GetWaitingNote() const;
 	
 	void ReceivedMusicianInput();
+	
+	UPROPERTY()
+	float Speed = 1.f;
 	
 private :
 	F_Skeleton* CurrentSkeleton = nullptr;

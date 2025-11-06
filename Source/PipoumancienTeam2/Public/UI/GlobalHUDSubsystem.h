@@ -7,13 +7,13 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "GlobalHUDSubsystem.generated.h"
 
+struct F_Skeleton;
 class UInputAction;
 class UResurrectionWidget;
 class UPipouCharacterInputData;
 class UGlobalGameSubsystem;
-/**
- * 
- */
+
+
 UCLASS()
 class PIPOUMANCIENTEAM2_API UGlobalHUDSubsystem : public UGameInstanceSubsystem
 {
@@ -29,20 +29,22 @@ public:
 	UPROPERTY()
 	UResurrectionWidget* WBPResurrectionInstance;
 
-	void AddWBPResurrection();
-	
-	//Resurrection
-	void DisplayResurrection();
-	void RemoveResurrection();
+	// Resurrection
+	void DisplayResurrectionWidget();
+	void RemoveResurrectionWidget();
 
 	// WBP Slot
 	UPROPERTY(EditAnywhere, Category="Resurrection")
-	TSubclassOf<USlot> WBPSlotClass;
+	TSubclassOf<USlot> WBPNoteClass;
 	
 	UPROPERTY()
-	USlot* WBPSlotInstance;
+	USlot* WBPNoteInstance;
 	
-	void AddWbpSlotInstance(float InputPitch, UInputAction* InputAction);
+	void SpawnNotesPartition(F_Skeleton* CurrentSkeleton);
+
+	// DistanceBetweenNote = Frequency/RatioDistance
+	// Our RatioDistance
+	float RatioDistance = 1.f;
 
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;

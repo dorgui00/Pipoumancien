@@ -69,11 +69,6 @@ void APipouCharacter::InitPipouHUD()
 	PipouHUD = Cast<APipouHUD>(GetController<APlayerController>()->GetHUD());
 }
 
-APipouHUD* APipouCharacter::GetHUD() const
-{
-	return PipouHUD;
-}
-
 void APipouCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);

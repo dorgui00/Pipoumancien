@@ -5,11 +5,11 @@
 #include "InputAction.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
-#include "Components/TimelineComponent.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
+#include "UI/GlobalHUDSubsystem.h"
 
 void UMusicWorldSubsystem::PostInitialize()
 {
@@ -20,47 +20,34 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
 
-	//get GlobalGameSubsystem
+	// Get GlobalGameSubsystem
 	GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
-
 	IsInWorldStateMusic = false;
-
-	for (F_Note Note : CurrentSkeleton->Notes)
-	{
-		float NewLength = Note.Frequency;
-		MusicTimeline->SetTimelineLength(NewLength);
-	}
-
-	MusicTimeline->SetTimelineLength(MusicTimeline->GetTimelineLength() + Offset);
-	
-	FloatTrack.BindUFunction(this, FName { TEXT("PlayNotePartition") });
 }
 
 void UMusicWorldSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
 
-void UMusicWorldSubsystem::PlayNotePartition(float Value)
-{
+	if (!IsInWorldStateMusic) return;
 	if (IsInCountDown)
 	{
-		TimerCountDown -= GetWorld()->GetDeltaSeconds();
+		TimerCountDown -= DeltaTime;
 
-		//Finish Countdown
+		// Finish Countdown
 		if (TimerCountDown<=0)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Finish CountDown")), true, FVector2D(2, 2));
 			
-		 	IsInCountDown = false;
+			IsInCountDown = false;
 			TimerCountDown = 3.f;
 		}
 	}
-	else 
+	else
 	{
 		Tempo += GetWorld()->GetDeltaSeconds();
 
-		if (!CurrentSkeleton) return; // secu
+		if (!CurrentSkeleton) return; // Secu check if current skeleton is set
 
 		F_Note* CurrentNote = GetWaitingNote();
 		
@@ -104,8 +91,7 @@ void UMusicWorldSubsystem::PlayNotePartition(float Value)
 						PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
 					}
 
-					// GlobalGameSubsystem->RemoveResurrection();
-					
+					UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
 					CurrentWaitingNoteIndex = 0;
 				}
 				// go next note
@@ -121,7 +107,7 @@ void UMusicWorldSubsystem::PlayNotePartition(float Value)
 			// lost qte time
 			else
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Black, FString::Printf(TEXT("Tu as raté  la note")), true, FVector2D(2, 2));
+				GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Black, FString::Printf(TEXT("Tu as raté la note")), true, FVector2D(2, 2));
 
 				// go back from two previous notes
 				CurrentWaitingNoteIndex = FMath::Max(0, CurrentWaitingNoteIndex-2);
@@ -142,6 +128,9 @@ void UMusicWorldSubsystem::InitMusic(F_Skeleton* Skeleton)
 	IsInWorldStateMusic = true;
 	
 	CurrentCursorValue = 0.f;
+
+	// Spawn Notes in UI
+	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->SpawnNotesPartition(CurrentSkeleton);
 	
 	StartCountDown();
 }

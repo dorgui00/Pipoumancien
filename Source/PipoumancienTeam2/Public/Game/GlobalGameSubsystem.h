@@ -13,13 +13,13 @@ class UInputAction;
 struct F_Skeleton;
 
 // UENUM()
-// enum class EWorldState : uint8{
-// 	None = 0,
-// 	WorldFree = 1,
-// 	WorldMusic = 2,
-// 	WorldTransport = 3,
-// 	Menus = 4,
-// };
+enum class EWorldState : uint8{
+	None = 0,
+	WorldFree = 1,
+	WorldMusic = 2,
+	WorldTransport = 3,
+	Menus = 4,
+};
 
 UCLASS()
 class PIPOUMANCIENTEAM2_API UGlobalGameSubsystem : public UGameInstanceSubsystem //, public FTickableGameObject
@@ -51,7 +51,7 @@ public :
 private :
 
 	// World State
-	//EWorldState WorldState = EWorldState::WorldFree; // TO EDIT
+	EWorldState WorldState = EWorldState::WorldFree; // TO EDIT
 
 	void SetWorldMusicState();
 	
