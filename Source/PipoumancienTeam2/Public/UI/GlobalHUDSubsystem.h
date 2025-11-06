@@ -44,7 +44,7 @@ public:
 
 	// DistanceBetweenNote = Frequency/RatioDistance
 	// Our RatioDistance
-	float RatioDistance = 1.f;
+	float RatioDistance = 0.01f;
 
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;

@@ -38,8 +38,6 @@ void UGlobalHUDSubsystem::Init()
 	WBPNoteClass = Settings->WBPNoteClass;
 	
 	InputData = LoadObject<UPipouCharacterInputData>(nullptr, TEXT("/Game/Pipoumancien/Inputs/DA_Character_Inputs.DA_Character_Inputs"));
-	// WBPResurrectionClass = LoadClass<UResurrectionWidget>(nullptr, TEXT("/Game/Pipoumancien/Blueprint/UI/WBP_UI_Reanimation.WBP_UI_Reanimation"));
-	// WBPNoteClass = LoadClass<USlot>(nullptr, TEXT("/Game/Pipoumancien/Blueprint/UI/WBP_UI_Reanimation.WBP_UI_Reanimation"));
 	
 	MusicNoteFromInputAction =
 	{
@@ -57,7 +55,7 @@ void UGlobalHUDSubsystem::DisplayResurrectionWidget()
 	APlayerController* PC = Cast<APlayerController>(GlobalGameSubsystem->PipouCharacters[0]->GetController());
 	if (!PC) return;
 	
-	WBPResurrectionInstance = CreateWidget<UResurrectionWidget>(PC, UResurrectionWidget::StaticClass());
+	WBPResurrectionInstance = CreateWidget<UResurrectionWidget>(PC, WBPResurrectionClass);
 	
 	if (WBPResurrectionInstance != nullptr)
 	{
@@ -89,7 +87,7 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(F_Skeleton* CurrentSkeleton)
 		if (!WBPResurrectionInstance) return;
 		
 		// Create Slot
-		WBPNoteInstance = CreateWidget<USlot>(PC, USlot::StaticClass());
+		WBPNoteInstance = CreateWidget<USlot>(PC, WBPNoteClass);
 		if (!WBPNoteInstance) return;
 
 		// Add the note to the parent spawn notes

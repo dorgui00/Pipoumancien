@@ -125,11 +125,6 @@ protected:
 
 	UPROPERTY()
 	float InputPitch = 0;
-
-	UPROPERTY()
-	APipouHUD* PipouHUD;
-
-	void InitPipouHUD();
 	
 public:
 	virtual void Tick(float DeltaTime) override;

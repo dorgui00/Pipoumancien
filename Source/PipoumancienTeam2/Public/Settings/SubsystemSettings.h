@@ -7,10 +7,6 @@
 #include "UI/UResurrectionWidget.h"
 #include "SubsystemSettings.generated.h"
 
-/**
- * 
- */
-
 class USlot;
 class UPipouCharacterInputData;
 
@@ -31,5 +27,5 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category="HUD")
 	TSubclassOf<USlot> WBPNoteClass;
 
-	//others
+	// others
 };
