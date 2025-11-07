@@ -30,7 +30,10 @@ public:
 	UCanvasPanel* SlotSpawnPoints;
 
 	UPROPERTY(meta = (BindWidget))
-	UCanvasPanel* SpawnNotes;
+	UCanvasPanel* NotesBox;
+
+	UPROPERTY(meta= (BindWidget))
+	UCanvasPanel* PartitionBox;
 
 private:
 	// Music

@@ -13,17 +13,16 @@ class UResurrectionWidget;
 class UPipouCharacterInputData;
 class UGlobalGameSubsystem;
 
-
 UCLASS()
 class PIPOUMANCIENTEAM2_API UGlobalHUDSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, Category="Input Data")
-	UPipouCharacterInputData* InputData;
+	UPROPERTY()
+	TSoftObjectPtr<UPipouCharacterInputData> InputData;
 	
-	UPROPERTY(EditAnywhere, Category="Resurrection")
+	UPROPERTY()
 	TSubclassOf<UResurrectionWidget> WBPResurrectionClass;
 
 	UPROPERTY()
@@ -34,7 +33,7 @@ public:
 	void RemoveResurrectionWidget();
 
 	// WBP Slot
-	UPROPERTY(EditAnywhere, Category="Resurrection")
+	UPROPERTY()
 	TSubclassOf<USlot> WBPNoteClass;
 	
 	UPROPERTY()
@@ -42,9 +41,20 @@ public:
 	
 	void SpawnNotesPartition(F_Skeleton* CurrentSkeleton);
 
+	void MovePartition(float DeltaTime);
+
+	// TO EDIT les mettre dans les settings
 	// DistanceBetweenNote = Frequency/RatioDistance
 	// Our RatioDistance
 	float RatioDistance = 0.01f;
+	float UiOffset;
+	float Timer = 0.f;
+
+	float StartPointLerp = 0.f;
+	float EndPointLerp = 0.f;
+
+	UPROPERTY()
+	UCanvasPanelSlot* NotesBoxSlot;
 
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;

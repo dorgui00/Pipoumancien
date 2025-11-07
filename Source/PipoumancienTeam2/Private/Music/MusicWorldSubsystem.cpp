@@ -30,6 +30,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	if (!IsInWorldStateMusic) return;
+	
 	if (IsInCountDown)
 	{
 		TimerCountDown -= DeltaTime;
@@ -45,21 +46,26 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 	}
 	else
 	{
-		Tempo += GetWorld()->GetDeltaSeconds();
-
+		Tempo += GetWorld()->GetDeltaSeconds() * Speed;
+		
+		UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
+		if (!HUDSubsystem) return;
+		
+		HUDSubsystem->MovePartition(DeltaTime);
+		
 		if (!CurrentSkeleton) return; // Secu check if current skeleton is set
 
 		F_Note* CurrentNote = GetWaitingNote();
 		
 		// Not yet time for qte => !IsAwaitingReply
-		if (Tempo < CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency-TimeTolerance)
+		if (Tempo < CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance * Speed)
 		{
 			IsAwaitingReply = false;
 			return;
 		}
 		
 		// Is Awaiting Reply
-		if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance && !IsAwaitingReply)
+		if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance * Speed && !IsAwaitingReply)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Red, FString::Printf(TEXT("INPUT : %s"), *CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName()), true, FVector2D(2, 2));
 			GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Blue, FString::Printf(TEXT("PITCH : %f"), CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Pitch), true, FVector2D(2, 2));
@@ -69,7 +75,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		}
 		
 		// check success
-		if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + TimeTolerance)
+		if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + (TimeTolerance * Speed))
 		{
 			IsAwaitingReply = false;
 
@@ -131,7 +137,7 @@ void UMusicWorldSubsystem::InitMusic(F_Skeleton* Skeleton)
 
 	// Spawn Notes in UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->SpawnNotesPartition(CurrentSkeleton);
-	
+
 	StartCountDown();
 }
 

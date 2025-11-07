@@ -25,12 +25,14 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override {return TStatId();};
 	
-	UPROPERTY(EditAnywhere)
-	float Offset;
 	
 #pragma endregion
 	
 #pragma region Timer
+public:
+	UPROPERTY(EditDefaultsOnly)
+	float Speed = 0.1f;
+	
 private:
 	bool IsInCountDown = false;
 	
@@ -50,9 +52,8 @@ public :
 	F_Note* GetWaitingNote() const;
 	
 	void ReceivedMusicianInput();
-	
-	UPROPERTY()
-	float Speed = 1.f;
+
+
 	
 private :
 	F_Skeleton* CurrentSkeleton = nullptr;

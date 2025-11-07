@@ -11,12 +11,9 @@
 #include "Data/F_Skeleton.h"
 #include "Editor/PipouCharacterSettings.h"
 #include "Game/GlobalGameSubsystem.h"
-#include "Kismet/GameplayStatics.h"
+#include "Music/MusicWorldSubsystem.h"
 #include "Settings/SubsystemSettings.h"
 #include "UI/USlot.h"
-
-
-class UPipouCharacterSettings;
 
 void UGlobalHUDSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -30,14 +27,16 @@ void UGlobalHUDSubsystem::Init()
 	//Init Global Game Subsystem
 	GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
 
-	// Init fields via Settings
-	const USubsystemSettings* Settings = GetDefault<USubsystemSettings>();
+	// Get Subsystem Settings and PipouCharacterSettings
+	const USubsystemSettings* SubsystemSettings = GetDefault<USubsystemSettings>();
+	if (!SubsystemSettings) return;
 
-	//InputData = Settings->InputData; // TO EDIT
-	WBPResurrectionClass = Settings->WBPResurrectionClass;
-	WBPNoteClass = Settings->WBPNoteClass;
-	
-	InputData = LoadObject<UPipouCharacterInputData>(nullptr, TEXT("/Game/Pipoumancien/Inputs/DA_Character_Inputs.DA_Character_Inputs"));
+	const UPipouCharacterSettings* CharacterSettings = GetDefault<UPipouCharacterSettings>();
+	if (!CharacterSettings) return;
+
+	InputData = CharacterSettings->InputData;
+	WBPResurrectionClass = SubsystemSettings->WBPResurrectionClass;
+	WBPNoteClass = SubsystemSettings->WBPNoteClass;
 	
 	MusicNoteFromInputAction =
 	{
@@ -50,7 +49,7 @@ void UGlobalHUDSubsystem::Init()
 
 void UGlobalHUDSubsystem::DisplayResurrectionWidget()
 {
-	// if (WBPResurrectionClass == nullptr) return;
+	if (WBPResurrectionClass == nullptr) return;
 
 	APlayerController* PC = Cast<APlayerController>(GlobalGameSubsystem->PipouCharacters[0]->GetController());
 	if (!PC) return;
@@ -60,6 +59,11 @@ void UGlobalHUDSubsystem::DisplayResurrectionWidget()
 	if (WBPResurrectionInstance != nullptr)
 	{
 		WBPResurrectionInstance->AddToViewport();
+
+		UCanvasPanelSlot* PartitionSlot = Cast<UCanvasPanelSlot>(WBPResurrectionInstance->PartitionBox->Slot);
+		if (!PartitionSlot) return;
+
+		UiOffset = PartitionSlot->GetSize().X;
 	}
 }
 
@@ -72,10 +76,9 @@ void UGlobalHUDSubsystem::RemoveResurrectionWidget()
 	}
 }
 
-
 void UGlobalHUDSubsystem::SpawnNotesPartition(F_Skeleton* CurrentSkeleton)
 {
-	// if (WBPNoteClass == nullptr) return ;
+	if (WBPNoteClass == nullptr) return;
 
 	APlayerController* PC = Cast<APlayerController>(GlobalGameSubsystem->PipouCharacters[0]->GetController());
 	if (!PC) return;
@@ -91,7 +94,7 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(F_Skeleton* CurrentSkeleton)
 		if (!WBPNoteInstance) return;
 
 		// Add the note to the parent spawn notes
-		WBPResurrectionInstance->SpawnNotes->AddChildToCanvas(WBPNoteInstance);
+		WBPResurrectionInstance->NotesBox->AddChildToCanvas(WBPNoteInstance);
 		
 		// Get Note Slot
 		UCanvasPanelSlot* NoteSlotInstance = Cast<UCanvasPanelSlot>(WBPNoteInstance->Slot);
@@ -120,6 +123,29 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(F_Skeleton* CurrentSkeleton)
 		
 		DistancePreviousFrequencies += Note.Frequency / RatioDistance;
 	}
+
+	// Get NotesBoxSlot 
+	NotesBoxSlot = Cast<UCanvasPanelSlot>(WBPResurrectionInstance->NotesBox->Slot);
+	if (!NotesBoxSlot) return;
+
+	// Set the size of the notes box slot
+	NotesBoxSlot->SetSize(FVector2D(DistancePreviousFrequencies + (UiOffset / RatioDistance), NotesBoxSlot->GetSize().Y));
+
+	// Set the start point of the lerp and the end point based on slot size and position
+	StartPointLerp = NotesBoxSlot->GetPosition().X;
+	EndPointLerp = StartPointLerp - NotesBoxSlot->GetSize().X;
+}
+
+void UGlobalHUDSubsystem::MovePartition(float DeltaTime)
+{
+	if (!WBPNoteInstance) return;
+	
+	Timer += DeltaTime;
+
+	UMusicWorldSubsystem* MusicWorldSubsystem = GetWorld()->GetSubsystem<UMusicWorldSubsystem>();
+	if (!MusicWorldSubsystem) return;
+	
+	NotesBoxSlot->SetPosition(FVector2D(FMath::Lerp(StartPointLerp, EndPointLerp, Timer * MusicWorldSubsystem->Speed), NotesBoxSlot->GetPosition().Y));
 }
 
 // Utilities functions

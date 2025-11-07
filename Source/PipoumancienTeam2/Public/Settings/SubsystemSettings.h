@@ -21,11 +21,7 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category="HUD")
 	TSubclassOf<UResurrectionWidget> WBPResurrectionClass;
 
-	// UPROPERTY(Config, EditAnywhere, Category="HUD")
-	// UPipouCharacterInputData* InputData;
-
 	UPROPERTY(Config, EditAnywhere, Category="HUD")
 	TSubclassOf<USlot> WBPNoteClass;
 
-	// others
 };
