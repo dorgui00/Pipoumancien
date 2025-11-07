@@ -1,4 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PNJ/AC_SkeletonFollower.h"
 
@@ -6,19 +5,15 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
 #include "Components/PrimitiveComponent.h"
+#include "EngineUtils.h"
+#include "DrawDebugHelpers.h"
+#include "Engine/World.h"
 
-
-// Sets default values for this component's properties
 UAC_SkeletonFollower::UAC_SkeletonFollower()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
 
-// Called when the game starts
 void UAC_SkeletonFollower::BeginPlay()
 {
 	Super::BeginPlay();
@@ -40,14 +35,21 @@ void UAC_SkeletonFollower::BeginPlay()
 	}
 }
 
-
 void UAC_SkeletonFollower::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	if (bFollowingSpline && SplineToFollow)
+	{
+		TickFollowSpline(DeltaTime);
+		return;
+	}
+
 	CheckPlayerRange();
 	FollowPlayers(DeltaTime);
 }
+
+#pragma region Player Follow
 
 void UAC_SkeletonFollower::CheckPlayerRange()
 {
@@ -99,6 +101,8 @@ void UAC_SkeletonFollower::FollowPlayers(float DeltaTime) //tick function
 	}
 }
 
+#pragma endregion
+
 #pragma region OnParentHit/OnParentOverlap
 
 void UAC_SkeletonFollower::OnParentHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
@@ -113,7 +117,120 @@ void UAC_SkeletonFollower::OnParentOverlap(AActor* OverlappedActor, AActor* Othe
 {
 	if (OtherActor && OtherActor->ActorHasTag("VillageBorder"))
 	{
+		// Stop the player-centroid following
 		bStartFollowing = false;
+
+		// Pick/confirm a spline
+		if (!SplineToFollow)
+		{
+			SplineToFollow = FindNearestSplineToOwner();
+		}
+
+		if (SplineToFollow)
+		{
+			StartFollowingSplineFromClosestPoint();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("SkeletonFollower: No spline found near %s."), *GetOwner()->GetName());
+		}
+	}
+}
+
+USplineComponent* UAC_SkeletonFollower::FindNearestSplineToOwner() const
+{
+	UWorld* World = GetWorld();
+	AActor* Owner = GetOwner();
+	if (!World || !Owner) return nullptr;
+
+	USplineComponent* BestSpline = nullptr;
+	float BestDistSq = TNumericLimits<float>::Max();
+	const FVector OwnerLoc = Owner->GetActorLocation();
+
+	for (TActorIterator<AActor> It(World); It; ++It)
+	{
+		AActor* A = *It;
+		if (!A) continue;
+
+		TInlineComponentArray<USplineComponent*> Splines(A);
+		for (USplineComponent* Spline : Splines)
+		{
+			if (!Spline) continue;
+
+			const float Key = Spline->FindInputKeyClosestToWorldLocation(OwnerLoc);
+			const FVector Closest = Spline->GetLocationAtSplineInputKey(Key, ESplineCoordinateSpace::World);
+			const float DistSq = FVector::DistSquared(OwnerLoc, Closest);
+
+			if (DistSq < BestDistSq)
+			{
+				BestDistSq = DistSq;
+				BestSpline = Spline;
+			}
+		}
+	}
+	return BestSpline;
+}
+
+void UAC_SkeletonFollower::StartFollowingSplineFromClosestPoint()
+{
+	if (!ParentActor || !SplineToFollow) return;
+
+	const FVector OwnerLoc = ParentActor->GetActorLocation();
+
+	const float ClosestKey = SplineToFollow->FindInputKeyClosestToWorldLocation(OwnerLoc);
+	CurrentDistance = SplineToFollow->GetDistanceAlongSplineAtSplineInputKey(ClosestKey);
+
+	TargetDistance = SplineToFollow->GetSplineLength();
+	bFollowingSpline = true;
+}
+
+void UAC_SkeletonFollower::TickFollowSpline(float DeltaTime)
+{
+	if (!ParentActor || !SplineToFollow) return;
+
+	CurrentDistance = FMath::Min(CurrentDistance + SplineFollowSpeed * DeltaTime, TargetDistance);
+
+	const FVector NewLoc = SplineToFollow->GetLocationAtDistanceAlongSpline(CurrentDistance, ESplineCoordinateSpace::World);
+
+	if (bOrientToSpline)
+	{
+		const FRotator NewRot = SplineToFollow->GetRotationAtDistanceAlongSpline(CurrentDistance, ESplineCoordinateSpace::World);
+		ParentActor->SetActorLocationAndRotation(NewLoc, NewRot);
+	}
+	else
+	{
+		ParentActor->SetActorLocation(NewLoc);
+	}
+
+	if (CurrentDistance >= TargetDistance - KINDA_SMALL_NUMBER)
+	{
+		bFollowingSpline = false;
+
+		const FVector EndLoc = SplineToFollow->GetLocationAtDistanceAlongSpline(TargetDistance, ESplineCoordinateSpace::World);
+		if (bOrientToSpline)
+		{
+			const FRotator EndRot = SplineToFollow->GetRotationAtDistanceAlongSpline(TargetDistance, ESplineCoordinateSpace::World);
+			ParentActor->SetActorLocationAndRotation(EndLoc, EndRot);
+		}
+		else
+		{
+			ParentActor->SetActorLocation(EndLoc);
+		}
+
+		DestroyComponent();
+	}
+}
+
+#pragma endregion
+
+#pragma region Debug Lines
+
+void UAC_SkeletonFollower::ClearAllDebugLines()
+{
+	if (UWorld* World = GetWorld())
+	{
+		FlushPersistentDebugLines(World);
+		FlushDebugStrings(World);
 	}
 }
 

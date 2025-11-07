@@ -3,6 +3,8 @@
 
 
 #include "Character/PipouCharacterStateWalk.h"
+
+#include "Camera/CameraWorldSubsystem.h" // ADDED
 #include "Character/PipouCharacter.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
@@ -20,12 +22,12 @@ void UPipouCharacterStateWalk::StateEnter(EPipouCharacterStateID PreviousStateID
 
 	Character->GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
 	
-	GEngine->AddOnScreenDebugMessage(
-		-1,
-		3.f,
-		FColor::Red,
-		TEXT("Enter StateWalk")
-	);
+	// GEngine->AddOnScreenDebugMessage(
+	// 	-1,
+	// 	3.f,
+	// 	FColor::Red,
+	// 	TEXT("Enter StateWalk")
+	// );
 }
 
 void UPipouCharacterStateWalk::StateTick(float Deltatime)
@@ -43,17 +45,31 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 		MoveDir.Normalize();
 		Character->SetOrientXY(FVector2D(MoveDir.X, MoveDir.Y));
 		Character->AddMovementInput(MoveDir, 1);
+		
+		//ADDED
+		if (UCameraWorldSubsystem* CamSys = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
+		{
+			FVector ClampedPos;
+			bool bInside = CamSys->ClampPositionInsideQuad(Character->GetActorLocation(), ClampedPos);
+
+			// clamp position if outside
+			if (!bInside)
+			{
+				Character->SetActorLocation(ClampedPos);
+			}
+		}
 	}
+
 }
 
 void UPipouCharacterStateWalk::StateExit(EPipouCharacterStateID NextStateID)
 {
 	Super::StateExit(NextStateID);
 
-	GEngine->AddOnScreenDebugMessage(
-		-1,
-		3.f,
-		FColor::Red,
-		TEXT("Exit StateWalk")
-	);
+	// GEngine->AddOnScreenDebugMessage(
+	// 	-1,
+	// 	3.f,
+	// 	FColor::Red,
+	// 	TEXT("Exit StateWalk")
+	// );
 }
