@@ -23,6 +23,8 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	// Get GlobalGameSubsystem
 	GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
 	IsInWorldStateMusic = false;
+
+	GlobalHUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
 }
 
 void UMusicWorldSubsystem::Tick(float DeltaTime)
@@ -58,14 +60,14 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		F_Note* CurrentNote = GetWaitingNote();
 		
 		// Not yet time for qte => !IsAwaitingReply
-		if (Tempo < CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance * Speed)
+		if (Tempo < ((GlobalHUDSubsystem->UiOffset / Speed) * HUDSubsystem->RatioDistance + (CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed))
 		{
 			IsAwaitingReply = false;
 			return;
 		}
 		
 		// Is Awaiting Reply
-		if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance * Speed && !IsAwaitingReply)
+		if (Tempo >= ((GlobalHUDSubsystem->UiOffset / Speed) * HUDSubsystem->RatioDistance + (CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed) && !IsAwaitingReply)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Red, FString::Printf(TEXT("INPUT : %s"), *CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName()), true, FVector2D(2, 2));
 			GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Blue, FString::Printf(TEXT("PITCH : %f"), CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Pitch), true, FVector2D(2, 2));
@@ -75,7 +77,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		}
 		
 		// check success
-		if (Tempo >= CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + (TimeTolerance * Speed))
+		if (Tempo >= ((GlobalHUDSubsystem->UiOffset * HUDSubsystem->RatioDistance) * HUDSubsystem->RatioDistance + (CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + TimeTolerance) * Speed))
 		{
 			IsAwaitingReply = false;
 

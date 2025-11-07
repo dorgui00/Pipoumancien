@@ -7,6 +7,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "MusicWorldSubsystem.generated.h"
 
+class UGlobalHUDSubsystem;
 class UMusicTimeline;
 class UTimelineComponent;
 class UGlobalGameSubsystem;
@@ -31,7 +32,7 @@ protected:
 #pragma region Timer
 public:
 	UPROPERTY(EditDefaultsOnly)
-	float Speed = 0.1f;
+	float Speed = 0.001f;
 	
 private:
 	bool IsInCountDown = false;
@@ -92,7 +93,11 @@ public :
 private :
 	bool IsInWorldStateMusic = false;
 
+	UPROPERTY()
 	UGlobalGameSubsystem* GlobalGameSubsystem;
+
+	UPROPERTY()
+	UGlobalHUDSubsystem* GlobalHUDSubsystem;
 
 #pragma endregion
 };
