@@ -83,7 +83,7 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(F_Skeleton* CurrentSkeleton)
 	APlayerController* PC = Cast<APlayerController>(GlobalGameSubsystem->PipouCharacters[0]->GetController());
 	if (!PC) return;
 
-	float DistancePreviousFrequencies = 0;
+	DistancePreviousFrequencies = 0;
 	
 	for (F_Note Note : CurrentSkeleton->Notes)
 	{
@@ -120,6 +120,8 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(F_Skeleton* CurrentSkeleton)
 		
 		// Set Music Note Type
 		WBPNoteInstance->SetSlotNote(GetMusicNoteTypeFromInputAction(Note.InputAction));
+
+		NotesInstanciated.Add(WBPNoteInstance);
 		
 		DistancePreviousFrequencies += Note.Frequency / RatioDistance;
 	}
@@ -140,11 +142,10 @@ void UGlobalHUDSubsystem::MovePartition(float DeltaTime)
 {
 	if (!WBPNoteInstance) return;
 	
-	Timer += DeltaTime;
-
 	UMusicWorldSubsystem* MusicWorldSubsystem = GetWorld()->GetSubsystem<UMusicWorldSubsystem>();
 	if (!MusicWorldSubsystem) return;
-	
+
+	Timer += DeltaTime; 
 	NotesBoxSlot->SetPosition(FVector2D(FMath::Lerp(StartPointLerp, EndPointLerp, Timer * MusicWorldSubsystem->Speed), NotesBoxSlot->GetPosition().Y));
 }
 

@@ -53,6 +53,10 @@ public:
 	float StartPointLerp = 0.f;
 	float EndPointLerp = 0.f;
 
+	float DistancePreviousFrequencies;
+
+	TArray<USlot*> NotesInstanciated;
+
 	UPROPERTY()
 	UCanvasPanelSlot* NotesBoxSlot;
 

@@ -33,12 +33,13 @@ protected:
 public:
 	UPROPERTY(EditDefaultsOnly)
 	float Speed = 0.001f;
+
+	float Tempo = 0.f;
 	
 private:
 	bool IsInCountDown = false;
 	
 	float TimerCountDown = 3.f;
-	float Tempo = 0.f;
 	
 	UPROPERTY(EditDefaultsOnly)
 	float TimeTolerance = 0.8f;

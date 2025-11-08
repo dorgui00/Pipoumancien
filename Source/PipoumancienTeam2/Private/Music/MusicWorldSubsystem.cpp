@@ -48,7 +48,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 	}
 	else
 	{
-		Tempo += GetWorld()->GetDeltaSeconds() * Speed;
+		Tempo += DeltaTime * Speed;
 		
 		UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
 		if (!HUDSubsystem) return;
@@ -58,32 +58,41 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		if (!CurrentSkeleton) return; // Secu check if current skeleton is set
 
 		F_Note* CurrentNote = GetWaitingNote();
+		USlot* CurrentNoteSlot = HUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
+
+		if (CurrentWaitingNoteIndex > 0)
+		{
+			HUDSubsystem->UiOffset = 0.f;
+		}
 		
 		// Not yet time for qte => !IsAwaitingReply
-		if (Tempo < ((GlobalHUDSubsystem->UiOffset / Speed) * HUDSubsystem->RatioDistance + (CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed))
+		if (Tempo < (((CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + (HUDSubsystem->UiOffset * HUDSubsystem->RatioDistance - 1.f))) - TimeTolerance) * Speed)
 		{
 			IsAwaitingReply = false;
 			return;
 		}
 		
 		// Is Awaiting Reply
-		if (Tempo >= ((GlobalHUDSubsystem->UiOffset / Speed) * HUDSubsystem->RatioDistance + (CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed) && !IsAwaitingReply)
+		if (Tempo >= ((CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + (HUDSubsystem->UiOffset * HUDSubsystem->RatioDistance - 1.f)) - TimeTolerance) * Speed && !IsAwaitingReply)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Red, FString::Printf(TEXT("INPUT : %s"), *CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName()), true, FVector2D(2, 2));
 			GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Blue, FString::Printf(TEXT("PITCH : %f"), CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Pitch), true, FVector2D(2, 2));
+			CurrentNoteSlot->NoteImage->SetColorAndOpacity({0, 1, 0, 1.f}); 
 			
 			IsAwaitingReply = true;
 			return;
 		}
 		
 		// check success
-		if (Tempo >= ((GlobalHUDSubsystem->UiOffset * HUDSubsystem->RatioDistance) * HUDSubsystem->RatioDistance + (CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + TimeTolerance) * Speed))
+		if (Tempo >= ((CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + (HUDSubsystem->UiOffset * HUDSubsystem->RatioDistance - 1.f)) + TimeTolerance) * Speed)
 		{
 			IsAwaitingReply = false;
 
 			// success
 			if(HasAchievedQte())
 			{
+				CurrentNoteSlot->RemoveFromParent();
+				
 				//Melodie finie et réussie
 				if (CurrentWaitingNoteIndex == CurrentSkeleton->Notes.Num()-1)
 				{
