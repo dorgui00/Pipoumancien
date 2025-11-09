@@ -66,25 +66,25 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		}
 		
 		// Not yet time for qte => !IsAwaitingReply
-		if (Tempo < (((CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + (HUDSubsystem->UiOffset * HUDSubsystem->RatioDistance - 1.f))) - TimeTolerance) * Speed)
+		if (Tempo < ((CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed) + (HUDSubsystem->UiOffset * Speed))
 		{
 			IsAwaitingReply = false;
 			return;
 		}
 		
 		// Is Awaiting Reply
-		if (Tempo >= ((CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + (HUDSubsystem->UiOffset * HUDSubsystem->RatioDistance - 1.f)) - TimeTolerance) * Speed && !IsAwaitingReply)
+		if (Tempo >= ((CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed) + (HUDSubsystem->UiOffset * Speed) && !IsAwaitingReply)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Red, FString::Printf(TEXT("INPUT : %s"), *CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName()), true, FVector2D(2, 2));
 			GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Blue, FString::Printf(TEXT("PITCH : %f"), CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Pitch), true, FVector2D(2, 2));
-			CurrentNoteSlot->NoteImage->SetColorAndOpacity({0, 1, 0, 1.f}); 
+			CurrentNoteSlot->NoteImage->SetColorAndOpacity({0, 1, 0, 1.f});
 			
 			IsAwaitingReply = true;
 			return;
 		}
 		
 		// check success
-		if (Tempo >= ((CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + (HUDSubsystem->UiOffset * HUDSubsystem->RatioDistance - 1.f)) + TimeTolerance) * Speed)
+		if (Tempo >= ((CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + TimeTolerance)) * Speed + (HUDSubsystem->UiOffset * Speed))
 		{
 			IsAwaitingReply = false;
 
@@ -116,7 +116,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 				{
 					GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Go Next Note")), true, FVector2D(2, 2));
 				
-					Tempo = TimeTolerance;
+					Tempo = TimeTolerance * Speed;
 					
 					CurrentWaitingNoteIndex++;
 				}
