@@ -66,14 +66,16 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		}
 		
 		// Not yet time for qte => !IsAwaitingReply
-		if (Tempo < ((CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed) + (HUDSubsystem->UiOffset * Speed))
+		if (Tempo < ((CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed) + (HUDSubsystem->UiOffset * HUDSubsystem->RatioDistance * Speed))
 		{
 			IsAwaitingReply = false;
+			CurrentNoteSlot->NoteImage->SetColorAndOpacity({1, 0, 0, 1.f});
+			
 			return;
 		}
 		
 		// Is Awaiting Reply
-		if (Tempo >= ((CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed) + (HUDSubsystem->UiOffset * Speed) && !IsAwaitingReply)
+		if (Tempo >= ((CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed) + (HUDSubsystem->UiOffset * HUDSubsystem->RatioDistance * Speed) && !IsAwaitingReply)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Red, FString::Printf(TEXT("INPUT : %s"), *CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName()), true, FVector2D(2, 2));
 			GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Blue, FString::Printf(TEXT("PITCH : %f"), CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Pitch), true, FVector2D(2, 2));
@@ -84,7 +86,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		}
 		
 		// check success
-		if (Tempo >= ((CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + TimeTolerance)) * Speed + (HUDSubsystem->UiOffset * Speed))
+		if (Tempo >= ((CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + TimeTolerance) * Speed) + (HUDSubsystem->UiOffset * HUDSubsystem->RatioDistance * Speed))
 		{
 			IsAwaitingReply = false;
 
@@ -115,9 +117,8 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 				else
 				{
 					GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Go Next Note")), true, FVector2D(2, 2));
-				
-					Tempo = TimeTolerance * Speed;
 					
+					Tempo = TimeTolerance * Speed + (HUDSubsystem->UiOffset * HUDSubsystem->RatioDistance * Speed);
 					CurrentWaitingNoteIndex++;
 				}
 			}
@@ -125,7 +126,8 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			else
 			{
 				GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Black, FString::Printf(TEXT("Tu as raté la note")), true, FVector2D(2, 2));
-
+				CurrentNoteSlot->NoteImage->SetColorAndOpacity({1, 0, 0, 1.f});
+				
 				// go back from two previous notes
 				CurrentWaitingNoteIndex = FMath::Max(0, CurrentWaitingNoteIndex-2);
 				StartCountDown();
