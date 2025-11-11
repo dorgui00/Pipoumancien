@@ -24,8 +24,13 @@ void AInteractableActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AInteractableActor::Interact()
+void AInteractableActor::Interact_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Interact"));
+	UE_LOG(LogTemp, Warning, TEXT("Interact dans implementation"));
 }
+
+// void AInteractableActor::Interact()
+// {
+// 	UE_LOG(LogTemp, Warning, TEXT("Interact"));
+// }
 

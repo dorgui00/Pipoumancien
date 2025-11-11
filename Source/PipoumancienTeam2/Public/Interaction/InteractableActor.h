@@ -25,7 +25,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 #pragma region Interact
-	virtual void Interact() override;
+	
+	virtual void Interact_Implementation() override;
 	
 #pragma endregion 
 };

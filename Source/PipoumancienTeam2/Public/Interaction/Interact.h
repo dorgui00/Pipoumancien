@@ -7,7 +7,7 @@
 #include "Interact.generated.h"
 
 // This class does not need to be modified.
-UINTERFACE()
+UINTERFACE(Blueprintable)
 class UInteract : public UInterface
 {
 	GENERATED_BODY()
@@ -22,6 +22,7 @@ class PIPOUMANCIENTEAM2_API IInteract
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
+	UFUNCTION(BlueprintNativeEvent)
+	void Interact();
 	
-	virtual void Interact() = 0;
 };

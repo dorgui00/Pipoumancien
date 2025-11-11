@@ -318,7 +318,10 @@ void APipouCharacter::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCom
 	{
 		if (IInteract* InInteractor = Cast<IInteract>(OtherActor))
 		{
-				Interactor = InInteractor; // update current interactor
+				Interactor.SetInterface(InInteractor); // update current interactor
+				Interactor.SetObject(OtherActor);
+
+				//IInteract::Execute_Interact(Interactor.GetObject()); 
 		}
 	};
 
@@ -352,10 +355,13 @@ void APipouCharacter::OnComponentEndOverlap(UPrimitiveComponent* OverlappedCompo
 	{
 		if (IInteract* InInteractor = Cast<IInteract>(OtherActor))
 		{
-			if (InInteractor==Interactor)
-				Interactor = nullptr; // update current interactor
+			if (InInteractor==Interactor.GetInterface())
+			{
+				Interactor.SetInterface(nullptr); // set current interactor to null
+				Interactor.SetObject(nullptr);
+			}
 		}
-	};
+	}
 	
 	// Skeleton Interaction
 	if (ASkeletonController* SkeletonController = Cast<ASkeletonController>(OtherActor))

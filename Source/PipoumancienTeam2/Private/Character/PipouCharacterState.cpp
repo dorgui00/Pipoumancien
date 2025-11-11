@@ -55,7 +55,10 @@ void UPipouCharacterState::AddNoteForWorldInteraction()
 		CurrentWorldNotes = 0;
 
 		//Interact with interactor
-		if (Character->Interactor) Character->Interactor->Interact();
+		if (Character->Interactor)
+		{
+			IInteract::Execute_Interact(Character->Interactor.GetObject());
+		}
 	}
 	// Waiting for another note
 	else
@@ -78,7 +81,7 @@ void UPipouCharacterState::OnCharacterPressedNote(UInputAction* InputAction)
 		
 		GlobalGameSubsystem->AddNoteForSkeletonInteraction(InputAction);
 	}
-	//sinon si j ai un interactor
+	//sinon si j ai un interactor : World Interaction
 	if (Character->Interactor)
 	{
 		AddNoteForWorldInteraction();

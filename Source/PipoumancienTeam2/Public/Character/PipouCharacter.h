@@ -138,7 +138,8 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	// Interact 
-	IInteract* Interactor ; // Is Overlaping this Interactable Actor
+	UPROPERTY()
+	TScriptInterface<IInteract> Interactor ; // Is Overlaping this Interactable Actor
 
 private:
 	// Move
