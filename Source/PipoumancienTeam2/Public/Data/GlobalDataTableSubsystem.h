@@ -5,22 +5,19 @@
 #include "CoreMinimal.h"
 #include "Data/F_Skeleton.h"
 #include "Subsystems/GameInstanceSubsystem.h"
-#include "DataTableGameInstanceSubsystem.generated.h"
+#include "GlobalDataTableSubsystem.generated.h"
 
 /**
  * 
  */
-UCLASS(Blueprintable)
-class PIPOUMANCIENTEAM2_API UDataTableGameInstanceSubsystem : public UGameInstanceSubsystem
+UCLASS()
+class PIPOUMANCIENTEAM2_API UGlobalDataTableSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 
-private :
-	UPROPERTY(EditDefaultsOnly,Category="Data")
-	TSoftObjectPtr<UDataTable> DT_MusicAsset;
-	
+private :	
 	UPROPERTY()
-	TObjectPtr<UDataTable> DT_Music;
+	UDataTable* DT_Music;
 
 public :
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;

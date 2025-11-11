@@ -18,10 +18,12 @@ class PIPOUMANCIENTEAM2_API USubsystemSettings : public UDeveloperSettings
 public:
 
 	// HUDSubsystem
-	UPROPERTY(Config, EditAnywhere, Category="HUD")
+	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
 	TSubclassOf<UResurrectionWidget> WBPResurrectionClass;
 
-	UPROPERTY(Config, EditAnywhere, Category="HUD")
+	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
 	TSubclassOf<USlot> WBPNoteClass;
 
+	UPROPERTY(Config, EditAnywhere, Category="GlobalDatatableManager")
+	TSoftObjectPtr<UDataTable> DT_Music;
 };
