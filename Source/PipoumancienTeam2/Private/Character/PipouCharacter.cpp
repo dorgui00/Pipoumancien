@@ -324,24 +324,30 @@ void APipouCharacter::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCom
 
 				//IInteract::Execute_Interact(Interactor.GetObject()); 
 		}
-	};
-
+	}
 	// Skeleton Interaction
-	ASkeletonController* SkeletonController = Cast<ASkeletonController>(OtherActor);
-
-	if (SkeletonController)
+	else if (ASkeletonController* SkeletonController = Cast<ASkeletonController>(OtherActor))
 	{
-		UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
-		GlobalGameSubsystem->SetCurrentSkeleton(SkeletonController->MySkeleton);
-
-		for (int i = 0; i < 3; ++i)
+		if (SkeletonController)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
-			FString::Printf(TEXT("INPUT : %s"), *GlobalGameSubsystem->GetCurrentSkeleton()->Notes[i].InputAction->GetName()), true, FVector2D(2, 2));
+			// set current skeleton for myself
+			OverlapSkeleton = SkeletonController;
+
+			// trying to set current skeleton for everyone
+			UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
+			GlobalGameSubsystem->CheckIfPlayersOverlapSameSkeleton();
+
+			//not everyone is overlapping the same skel
+			if (!GlobalGameSubsystem->GetCurrentSkeleton()) return;
+
+			//everyone overlap the same skel
+			for (int i = 0; i < 3; ++i)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
+				FString::Printf(TEXT("INPUT : %s"), *GlobalGameSubsystem->GetCurrentSkeleton()->Notes[i].InputAction->GetName()), true, FVector2D(2, 2));
+			}
+			
 		}
-		
-		
-		UE_LOG(LogTemp, Display, TEXT("Begin Overlap Skeleton"));
 	}
 }
 
@@ -367,10 +373,13 @@ void APipouCharacter::OnComponentEndOverlap(UPrimitiveComponent* OverlappedCompo
 			}
 		}
 	}
-	
 	// Skeleton Interaction
-	if (ASkeletonController* SkeletonController = Cast<ASkeletonController>(OtherActor))
+	else if (Cast<ASkeletonController>(OtherActor))
 	{
+		// delete current skeleton for myself
+		OverlapSkeleton = nullptr;
+		
+		// delete current skeleton for everyone
 		GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>()->SetCurrentSkeleton(nullptr);
 		UE_LOG(LogTemp, Display, TEXT("End Overlap Skeleton"));
 	}

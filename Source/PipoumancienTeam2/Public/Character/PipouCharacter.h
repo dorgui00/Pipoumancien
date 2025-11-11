@@ -141,6 +141,9 @@ public:
 	UPROPERTY()
 	TScriptInterface<IInteract> Interactor ; // Is Overlaping this Interactable Actor
 
+	// CurrentSkeletonOverlap
+	ASkeletonController* OverlapSkeleton;
+
 private:
 	// Move
 	void BindInputMoveAndActions(UEnhancedInputComponent* EnhancedInputComponent);

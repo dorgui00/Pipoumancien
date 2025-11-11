@@ -38,10 +38,9 @@ public :
 
 	// Current Skeleton
 	F_Skeleton* GetCurrentSkeleton() const;
-	void SetCurrentSkeleton(F_Skeleton* Skeleton);
+	void SetCurrentSkeleton(F_Skeleton* Skeleton); // TO EDIT ? Switch to private ?
 
 	// Music
-	
 	// Skeleton Interaction
 	int SkeletonNotesToCheck = 3; // check 3 skeleton notes to trigger main music meca
 	
@@ -51,6 +50,8 @@ public :
 	void AddNoteForSkeletonInteraction(UInputAction* InputAction); // add input
 	bool HasValidFirstNotes();
 	void ResetInputsArray();
+
+	void CheckIfPlayersOverlapSameSkeleton();
 	
 private :
 
