@@ -51,9 +51,9 @@ void UPipouCharacterState::AddNoteForWorldInteraction()
 	// Succeeded World Interaction
 	if (CurrentWorldNotes>=WorldNotesToPlay)
 	{
-		IsTryingToInteractWithWorld = false;
-		CurrentWorldNotes = 0;
-
+		
+		ResetWorldInteraction();
+		
 		//Interact with interactor
 		if (Character->Interactor)
 		{
@@ -63,10 +63,20 @@ void UPipouCharacterState::AddNoteForWorldInteraction()
 	// Waiting for another note
 	else
 	{
+		WorldNotesTimer = 0.f; // reset timer
+		
 		IsTryingToInteractWithWorld = true;
 	}
-	
-	WorldNotesTimer = 0.f; // reset timer 
+}
+
+// call at the end of the overlap (cancel interaction)
+//		|| at the end of world interaction (interaction finished)
+void UPipouCharacterState::ResetWorldInteraction()
+{
+	IsTryingToInteractWithWorld = false;
+	CurrentWorldNotes = 0;
+
+	WorldNotesTimer = 0;
 }
 
 void UPipouCharacterState::OnCharacterPressedNote(UInputAction* InputAction)

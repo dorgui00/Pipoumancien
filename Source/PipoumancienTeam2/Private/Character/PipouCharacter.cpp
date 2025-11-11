@@ -5,6 +5,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Character/PipouCharacterInputData.h"
 #include "Camera/CameraWorldSubsystem.h"
+#include "Character/PipouCharacterState.h"
 
 #include "Components/SphereComponent.h"
 #include "Data/F_Note.h"
@@ -359,6 +360,10 @@ void APipouCharacter::OnComponentEndOverlap(UPrimitiveComponent* OverlappedCompo
 			{
 				Interactor.SetInterface(nullptr); // set current interactor to null
 				Interactor.SetObject(nullptr);
+
+				// reset world notes array TO EDIT ?
+				// another way to access ResetWorldInteraction() function from CharacterState?
+				StateMachine->GetCurrentState()->ResetWorldInteraction(); // CancelWorldInteraction
 			}
 		}
 	}
