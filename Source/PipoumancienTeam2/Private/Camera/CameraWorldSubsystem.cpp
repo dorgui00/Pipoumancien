@@ -14,6 +14,13 @@ void UCameraWorldSubsystem::PostInitialize()
 void UCameraWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
+	
+	// TO ADD 
+	// Camera types
+	// set init camera pos (main cam)
+	// get/set main camera 
+	// get/set music camera 
+	
 	CameraMain = FindCameraByTag(TEXT("CameraMain"));
 
 	// camera look at rotation
@@ -286,12 +293,14 @@ void UCameraWorldSubsystem::InitCameraZoomParameters()
 		CameraZoomYMax = CameraDistanceMax->GetActorLocation().Y;
 }
 
+// TO EDIT : CallCamera(from Camera, To Camera)
 void UCameraWorldSubsystem::CallMusicCamera()
 {
 	isSettingMusicCamera = true;
 	
 }
 
+// TO EDIT : SetCamera(from Camera, To Camera)
 void UCameraWorldSubsystem::SetMusicCamera(float DeltaTime)
 {	
 	 UCameraComponent* MusicCamera = nullptr;
@@ -303,7 +312,8 @@ void UCameraWorldSubsystem::SetMusicCamera(float DeltaTime)
 	 if (MusicCamera == nullptr) return;
 
 	FVector NewPos = FMath::Lerp(CameraMain->GetComponentLocation(),MusicCamera->GetComponentLocation(),DeltaTime*1.f);
-	CameraMain->SetWorldLocation(NewPos);
+	FRotator NewRot = FMath::Lerp(CameraMain->GetComponentRotation(),MusicCamera->GetComponentRotation(),DeltaTime*1.f);
+	CameraMain->SetWorldLocationAndRotation(NewPos,NewRot);
 
 	if (FMath::IsNearlyEqual(CameraMain->GetComponentLocation().Z,MusicCamera->GetComponentLocation().Z))
 	{
