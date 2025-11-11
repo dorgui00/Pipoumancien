@@ -8,7 +8,6 @@
 #include "SubsystemSettings.generated.h"
 
 class USlot;
-class UPipouCharacterInputData;
 
 UCLASS(Config=Game, DefaultConfig, meta=(DisplayName="Subsystem Settings"))
 class PIPOUMANCIENTEAM2_API USubsystemSettings : public UDeveloperSettings
