@@ -37,8 +37,8 @@ public :
 	void SetCharacters(APipouCharacter* Character);
 
 	// Current Skeleton
-	F_Skeleton* GetCurrentSkeleton() const;
-	void SetCurrentSkeleton(F_Skeleton* Skeleton); // TO EDIT ? Switch to private ?
+	ASkeletonController* GetCurrentSkeleton() const;
+	void SetCurrentSkeleton(ASkeletonController* Skeleton); // TO EDIT ? Switch to private ?
 
 	// Music
 	// Skeleton Interaction
@@ -61,5 +61,6 @@ private :
 	void SetWorldMusicState();
 	
 	// Skeleton
-	F_Skeleton* CurrentSkeleton = nullptr;
+	UPROPERTY()
+	ASkeletonController* CurrentSkeleton = nullptr;
 };

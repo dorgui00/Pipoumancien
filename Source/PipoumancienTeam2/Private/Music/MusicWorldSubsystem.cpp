@@ -9,6 +9,7 @@
 #include "Data/F_Skeleton.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
+#include "PNJ/SkeletonController.h"
 #include "UI/GlobalHUDSubsystem.h"
 
 void UMusicWorldSubsystem::PostInitialize()
@@ -65,7 +66,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		}
 		
 		// Not yet time for qte => !IsAwaitingReply
-		if (Tempo < ((CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed))
+		if (Tempo < ((CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed))
 		{
 			IsAwaitingReply = false;
 			CurrentNoteSlot->NoteImage->SetColorAndOpacity({1, 0, 0, 1.f});
@@ -74,10 +75,10 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		}
 		
 		// Is Awaiting Reply
-		if (Tempo >= ((CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed) && !IsAwaitingReply)
+		if (Tempo >= ((CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed) && !IsAwaitingReply)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Red, FString::Printf(TEXT("INPUT : %s"), *CurrentSkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName()), true, FVector2D(2, 2));
-			GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Blue, FString::Printf(TEXT("PITCH : %f"), CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Pitch), true, FVector2D(2, 2));
+			GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Red, FString::Printf(TEXT("INPUT : %s"), *CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName()), true, FVector2D(2, 2));
+			GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Blue, FString::Printf(TEXT("PITCH : %f"), CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Pitch), true, FVector2D(2, 2));
 			CurrentNoteSlot->NoteImage->SetColorAndOpacity({0, 1, 0, 1.f});
 			
 			IsAwaitingReply = true;
@@ -85,7 +86,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		}
 		
 		// check success
-		if (Tempo >= ((CurrentSkeleton->Notes[CurrentWaitingNoteIndex].Frequency + TimeTolerance) * Speed))
+		if (Tempo >= ((CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Frequency + TimeTolerance) * Speed))
 		{
 			IsAwaitingReply = false;
 
@@ -95,22 +96,9 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 				CurrentNoteSlot->RemoveFromParent();
 				
 				//Melodie finie et réussie
-				if (CurrentWaitingNoteIndex == CurrentSkeleton->Notes.Num()-1)
+				if (CurrentWaitingNoteIndex == CurrentSkeleton->MySkeleton->Notes.Num()-1)
 				{
-					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")), true, FVector2D(2, 2));
-			
-					//SetActorTickEnabled(false);
-					IsInWorldStateMusic = false;
-			
-					Tempo = 0.f;
-
-					for (auto PipouCharacter : GlobalGameSubsystem->PipouCharacters)
-					{
-						PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
-					}
-
-					UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
-					CurrentWaitingNoteIndex = 0;
+					EndMelody();
 				}
 				// go next note
 				else
@@ -138,31 +126,48 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 	}
 }
 
-void UMusicWorldSubsystem::InitMusic(F_Skeleton* Skeleton)
+void UMusicWorldSubsystem::InitMusic(ASkeletonController* Skeleton)
 {
+	// Init Data
 	CurrentSkeleton = Skeleton;
-	
-	//SetActorTickEnabled(true);
-	IsInWorldStateMusic = true;
-	
+
+	// Init InValues
 	CurrentCursorValue = 0.f;
 
 	// Spawn Notes in UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->SpawnNotesPartition(CurrentSkeleton);
-
+	
+	IsInWorldStateMusic = true;
+	
 	StartCountDown();
 }
 
 void UMusicWorldSubsystem::EndMelody()
 {
+	// DEBUG
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")), true, FVector2D(2, 2));
+
+	// Reset Music
+	IsInWorldStateMusic = false;
+	Tempo = 0.f;
+	CurrentWaitingNoteIndex = 0;
+
+	// Pass to transport
+	for (auto PipouCharacter : GlobalGameSubsystem->PipouCharacters)
+	{
+		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
+	}
+
+	// UI
+	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
 }
 
 F_Note* UMusicWorldSubsystem::GetWaitingNote() const
 {
-	if (CurrentWaitingNoteIndex > CurrentSkeleton->Notes.Num()-1)
+	if (CurrentWaitingNoteIndex > CurrentSkeleton->MySkeleton->Notes.Num()-1)
 		UE_LOG(LogTemp, Error, TEXT("Current waiting Note is out of range"));
 	
-	return &CurrentSkeleton->Notes[CurrentWaitingNoteIndex];
+	return &CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex];
 }
 
 void UMusicWorldSubsystem::ResetMusicianReply()

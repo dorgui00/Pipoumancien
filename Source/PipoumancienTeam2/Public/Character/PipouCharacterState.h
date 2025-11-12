@@ -7,6 +7,7 @@
 #include "PipouCharacterStateID.h"
 #include "PipouCharacterState.generated.h"
 
+class ASkeletonController;
 class UInputAction;
 struct FInputActionValue;
 class APipouCharacter;
@@ -44,8 +45,8 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UPipouCharacterStateMachine> StateMachine;
 
-	// NE PEUX PAS AVOIR UN UPROPERTY
-	F_Skeleton* Skeleton = nullptr;
+	UPROPERTY()
+	ASkeletonController* Skeleton = nullptr;
 
 	UFUNCTION()
 	virtual void OnCharacterPressedNote(UInputAction* InputAction);
