@@ -4,6 +4,7 @@
 #include "PNJ/SkeletonController.h"
 
 #include "Data/GlobalDataTableSubsystem.h"
+#include "PNJ/AC_SkeletonFollower.h"
 
 
 // Sets default values
@@ -25,5 +26,13 @@ void ASkeletonController::BeginPlay()
 void ASkeletonController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+void ASkeletonController::SetSkeletonForTransport()
+{
+	//ADD FOLLOW
+	AddComponentByClass(UAC_SkeletonFollower::StaticClass(),true, GetTransform(),false);
+
+	// ANIMS
 }
 

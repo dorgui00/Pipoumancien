@@ -339,6 +339,8 @@ void APipouCharacter::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCom
 				GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
 				FString::Printf(TEXT("INPUT : %s"), *GlobalGameSubsystem->GetCurrentSkeleton()->MySkeleton->Notes[i].InputAction->GetName()), true, FVector2D(2, 2));
 			}
+
+			GlobalGameSubsystem->SetWorldMusicState();
 			
 		}
 	}

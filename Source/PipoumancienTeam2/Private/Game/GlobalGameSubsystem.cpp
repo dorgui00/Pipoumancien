@@ -108,7 +108,7 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 		}
 	}
 
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallMusicCamera(); // SetCameraMusic()
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::MusicCamera); // SetCameraMusic()
 	
 	UGlobalHUDSubsystem* HUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
 	if (!HUDSubsystem) return;

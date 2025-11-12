@@ -3,14 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/TimelineComponent.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "MusicWorldSubsystem.generated.h"
 
 class ASkeletonController;
 class UGlobalHUDSubsystem;
-class UMusicTimeline;
-class UTimelineComponent;
 class UGlobalGameSubsystem;
 struct F_Note;
 struct F_Skeleton;
@@ -102,7 +99,7 @@ private :
 	UPROPERTY()
 	UGlobalHUDSubsystem* GlobalHUDSubsystem;
 
-	void EndMelody();
+	void FinishMelody();
 
 #pragma endregion
 };
