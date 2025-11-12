@@ -100,5 +100,7 @@ private :
 	UPROPERTY()
 	UGlobalHUDSubsystem* GlobalHUDSubsystem;
 
+	void EndMelody();
+
 #pragma endregion
 };
