@@ -27,6 +27,19 @@ void UPipouCharacterStateIdle::StateTick(float Deltatime)
 	{
 		StateMachine->ChangeState(EPipouCharacterStateID::Walk);
 	}
+
+	// Waiting for world interaction or not
+	if (IsTryingToInteractWithWorld)
+	{
+		WorldNotesTimer += Deltatime;
+		
+		//time ended
+		if (WorldNotesTimer >= WorldNotesInterval)
+		{
+			WorldNotesTimer = 0.f;
+			IsTryingToInteractWithWorld = false;
+		}
+	}
 }
 
 void UPipouCharacterStateIdle::StateExit(EPipouCharacterStateID NextStateID)
