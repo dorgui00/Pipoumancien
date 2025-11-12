@@ -60,6 +60,19 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 		}
 	}
 
+	// Waiting for world interaction or not
+	if (IsTryingToInteractWithWorld)
+	{
+		WorldNotesTimer += Deltatime;
+		
+		//time ended
+		if (WorldNotesTimer >= WorldNotesInterval)
+		{
+			WorldNotesTimer = 0.f;
+			IsTryingToInteractWithWorld = false;
+		}
+	}
+
 }
 
 void UPipouCharacterStateWalk::StateExit(EPipouCharacterStateID NextStateID)

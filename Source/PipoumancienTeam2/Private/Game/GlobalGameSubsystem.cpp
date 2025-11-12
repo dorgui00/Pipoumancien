@@ -9,7 +9,12 @@
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
 #include "Music/MusicWorldSubsystem.h"
+#include "PNJ/SkeletonController.h"
 #include "UI/GlobalHUDSubsystem.h"
+
+// void UGlobalGameSubsystem::Tick(float DeltaTime)
+// {
+// }
 
 // to call in init pipou chara
 void UGlobalGameSubsystem::SetCharacters(APipouCharacter* Character)
@@ -28,11 +33,11 @@ void UGlobalGameSubsystem::SetCurrentSkeleton(F_Skeleton* Skeleton)
 }
 
 // Music
-void UGlobalGameSubsystem::AddNote(UInputAction* InputAction)
+void UGlobalGameSubsystem::AddNoteForSkeletonInteraction(UInputAction* InputAction)
 {
 	InputPressed.Add(InputAction);
 
-	if (InputPressed.Num() >= NbNotesToCheck)
+	if (InputPressed.Num() >= SkeletonNotesToCheck)
 	{
 		if (HasValidFirstNotes()) 
 			SetWorldMusicState();
@@ -43,7 +48,7 @@ void UGlobalGameSubsystem::AddNote(UInputAction* InputAction)
 
 bool UGlobalGameSubsystem::HasValidFirstNotes()
 {
-	for (int i = 0; i < NbNotesToCheck; ++i)
+	for (int i = 0; i < SkeletonNotesToCheck; ++i)
 	{
 		if (CurrentSkeleton->Notes[i].InputAction != InputPressed[i])
 		{
@@ -64,6 +69,31 @@ void UGlobalGameSubsystem::ResetInputsArray()
 {
 	InputPressed.Empty();
 }
+
+// Check If Anybody Still Overlaps The Current Skeleton
+void UGlobalGameSubsystem::CheckIfPlayersOverlapSameSkeleton()
+{
+	if (PipouCharacters.Num() == 0 )
+		UE_LOG(LogTemp, Error, TEXT("No players found"));
+	
+	// set current at the overlap skeleton of the first player
+	const ASkeletonController* CurrentSkeletonIn = PipouCharacters[0]->OverlapSkeleton;
+	
+	// first player doesn't overlap a skeleton => cancel checking
+	if (!CurrentSkeletonIn) return;
+
+	for (auto Character : PipouCharacters)
+	{
+		// doesn't overlap the same skel
+		if (CurrentSkeletonIn !=  Character->OverlapSkeleton)
+			return;
+	}
+	
+	//Players Overlap the same skel
+	UE_LOG(LogTemp, Display, TEXT("Players are Overlapping the same skeleton"));
+	SetCurrentSkeleton(CurrentSkeletonIn->MySkeleton);
+}
+
 
 void UGlobalGameSubsystem::SetWorldMusicState()
 {

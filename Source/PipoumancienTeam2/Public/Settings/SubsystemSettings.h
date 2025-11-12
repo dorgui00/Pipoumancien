@@ -8,7 +8,6 @@
 #include "SubsystemSettings.generated.h"
 
 class USlot;
-class UPipouCharacterInputData;
 
 UCLASS(Config=Game, DefaultConfig, meta=(DisplayName="Subsystem Settings"))
 class PIPOUMANCIENTEAM2_API USubsystemSettings : public UDeveloperSettings
@@ -18,10 +17,12 @@ class PIPOUMANCIENTEAM2_API USubsystemSettings : public UDeveloperSettings
 public:
 
 	// HUDSubsystem
-	UPROPERTY(Config, EditAnywhere, Category="HUD")
+	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
 	TSubclassOf<UResurrectionWidget> WBPResurrectionClass;
 
-	UPROPERTY(Config, EditAnywhere, Category="HUD")
+	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
 	TSubclassOf<USlot> WBPNoteClass;
 
+	UPROPERTY(Config, EditAnywhere, Category="GlobalDatatableManager")
+	TSoftObjectPtr<UDataTable> DT_Music;
 };

@@ -9,6 +9,8 @@
 #include "UI/PipouHUD.h"
 #include "PipouCharacter.generated.h"
 
+class ASkeletonController;
+class IInteract;
 class USphereComponent;
 struct FInputActionValue;
 class UInputMappingContext;
@@ -130,6 +132,13 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
+	// Interact 
+	UPROPERTY()
+	TScriptInterface<IInteract> Interactor ; // Is Overlaping this Interactable Actor
+
+	// CurrentSkeletonOverlap
+	ASkeletonController* OverlapSkeleton;
 
 private:
 	// Move
