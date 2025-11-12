@@ -37,6 +37,11 @@ public:
 	
 	float Tempo = 0.f;
 
+	float TimerTest = 0.f;
+
+
+	bool IsLerpingOffset = true;
+
 private:
 	bool IsInCountDown = false;
 	

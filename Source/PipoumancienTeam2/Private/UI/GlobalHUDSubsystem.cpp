@@ -148,12 +148,12 @@ void UGlobalHUDSubsystem::MovePartition(float DeltaTime)
 
 	float PreviousFrequencies = DistancePreviousFrequencies / RatioDistance;
 	float UiOffsetInTime = UiOffset / RatioDistance;
-	float UISpeed = (DistancePreviousFrequencies + UiOffset) / ((PreviousFrequencies + UiOffsetInTime) * MusicWorldSubsystem->Speed);
+	UISpeed = (DistancePreviousFrequencies) / ((PreviousFrequencies + UiOffsetInTime) * MusicWorldSubsystem->Speed);
 	
 	if (NotesBoxSlot->GetPosition().X >= EndPointLerp)
 	{
-		PosXDeux -= UISpeed * DeltaTime;
-		NotesBoxSlot->SetPosition(FVector2D(NotesBoxSlot->GetPosition().X + PosXDeux, NotesBoxSlot->GetPosition().Y));
+		PosXDeux = UISpeed * DeltaTime;
+		NotesBoxSlot->SetPosition(FVector2D(NotesBoxSlot->GetPosition().X - PosXDeux, NotesBoxSlot->GetPosition().Y));
 	}
 }
 
