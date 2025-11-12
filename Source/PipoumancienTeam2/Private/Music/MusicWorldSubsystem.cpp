@@ -153,6 +153,10 @@ void UMusicWorldSubsystem::InitMusic(F_Skeleton* Skeleton)
 	StartCountDown();
 }
 
+void UMusicWorldSubsystem::EndMelody()
+{
+}
+
 F_Note* UMusicWorldSubsystem::GetWaitingNote() const
 {
 	if (CurrentWaitingNoteIndex > CurrentSkeleton->Notes.Num()-1)
