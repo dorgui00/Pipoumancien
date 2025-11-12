@@ -7,6 +7,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "MusicWorldSubsystem.generated.h"
 
+class ASkeletonController;
 class UGlobalHUDSubsystem;
 class UMusicTimeline;
 class UTimelineComponent;
@@ -58,7 +59,8 @@ public :
 
 	
 private :
-	F_Skeleton* CurrentSkeleton = nullptr;
+	UPROPERTY()
+	ASkeletonController* CurrentSkeleton = nullptr;
 
 	UPROPERTY()
 	bool HasMusicianReceivedInput = false;
@@ -87,7 +89,7 @@ private :
 #pragma region Misc
 	
 public :
-	void InitMusic(F_Skeleton* Skeleton);
+	void InitMusic(ASkeletonController* Skeleton);
 	
 	float CurrentCursorValue = 0.f;
 	

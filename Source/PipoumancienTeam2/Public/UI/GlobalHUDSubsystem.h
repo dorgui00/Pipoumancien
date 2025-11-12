@@ -7,6 +7,7 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "GlobalHUDSubsystem.generated.h"
 
+class ASkeletonController;
 struct F_Skeleton;
 class UInputAction;
 class UResurrectionWidget;
@@ -39,7 +40,7 @@ public:
 	UPROPERTY()
 	USlot* WBPNoteInstance;
 	
-	void SpawnNotesPartition(F_Skeleton* CurrentSkeleton);
+	void SpawnNotesPartition(const ASkeletonController* CurrentSkeleton);
 
 	void MovePartition(float DeltaTime);
 

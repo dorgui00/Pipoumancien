@@ -12,6 +12,7 @@
 #include "Editor/PipouCharacterSettings.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Music/MusicWorldSubsystem.h"
+#include "PNJ/SkeletonController.h"
 #include "Settings/SubsystemSettings.h"
 #include "UI/USlot.h"
 
@@ -76,7 +77,7 @@ void UGlobalHUDSubsystem::RemoveResurrectionWidget()
 	}
 }
 
-void UGlobalHUDSubsystem::SpawnNotesPartition(F_Skeleton* CurrentSkeleton)
+void UGlobalHUDSubsystem::SpawnNotesPartition(const ASkeletonController* CurrentSkeleton)
 {
 	if (WBPNoteClass == nullptr) return;
 
@@ -85,7 +86,7 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(F_Skeleton* CurrentSkeleton)
 
 	DistancePreviousFrequencies = 0;
 	
-	for (F_Note Note : CurrentSkeleton->Notes)
+	for (F_Note Note : CurrentSkeleton->MySkeleton->Notes)
 	{
 		if (!WBPResurrectionInstance) return;
 		
