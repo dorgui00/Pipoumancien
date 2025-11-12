@@ -112,7 +112,7 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(F_Skeleton* CurrentSkeleton)
 		float PosY = SpawnPointSlot->GetPosition().Y;
 		
 		// Calculate Note Slot Pos X
-		float PosX = (Note.Frequency / RatioDistance) + DistancePreviousFrequencies;
+		float PosX = (Note.Frequency * RatioDistance) + DistancePreviousFrequencies;
 		
 		// Set Slot Pos
 		FVector2D NotePos = FVector2D(PosX, PosY);
@@ -123,7 +123,7 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(F_Skeleton* CurrentSkeleton)
 
 		NotesInstanciated.Add(WBPNoteInstance);
 		
-		DistancePreviousFrequencies += Note.Frequency / RatioDistance;
+		DistancePreviousFrequencies += Note.Frequency * RatioDistance;
 	}
 
 	// Get NotesBoxSlot 
@@ -131,7 +131,7 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(F_Skeleton* CurrentSkeleton)
 	if (!NotesBoxSlot) return;
 
 	// Set the size of the notes box slot
-	NotesBoxSlot->SetSize(FVector2D(DistancePreviousFrequencies + (UiOffset / RatioDistance), NotesBoxSlot->GetSize().Y));
+	NotesBoxSlot->SetSize(FVector2D(DistancePreviousFrequencies + UiOffset, NotesBoxSlot->GetSize().Y));
 
 	// Set the start point of the lerp and the end point based on slot size and position
 	StartPointLerp = NotesBoxSlot->GetPosition().X;
@@ -145,8 +145,14 @@ void UGlobalHUDSubsystem::MovePartition(float DeltaTime)
 	UMusicWorldSubsystem* MusicWorldSubsystem = GetWorld()->GetSubsystem<UMusicWorldSubsystem>();
 	if (!MusicWorldSubsystem) return;
 
-	Timer += DeltaTime; 
-	NotesBoxSlot->SetPosition(FVector2D(FMath::Lerp(StartPointLerp, EndPointLerp, Timer * MusicWorldSubsystem->Speed), NotesBoxSlot->GetPosition().Y));
+	float PreviousFrequencies = DistancePreviousFrequencies / RatioDistance;
+	float UISpeed = (DistancePreviousFrequencies / (PreviousFrequencies * MusicWorldSubsystem->Speed));
+	
+	if (NotesBoxSlot->GetPosition().X >= EndPointLerp)
+	{
+		PosXDeux -= UISpeed * DeltaTime;
+		NotesBoxSlot->SetPosition(FVector2D(PosXDeux, NotesBoxSlot->GetPosition().Y));
+	}
 }
 
 // Utilities functions

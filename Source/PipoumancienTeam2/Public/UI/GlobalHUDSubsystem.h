@@ -46,9 +46,11 @@ public:
 	// TO EDIT les mettre dans les settings
 	// DistanceBetweenNote = Frequency/RatioDistance
 	// Our RatioDistance
-	float RatioDistance = 0.01f;
+	float RatioDistance = 100.f;
 	float UiOffset;
 	float Timer = 0.f;
+
+	float PosXDeux = 0;
 
 	float StartPointLerp = 0.f;
 	float EndPointLerp = 0.f;
