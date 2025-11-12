@@ -52,7 +52,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		if (!HUDSubsystem) return;
 	
 		Tempo += DeltaTime * Speed;
-		HUDSubsystem->MovePartition(DeltaTime);
+		HUDSubsystem->MovePartition(DeltaTime);	
 		
 		if (!CurrentSkeleton) return; // Secu check if current skeleton is set
 
