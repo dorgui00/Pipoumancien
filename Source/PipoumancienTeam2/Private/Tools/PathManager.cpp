@@ -80,6 +80,8 @@ void APathManager::BuildFromGenerator()
 
             const int32 FI = FlatIndex(StartIdx, EndIdx);
             SplineMatrix[FI] = Spline;
+
+            Spline->ComponentTags.Add(FName("VillageSpline"));
         }
     }
 }
