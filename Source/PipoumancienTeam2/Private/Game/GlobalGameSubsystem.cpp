@@ -77,21 +77,21 @@ void UGlobalGameSubsystem::CheckIfPlayersOverlapSameSkeleton()
 		UE_LOG(LogTemp, Error, TEXT("No players found"));
 	
 	// set current at the overlap skeleton of the first player
-	ASkeletonController* CurrentSkeleton = PipouCharacters[0]->OverlapSkeleton;
+	const ASkeletonController* CurrentSkeletonIn = PipouCharacters[0]->OverlapSkeleton;
 	
 	// first player doesn't overlap a skeleton => cancel checking
-	if (!CurrentSkeleton) return;
+	if (!CurrentSkeletonIn) return;
 
 	for (auto Character : PipouCharacters)
 	{
 		// doesn't overlap the same skel
-		if (CurrentSkeleton !=  Character->OverlapSkeleton)
+		if (CurrentSkeletonIn !=  Character->OverlapSkeleton)
 			return;
 	}
 	
 	//Players Overlap the same skel
 	UE_LOG(LogTemp, Display, TEXT("Players are Overlapping the same skeleton"));
-	SetCurrentSkeleton(CurrentSkeleton->MySkeleton);
+	SetCurrentSkeleton(CurrentSkeletonIn->MySkeleton);
 }
 
 

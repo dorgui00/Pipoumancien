@@ -9,6 +9,7 @@
 #include "UI/PipouHUD.h"
 #include "PipouCharacter.generated.h"
 
+class ASkeletonController;
 class IInteract;
 class USphereComponent;
 struct FInputActionValue;
