@@ -187,7 +187,7 @@ void UAC_SkeletonFollower::GenerateNextPathPoint()
 
 }
 
-USplineComponent* UAC_SkeletonFollower::FindNearestSplineToOwner() const
+USplineComponent* UAC_SkeletonFollower::FindNearestSplineToOwner(bool bVillageOnly) const
 {
     UWorld* World = GetWorld();
     AActor* Owner = GetOwner();
@@ -202,10 +202,17 @@ USplineComponent* UAC_SkeletonFollower::FindNearestSplineToOwner() const
         AActor* A = *It;
         if (!A) continue;
 
+        if (A == Owner) continue;
+
         TInlineComponentArray<USplineComponent*> Splines(A);
         for (USplineComponent* Spline : Splines)
         {
             if (!Spline) continue;
+
+            if (bVillageOnly && !Spline->ComponentTags.Contains(FName("VillageSpline")))
+            {
+                continue;
+            }
 
             const float Key = Spline->FindInputKeyClosestToWorldLocation(OwnerLoc);
             const FVector Closest = Spline->GetLocationAtSplineInputKey(Key, ESplineCoordinateSpace::World);
@@ -269,18 +276,30 @@ void UAC_SkeletonFollower::OnParentOverlap(AActor* OverlappedActor, AActor* Othe
     {
         bStartFollowing = false;
 
-        if (!SplineToFollow)
+        if (UWorld* World = GetWorld())
         {
-            SplineToFollow = FindNearestSplineToOwner();
+            World->GetTimerManager().ClearTimer(SegmentTimerHandle);
         }
 
         if (SplineToFollow)
         {
+            if (SplineToFollow->GetOwner() == GetOwner())
+            {
+                SplineToFollow->DestroyComponent();
+            }
+            SplineToFollow = nullptr;
+            bFollowingSpline = false;
+        }
+
+        USplineComponent* NearestVillage = FindNearestSplineToOwner(true);
+        if (NearestVillage)
+        {
+            SplineToFollow = NearestVillage;
             StartFollowingSplineFromClosestPoint();
         }
         else
         {
-            UE_LOG(LogTemp, Warning, TEXT("SkeletonFollower: No spline found near."));
+            UE_LOG(LogTemp, Warning, TEXT("SkeletonFollower: No village spline found nearby."));
         }
     }
 }
