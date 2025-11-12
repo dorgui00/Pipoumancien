@@ -6,7 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "SkeletonController.generated.h"
 
-class UDataTableGameInstanceSubsystem;
+class UGlobalDataTableSubsystem;
 class ADB_Manager;
 struct F_Skeleton;
 

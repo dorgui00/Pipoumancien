@@ -3,7 +3,7 @@
 
 #include "PNJ/SkeletonController.h"
 
-#include "Data/DataTableGameInstanceSubsystem.h"
+#include "Data/GlobalDataTableSubsystem.h"
 
 
 // Sets default values
@@ -18,7 +18,7 @@ void ASkeletonController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	MySkeleton = GetGameInstance()->GetSubsystem<UDataTableGameInstanceSubsystem>()->GetSkeletonByID(ID);
+	MySkeleton = GetGameInstance()->GetSubsystem<UGlobalDataTableSubsystem>()->GetSkeletonByID(ID);
 }
 
 // Called every frame
