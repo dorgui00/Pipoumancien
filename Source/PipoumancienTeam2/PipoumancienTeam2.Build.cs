@@ -13,29 +13,16 @@ public class PipoumancienTeam2 : ModuleRules
             "CoreUObject",
             "Engine",
             "InputCore",
-            //j'ai add ca aussi
             "UMG",
             "Slate",
             "SlateCore",
-            //"EditorScriptingUtilities",
-            //
             "EnhancedInput",
             "LocalMultiplayer",
-            "DeveloperSettings"
+            "DeveloperSettings",
+                
+            "NavigationSystem",
+            "AIModule"
         });
-
-        // //j'ajoute ca les bros
-        // PrivateDependencyModuleNames.AddRange(new string[]
-        // {
-        //     //"UnrealEd",
-        //     //"LevelEditor",
-        //     //"EditorFramework",
-        //     "Slate",
-        //     "SlateCore",
-        //     //"EditorSubsystem",
-        //     "Blutility",
-        //     "Projects"
-        // });
 
         if (Target.bBuildEditor)
         {
