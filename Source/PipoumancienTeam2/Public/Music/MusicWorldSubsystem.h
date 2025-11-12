@@ -32,7 +32,7 @@ protected:
 #pragma region Timer
 public:
 	UPROPERTY(EditDefaultsOnly)
-	float Speed = 0.001f;
+	float Speed = 1.f;
 
 	float Tempo = 0.f;
 	
@@ -42,7 +42,7 @@ private:
 	float TimerCountDown = 3.f;
 	
 	UPROPERTY(EditDefaultsOnly)
-	float TimeTolerance = 0.8f;
+	float TimeTolerance = 0.2f;
 
 	void StartCountDown();
 	
@@ -99,6 +99,8 @@ private :
 
 	UPROPERTY()
 	UGlobalHUDSubsystem* GlobalHUDSubsystem;
+
+	void EndMelody();
 
 #pragma endregion
 };
