@@ -33,9 +33,9 @@ protected:
 public:
 	UPROPERTY(EditDefaultsOnly)
 	float Speed = 1.f;
-
-	float Tempo = 0.f;
 	
+	float Tempo = 0.f;
+
 private:
 	bool IsInCountDown = false;
 	

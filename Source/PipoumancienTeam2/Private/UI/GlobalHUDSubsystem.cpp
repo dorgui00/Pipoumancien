@@ -146,7 +146,7 @@ void UGlobalHUDSubsystem::MovePartition(float DeltaTime)
 	if (!MusicWorldSubsystem) return;
 
 	float PreviousFrequencies = DistancePreviousFrequencies / RatioDistance;
-	float UISpeed = DistancePreviousFrequencies / (PreviousFrequencies * MusicWorldSubsystem->Speed);
+	float UISpeed = (DistancePreviousFrequencies / (PreviousFrequencies * MusicWorldSubsystem->Speed));
 	
 	if (NotesBoxSlot->GetPosition().X >= EndPointLerp)
 	{

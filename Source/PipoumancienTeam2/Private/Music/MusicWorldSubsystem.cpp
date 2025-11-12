@@ -48,11 +48,10 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 	}
 	else
 	{
-		Tempo += DeltaTime * Speed;
-		
 		UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
 		if (!HUDSubsystem) return;
-		
+	
+		Tempo += DeltaTime * Speed;
 		HUDSubsystem->MovePartition(DeltaTime);
 		
 		if (!CurrentSkeleton) return; // Secu check if current skeleton is set
@@ -169,14 +168,16 @@ void UMusicWorldSubsystem::ResetMusicianReply()
 
 bool UMusicWorldSubsystem::HasAchievedQte() const
 {
-	if (HasMusicianReceivedInput
-		&& GetWaitingNote()->Pitch >= CurrentCursorValue - PitchTolerance
-		&& GetWaitingNote()->Pitch <= CurrentCursorValue + PitchTolerance)
-	{
-		return true;
-	}
+	// if (HasMusicianReceivedInput
+	// 	&& GetWaitingNote()->Pitch >= CurrentCursorValue - PitchTolerance
+	// 	&& GetWaitingNote()->Pitch <= CurrentCursorValue + PitchTolerance)
+	// {
+	// 	return true;
+	// }
+	//
+	// return false;
 
-	return false;
+	return true;
 }
 
 void UMusicWorldSubsystem::ReceivedMusicianInput()
