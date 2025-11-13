@@ -44,7 +44,7 @@ public:
 
 	void MovePartition(float DeltaTime);
 
-	void UpdatePartition(int NoteIndex);
+	void RewindPartition(int NoteIndex);
 
 	// TO EDIT les mettre dans les settings
 	// DistanceBetweenNote = Frequency/RatioDistance

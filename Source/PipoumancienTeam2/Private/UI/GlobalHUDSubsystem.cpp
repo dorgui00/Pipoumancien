@@ -163,7 +163,7 @@ void UGlobalHUDSubsystem::MovePartition(float DeltaTime)
 }
 
 // Change Partition when losing
-void UGlobalHUDSubsystem::UpdatePartition(int NoteIndex)
+void UGlobalHUDSubsystem::RewindPartition(int NoteIndex)
 {
 	if (NotesInstanciated.IsEmpty()) return;
 

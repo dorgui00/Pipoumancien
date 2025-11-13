@@ -130,7 +130,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 
 					GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex]->NoteImage->SetColorAndOpacity({1, 0, 0, 1.f});
 					GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex + 1]->NoteImage->SetColorAndOpacity({1, 0, 0, 1.f});
-					GlobalHUDSubsystem->UpdatePartition(CurrentWaitingNoteIndex);
+					GlobalHUDSubsystem->RewindPartition(CurrentWaitingNoteIndex);
 					
 					StartCountDown();
 
