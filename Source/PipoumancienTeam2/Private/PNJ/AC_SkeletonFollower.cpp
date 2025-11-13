@@ -17,6 +17,8 @@
 UAC_SkeletonFollower::UAC_SkeletonFollower()
 {
     PrimaryComponentTick.bCanEverTick = true;
+
+    UE_LOG(LogTemp,Display,TEXT("UAC_SkeletonFollower Added"));
 }
 
 void UAC_SkeletonFollower::BeginPlay()
