@@ -22,12 +22,12 @@ void UGlobalGameSubsystem::SetCharacters(APipouCharacter* Character)
 	PipouCharacters.Add(Character);
 }
 
-F_Skeleton* UGlobalGameSubsystem::GetCurrentSkeleton() const
+ASkeletonController* UGlobalGameSubsystem::GetCurrentSkeleton() const
 {
 	return CurrentSkeleton;
 }
 
-void UGlobalGameSubsystem::SetCurrentSkeleton(F_Skeleton* Skeleton)
+void UGlobalGameSubsystem::SetCurrentSkeleton(ASkeletonController* Skeleton)
 {
 	CurrentSkeleton = Skeleton;
 }
@@ -50,7 +50,7 @@ bool UGlobalGameSubsystem::HasValidFirstNotes()
 {
 	for (int i = 0; i < SkeletonNotesToCheck; ++i)
 	{
-		if (CurrentSkeleton->Notes[i].InputAction != InputPressed[i])
+		if (CurrentSkeleton->MySkeleton->Notes[i].InputAction != InputPressed[i])
 		{
 			// UE_LOG(LogTemp, Display, TEXT("Enchainement de 3 notes raté"));
 			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Enchainement de 3 notes raté")), true, FVector2D(2, 2));
@@ -77,7 +77,7 @@ void UGlobalGameSubsystem::CheckIfPlayersOverlapSameSkeleton()
 		UE_LOG(LogTemp, Error, TEXT("No players found"));
 	
 	// set current at the overlap skeleton of the first player
-	const ASkeletonController* CurrentSkeletonIn = PipouCharacters[0]->OverlapSkeleton;
+	ASkeletonController* CurrentSkeletonIn = PipouCharacters[0]->OverlapSkeleton;
 	
 	// first player doesn't overlap a skeleton => cancel checking
 	if (!CurrentSkeletonIn) return;
@@ -91,7 +91,7 @@ void UGlobalGameSubsystem::CheckIfPlayersOverlapSameSkeleton()
 	
 	//Players Overlap the same skel
 	UE_LOG(LogTemp, Display, TEXT("Players are Overlapping the same skeleton"));
-	SetCurrentSkeleton(CurrentSkeletonIn->MySkeleton);
+	SetCurrentSkeleton(CurrentSkeletonIn);
 }
 
 
