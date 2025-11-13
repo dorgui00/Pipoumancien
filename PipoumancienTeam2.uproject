@@ -7,6 +7,15 @@
 		{
 			"Name": "PipoumancienTeam2",
 			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"UMG"
+			]
+		},
+		{
+			"Name": "LocalMultiplayer",
+			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}
 	],

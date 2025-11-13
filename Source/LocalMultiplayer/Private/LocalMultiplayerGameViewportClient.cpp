@@ -1,22 +1,20 @@
-
-
-
 #include "LocalMultiplayerGameViewportClient.h"
+
+//#include "InterchangeResult.h"
 #include "LocalMultiplayerSubsystem.h"
 #include "LocalMultiplayerSettings.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerInput.h"
+#include "Logging/StructuredLog.h"
 
 void ULocalMultiplayerGameViewportClient::PostInitProperties()
 {
 	Super::PostInitProperties();
-	MaxSplitscreenPlayers = 8;
+	MaxSplitscreenPlayers = 4;
 }
 
 bool ULocalMultiplayerGameViewportClient::InputKey(const FInputKeyEventArgs& EventArgs)
 {
-	Super::InputKey(EventArgs);
-
 	const ULocalMultiplayerSettings* Settings = GetDefault<ULocalMultiplayerSettings>();
 	if (Settings == nullptr) return false;
 
@@ -26,7 +24,7 @@ bool ULocalMultiplayerGameViewportClient::InputKey(const FInputKeyEventArgs& Eve
 	if (EventArgs.Key.IsGamepadKey())
 	{
 		int PlayerID = Subsystem->GetAssignPlayerIndexFromGamepadDeviceID(EventArgs.ControllerId);
-
+			
 		if (PlayerID == -1)
 		{
 			PlayerID = Subsystem->AssignNewPlayerToGamepadDeviceID(EventArgs.ControllerId);
@@ -36,9 +34,7 @@ bool ULocalMultiplayerGameViewportClient::InputKey(const FInputKeyEventArgs& Eve
 		APlayerController* PlayerController = UGameplayStatics::GetPlayerControllerFromID(this, PlayerID);
 		if (PlayerController)
 		{
-			PlayerController->InputKey(FInputKeyParams(EventArgs.Key, EventArgs.Event, static_cast<double>(EventArgs.AmountDepressed), EventArgs.IsGamepad(), EventArgs.InputDevice));
-
-			return true;
+			return PlayerController->InputKey(FInputKeyParams(EventArgs.Key, EventArgs.Event, static_cast<double>(EventArgs.AmountDepressed), EventArgs.IsGamepad(), EventArgs.InputDevice));
 		}
 	}
 	else
@@ -58,47 +54,42 @@ bool ULocalMultiplayerGameViewportClient::InputKey(const FInputKeyEventArgs& Eve
 			APlayerController* PlayerController = UGameplayStatics::GetPlayerControllerFromID(this, PlayerID);
 			if (PlayerController)
 			{
-				PlayerController->InputKey(FInputKeyParams(EventArgs.Key, EventArgs.Event, static_cast<double>(EventArgs.AmountDepressed), EventArgs.IsGamepad(), EventArgs.InputDevice));
-
-				return true;
+				return PlayerController->InputKey(FInputKeyParams(EventArgs.Key, EventArgs.Event, static_cast<double>(EventArgs.AmountDepressed), EventArgs.IsGamepad(), EventArgs.InputDevice));
 			}
 		}
 	}
 	
-	return false;
+	return Super::InputKey(EventArgs);
 }
 
 bool ULocalMultiplayerGameViewportClient::InputAxis(FViewport* InViewport, FInputDeviceId InputDevice, FKey Key, float Delta, float Deltatime, int32 NumSamples /*= 1*/, bool bGamepad /*= false*/)
 {
-	Super::InputAxis(InViewport, InputDevice, Key, Delta, Deltatime, NumSamples, bGamepad); 
-
 	const ULocalMultiplayerSettings* Settings = GetDefault<ULocalMultiplayerSettings>();
 	ULocalMultiplayerSubsystem* Subsystem = GetGameInstance()->GetSubsystem<ULocalMultiplayerSubsystem>();
-	int PlayerIndex = -1;
-
+	
 	if (bGamepad)
 	{
-		PlayerIndex = Subsystem->GetAssignPlayerIndexFromGamepadDeviceID(InputDevice.GetId());
+		int PlayerIndex = Subsystem->GetAssignPlayerIndexFromGamepadDeviceID(InputDevice.GetId());
 
 		if (PlayerIndex == -1)
 		{
 			PlayerIndex = Subsystem->AssignNewPlayerToGamepadDeviceID(InputDevice.GetId());
 			Subsystem->AssignGamepadInputMapping(PlayerIndex, ELocalMultiplayerInputMappingType::InGame);
 		}
-
+    
 		APlayerController* PlayerController = UGameplayStatics::GetPlayerControllerFromID(this, PlayerIndex);
 		if (PlayerController)
 		{
-			PlayerController->InputKey(FInputKeyParams(Key, Delta, Deltatime, NumSamples, bGamepad, InputDevice));
-			return true;
+			return PlayerController->InputKey(FInputKeyParams(Key, Delta, Deltatime, NumSamples, bGamepad, InputDevice));
 		}
 	}
 	else
 	{
 		int KeyboardProfileIndex = Settings->FindKeyboardProfileIndexFromKey(Key, ELocalMultiplayerInputMappingType::InGame);
+		
 		if (KeyboardProfileIndex != -1)
 		{
-			PlayerIndex = Subsystem->GetAssignedPlayerIndexFromKeyboardProfileIndex(KeyboardProfileIndex);
+			int PlayerIndex = Subsystem->GetAssignedPlayerIndexFromKeyboardProfileIndex(KeyboardProfileIndex);
 
 			if (PlayerIndex == -1)
 			{
@@ -109,11 +100,10 @@ bool ULocalMultiplayerGameViewportClient::InputAxis(FViewport* InViewport, FInpu
 			APlayerController* PlayerController = UGameplayStatics::GetPlayerControllerFromID(this, PlayerIndex);
 			if (PlayerController)
 			{
-				PlayerController->InputKey(FInputKeyParams(Key, Delta, Deltatime, NumSamples, bGamepad, InputDevice));
-				return true;
+				return PlayerController->InputKey(FInputKeyParams(Key, Delta, Deltatime, NumSamples, bGamepad, InputDevice));
 			}
 		}
 	}
 
-	return false;
+	return Super::InputAxis(InViewport, InputDevice, Key, Delta, Deltatime, NumSamples, bGamepad); 
 }

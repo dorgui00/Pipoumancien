@@ -4,20 +4,43 @@ using UnrealBuildTool;
 
 public class PipoumancienTeam2 : ModuleRules
 {
-	public PipoumancienTeam2(ReadOnlyTargetRules Target) : base(Target)
-	{
-		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "LocalMultiplayer" });
+    public PipoumancienTeam2(ReadOnlyTargetRules Target) : base(Target)
+    {
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
+        PublicDependencyModuleNames.AddRange(new string[] {
+            "Core",
+            "CoreUObject",
+            "Engine",
+            "InputCore",
+            "UMG",
+            "Slate",
+            "SlateCore",
+            "EnhancedInput",
+            "LocalMultiplayer",
+            "DeveloperSettings",
+                
+            "NavigationSystem",
+            "AIModule"
+        });
 
-		// Uncomment if you are using Slate UI
-		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
-		
-		// Uncomment if you are using online features
-		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
-
-		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
-	}
+        if (Target.bBuildEditor)
+        {
+            PrivateDependencyModuleNames.AddRange(new string[]
+            {
+                "UnrealEd",
+                "LevelEditor",
+                "EditorFramework",
+                "EditorSubsystem",
+                "Blutility",
+                "Projects",
+                "EditorScriptingUtilities",
+                "CoreUObject",
+                "Engine",
+                "Slate",
+                "SlateCore",
+            });
+        }
+        //jusqu'ici
+    }
 }

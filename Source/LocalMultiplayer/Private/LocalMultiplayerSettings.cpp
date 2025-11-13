@@ -1,10 +1,7 @@
-
-
-
 #include "LocalMultiplayerSettings.h"
 #include "InputMappingContext.h"
 
-// Check l'intérieur d'un mapping context donné pour trouver une key
+// Check l'intÃ©rieur d'un mapping context donnÃ© pour trouver une key
 bool FLocalMultiplayerProfileData::ContainsKey(const FKey& Key, ELocalMultiplayerInputMappingType MappingType) const
 {
 	const UInputMappingContext* MappingContext = GetIMCFromType(MappingType);
@@ -21,7 +18,7 @@ bool FLocalMultiplayerProfileData::ContainsKey(const FKey& Key, ELocalMultiplaye
 	return false;
 }
 
-// Get un mapping context basé sur un type
+// Get un mapping context basÃ© sur un type
 UInputMappingContext* FLocalMultiplayerProfileData::GetIMCFromType(ELocalMultiplayerInputMappingType MappingType) const
 {
 	switch (MappingType)
@@ -43,7 +40,7 @@ int ULocalMultiplayerSettings::GetNbKeyboardProfiles() const
 	return KeyboardProfileData.Num();
 }
 
-// Get le KeyboardProfileIndex (donc quel keyboard dans la liste le 1 ou le 2) en fonction d'une clé passé (avec un check si la clé 
+// Get le KeyboardProfileIndex (donc quel keyboard dans la liste le 1 ou le 2) en fonction d'une clÃ© passÃ© (avec un check si la clï¿½ 
 // est contenu dans le mapping context du KeyprofileIndex)
 int ULocalMultiplayerSettings::FindKeyboardProfileIndexFromKey(const FKey& Key, ELocalMultiplayerInputMappingType MappingType) const
 {
@@ -57,3 +54,22 @@ int ULocalMultiplayerSettings::FindKeyboardProfileIndexFromKey(const FKey& Key, 
 
 	return -1;
 }
+
+// int ULocalMultiplayerSettings::GetNbGamepadProfiles() const
+// {
+// 	return GamepadProfileData.Num();
+// }
+//
+// int ULocalMultiplayerSettings::FindGamepadProfileIndexFromKey(const FKey& Key, ELocalMultiplayerInputMappingType MappingType) const
+// {
+// 	for (int Index = 0; Index < GetNbGamepadProfiles(); ++Index)
+// 	{
+// 		if (GamepadProfileData[Index].ContainsKey(Key, MappingType)) 
+// 		{
+// 			return Index;
+// 		}
+// 	}
+//
+// 	return -1;
+// }
+

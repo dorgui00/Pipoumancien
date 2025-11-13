@@ -5,9 +5,10 @@
 #include "LocalMultiplayerSettings.h"
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputSubsystems.h"
+//#include "InputState.h"
 #include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputSubsystemInterface.h"
 
-// Créer et initialise des PlayerControllers en fonction de settings clavier ou gamepad
+// Crï¿½er et initialise des PlayerControllers en fonction de settings clavier ou gamepad
 void ULocalMultiplayerSubsystem::CreateAndInitPlayers(ELocalMultiplayerInputMappingType MappingType)
 {
 	const ULocalMultiplayerSettings* Settings = GetDefault<ULocalMultiplayerSettings>();
@@ -24,7 +25,7 @@ void ULocalMultiplayerSubsystem::CreateAndInitPlayers(ELocalMultiplayerInputMapp
 	}
 }
 
-// Get Player Index avec une clé KeyProfileIndex
+// Get Player Index avec une clÃ© KeyProfileIndex
 int ULocalMultiplayerSubsystem::GetAssignedPlayerIndexFromKeyboardProfileIndex(int KeyboardProfileIndex)
 {
 	if (PlayerIndexFromKeyboardProfileIndex.Contains(KeyboardProfileIndex))
@@ -35,7 +36,7 @@ int ULocalMultiplayerSubsystem::GetAssignedPlayerIndexFromKeyboardProfileIndex(i
 	return -1;
 }
 
-// Supposition = assigne un nouveau PlayerIndex à un KeyboardProfile
+// Supposition = assigne un nouveau PlayerIndex ï¿½ un KeyboardProfile
 int ULocalMultiplayerSubsystem::AssignNewPlayerToKeyboardProfile(int KeyboardProfileIndex)
 {
 	LastAssignedPlayerIndex++;
@@ -43,7 +44,7 @@ int ULocalMultiplayerSubsystem::AssignNewPlayerToKeyboardProfile(int KeyboardPro
 	return LastAssignedPlayerIndex;
 }
 
-// Récupère l'IMC du KeyboardProfileIndex donné -> puis avec le PlayerIndex on récup le PlayerController pour lui assigner le mapping context
+// Rï¿½cupï¿½re l'IMC du KeyboardProfileIndex donnï¿½ -> puis avec le PlayerIndex on rï¿½cup le PlayerController pour lui assigner le mapping context
 void ULocalMultiplayerSubsystem::AssignKeyboardMapping(int PlayerIndex, int KeyboardProfileIndex, ELocalMultiplayerInputMappingType MappingType) const
 {
 	const ULocalMultiplayerSettings* Settings = GetDefault<ULocalMultiplayerSettings>();
@@ -61,8 +62,7 @@ void ULocalMultiplayerSubsystem::AssignKeyboardMapping(int PlayerIndex, int Keyb
 	Subsystem->AddMappingContext(Settings->KeyboardProfileData[KeyboardProfileIndex].GetIMCFromType(MappingType), 0, Options);
 }
 
-
-// Get un PlayerIndex avec une clé GamepadDeviceID (GamepadProfileIndex)
+// Get un PlayerIndex avec une clÃ© GamepadDeviceID (GamepadProfileIndex)
 int ULocalMultiplayerSubsystem::GetAssignPlayerIndexFromGamepadDeviceID(int DeviceID)
 {
 	if (PlayerIndexFromGamepadProfileIndex.Contains(DeviceID))
@@ -73,7 +73,7 @@ int ULocalMultiplayerSubsystem::GetAssignPlayerIndexFromGamepadDeviceID(int Devi
 	return -1;
 }
 
-// Supposition = assigne un nouveau PlayerIndex à un GamepadDeviceID (GamepadProfile)
+// Supposition = assigne un nouveau PlayerIndex ï¿½ un GamepadDeviceID (GamepadProfile)
 int ULocalMultiplayerSubsystem::AssignNewPlayerToGamepadDeviceID(int DeviceID)
 {
 	LastAssignedPlayerIndex++;
@@ -81,7 +81,7 @@ int ULocalMultiplayerSubsystem::AssignNewPlayerToGamepadDeviceID(int DeviceID)
 	return LastAssignedPlayerIndex;
 }
 
-// Récupère l'IMC -> puis avec le PlayerIndex on récup le PlayerController pour lui assigner le mapping context
+// Rï¿½cupï¿½re l'IMC -> puis avec le PlayerIndex on rÃ©cup le PlayerController pour lui assigner le mapping context
 void ULocalMultiplayerSubsystem::AssignGamepadInputMapping(int PlayerIndex, ELocalMultiplayerInputMappingType MappingType) const
 {
 	const ULocalMultiplayerSettings* Settings = GetDefault<ULocalMultiplayerSettings>();
