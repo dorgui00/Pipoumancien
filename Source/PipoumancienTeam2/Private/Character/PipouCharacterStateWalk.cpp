@@ -46,12 +46,12 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 		Character->SetOrientXY(FVector2D(MoveDir.X, MoveDir.Y));
 		Character->AddMovementInput(MoveDir, 1);
 		
-		//ADDED
+		//CAMERA 
 		if (UCameraWorldSubsystem* CamSys = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
 		{
 			FVector ClampedPos;
 			bool bInside = CamSys->ClampPositionInsideQuad(Character->GetActorLocation(), ClampedPos);
-
+		
 			// clamp position if outside
 			if (!bInside)
 			{

@@ -21,7 +21,7 @@ class PIPOUMANCIENTEAM2_API UGlobalHUDSubsystem : public UGameInstanceSubsystem
 
 public:
 	UPROPERTY()
-	TSoftObjectPtr<UPipouCharacterInputData> InputData;
+	TObjectPtr<UPipouCharacterInputData> InputData;
 	
 	UPROPERTY()
 	TSubclassOf<UResurrectionWidget> WBPResurrectionClass;
@@ -55,6 +55,8 @@ public:
 
 	float StartPointLerp = 0.f;
 	float EndPointLerp = 0.f;
+	float UISpeed = 0.f;
+	float UiOffsetInTime = 0.f;
 
 	float DistancePreviousFrequencies;
 

@@ -88,7 +88,7 @@ public:
 
 private:
 
-    USplineComponent* FindNearestSplineToOwner() const;
+    USplineComponent* FindNearestSplineToOwner(bool bVillageOnly = false) const;
 
     void EnsureGeneratedSpline();
 

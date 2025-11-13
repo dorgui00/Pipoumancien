@@ -52,13 +52,17 @@ public :
 	void ResetInputsArray();
 
 	void CheckIfPlayersOverlapSameSkeleton();
+
+	//DEBUG
+	void SetWorldMusicState();
 	
 private :
 
 	// World State
 	EWorldState WorldState = EWorldState::WorldFree; // TO EDIT
 
-	void SetWorldMusicState();
+	//DEBUG
+	//void SetWorldMusicState();
 	
 	// Skeleton
 	UPROPERTY()

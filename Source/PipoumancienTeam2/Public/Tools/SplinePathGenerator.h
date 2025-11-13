@@ -46,4 +46,7 @@ public:
 private:
     UPROPERTY(Transient)
     TArray<USplineComponent*> GeneratedSplines;
+
+protected:
+    virtual void BeginPlay() override;
 };

@@ -31,5 +31,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	F_Skeleton* MySkeleton;
+
+	void SetSkeletonForTransport();
 	
 };
