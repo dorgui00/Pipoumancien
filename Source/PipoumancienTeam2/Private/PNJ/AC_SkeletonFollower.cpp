@@ -23,6 +23,8 @@ void UAC_SkeletonFollower::BeginPlay()
 {
     Super::BeginPlay();
 
+    bStartFollowing = true;
+
     UGameplayStatics::GetAllActorsWithTag(GetWorld(), PlayersTag, PipouPlayers);
     ParentActor = GetOwner();
 
