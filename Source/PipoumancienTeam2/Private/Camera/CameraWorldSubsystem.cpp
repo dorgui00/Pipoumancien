@@ -16,8 +16,22 @@ void UCameraWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
 	
+}
+
+void UCameraWorldSubsystem::OnWorldComponentsUpdated(UWorld& World)
+{
+	Super::OnWorldComponentsUpdated(World);
+}
+
+void UCameraWorldSubsystem::InitCameraSubsystem()
+{
 	// get/set main camera
 	CameraMain = FindCameraByTag(TEXT("CameraMain"));
+	if(!CameraMain)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Main Camera is null"));
+		return;
+	}
 	// camera look at rotation
 	InitCameraRotationToPivot();
 	// set init camera pos (main cam)
@@ -53,6 +67,8 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 
 	
 }
+
+
 
 void UCameraWorldSubsystem::AddFollowTarget(UObject* FollowTarget)
 {

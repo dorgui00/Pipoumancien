@@ -21,7 +21,7 @@ class PIPOUMANCIENTEAM2_API UGlobalHUDSubsystem : public UGameInstanceSubsystem
 
 public:
 	UPROPERTY()
-	TSoftObjectPtr<UPipouCharacterInputData> InputData;
+	TObjectPtr<UPipouCharacterInputData> InputData;
 	
 	UPROPERTY()
 	TSubclassOf<UResurrectionWidget> WBPResurrectionClass;

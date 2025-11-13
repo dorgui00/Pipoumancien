@@ -28,11 +28,14 @@ class PIPOUMANCIENTEAM2_API UCameraWorldSubsystem : public UTickableWorldSubsyst
 public :
 	virtual void PostInitialize() override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
+	virtual void OnWorldComponentsUpdated(UWorld& World) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override {return TStatId();};
 #pragma endregion
 
 #pragma region MainCamera
+public :
+	void InitCameraSubsystem();
 protected:
 	UPROPERTY()
 	TObjectPtr<UCameraComponent> CameraMain;

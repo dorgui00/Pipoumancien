@@ -35,7 +35,12 @@ void UGlobalHUDSubsystem::Init()
 	const UPipouCharacterSettings* CharacterSettings = GetDefault<UPipouCharacterSettings>();
 	if (!CharacterSettings) return;
 
-	InputData = CharacterSettings->InputData;
+	InputData = CharacterSettings->InputData.LoadSynchronous();
+	if (!InputData)
+	{
+		UE_LOG(LogTemp,Fatal,TEXT("UGlobalHUDSubsystem::InputData is NULL"));
+	}
+	
 	WBPResurrectionClass = SubsystemSettings->WBPResurrectionClass;
 	WBPNoteClass = SubsystemSettings->WBPNoteClass;
 	
