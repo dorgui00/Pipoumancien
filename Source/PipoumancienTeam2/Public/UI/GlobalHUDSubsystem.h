@@ -56,6 +56,7 @@ public:
 	float StartPointLerp = 0.f;
 	float EndPointLerp = 0.f;
 	float UISpeed = 0.f;
+	float UiOffsetInTime = 0.f;
 
 	float DistancePreviousFrequencies;
 

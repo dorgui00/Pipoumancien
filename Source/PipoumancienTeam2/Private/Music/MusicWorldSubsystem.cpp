@@ -9,6 +9,7 @@
 #include "Data/F_Skeleton.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
+#include "Logging/StructuredLog.h"
 #include "PNJ/SkeletonController.h"
 #include "UI/GlobalHUDSubsystem.h"
 
@@ -51,7 +52,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 	{
 		if (!GlobalHUDSubsystem) return;
 
-		GlobalHUDSubsystem->MovePartition(DeltaTime);	
+		GlobalHUDSubsystem->MovePartition(DeltaTime);
 		
 		if (IsLerpingOffset)
 		{
@@ -71,17 +72,11 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			F_Note* CurrentNote = GetWaitingNote();
 			USlot* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
 
-			if (CurrentWaitingNoteIndex > 0)
-			{
-				GlobalHUDSubsystem->UiOffset = 0.f;
-			}
-			
 			// Not yet time for qte => !IsAwaitingReply
 			if (Tempo < ((CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed))
 			{
 				IsAwaitingReply = false;
 				CurrentNoteSlot->NoteImage->SetColorAndOpacity({1, 0, 0, 1.f});
-				
 				return;
 			}
 			
@@ -189,16 +184,14 @@ void UMusicWorldSubsystem::ResetMusicianReply()
 
 bool UMusicWorldSubsystem::HasAchievedQte() const
 {
-	// if (HasMusicianReceivedInput
-	// 	&& GetWaitingNote()->Pitch >= CurrentCursorValue - PitchTolerance
-	// 	&& GetWaitingNote()->Pitch <= CurrentCursorValue + PitchTolerance)
-	// {
-	// 	return true;
-	// }
-	//
-	// return false;
-
-	return true;
+	if (HasMusicianReceivedInput
+		&& GetWaitingNote()->Pitch >= CurrentCursorValue - PitchTolerance
+		&& GetWaitingNote()->Pitch <= CurrentCursorValue + PitchTolerance)
+	{
+		return true;
+	}
+	
+	return false;
 }
 
 void UMusicWorldSubsystem::ReceivedMusicianInput()
