@@ -3,6 +3,7 @@
 
 #include "Music/MusicWorldSubsystem.h"
 #include "InputAction.h"
+#include "Camera/CameraWorldSubsystem.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
 #include "Data/F_Note.h"
@@ -104,7 +105,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 					//Melodie finie et réussie
 					if (CurrentWaitingNoteIndex == CurrentSkeleton->MySkeleton->Notes.Num()-1)
 					{
-						EndMelody();
+						FinishMelody();
 					}
 					// go next note
 					else
@@ -149,7 +150,7 @@ void UMusicWorldSubsystem::InitMusic(ASkeletonController* Skeleton)
 	StartCountDown();
 }
 
-void UMusicWorldSubsystem::EndMelody()
+void UMusicWorldSubsystem::FinishMelody()
 {
 	// DEBUG
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")), true, FVector2D(2, 2));
@@ -158,15 +159,20 @@ void UMusicWorldSubsystem::EndMelody()
 	IsInWorldStateMusic = false;
 	Tempo = 0.f;
 	CurrentWaitingNoteIndex = 0;
+	
+	// Camera
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::GlobalCamera);
 
 	// Pass to transport
-	for (auto PipouCharacter : GlobalGameSubsystem->PipouCharacters)
+	for (APipouCharacter* PipouCharacter : GlobalGameSubsystem->PipouCharacters)
 	{
 		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
 	}
 
 	// UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
+	
+	CurrentSkeleton->SetSkeletonForTransport();
 }
 
 F_Note* UMusicWorldSubsystem::GetWaitingNote() const
