@@ -162,6 +162,27 @@ void UGlobalHUDSubsystem::MovePartition(float DeltaTime)
 	}
 }
 
+// Change Partition when losing
+void UGlobalHUDSubsystem::UpdatePartition(int NoteIndex)
+{
+	if (NotesInstanciated.IsEmpty()) return;
+
+	UMusicWorldSubsystem* MusicWorldSubsystem = GetWorld()->GetSubsystem<UMusicWorldSubsystem>();
+	if (!MusicWorldSubsystem) return;
+
+	USlot* Note = NotesInstanciated[NoteIndex];
+	if (!Note) return;
+
+	UCanvasPanelSlot* NoteSlot = Cast<UCanvasPanelSlot>(Note->Slot);
+	if (!NoteSlot) return;
+
+	float TargetPosX = NoteSlot->GetPosition().X;
+
+	float NewParitionPosX = (StartPointLerp - TargetPosX) - UiOffset;
+	
+	NotesBoxSlot->SetPosition(FVector2D(NewParitionPosX, NotesBoxSlot->GetPosition().Y));
+}
+
 // Utilities functions
 EMusicNoteType UGlobalHUDSubsystem::GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const
 {

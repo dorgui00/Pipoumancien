@@ -35,7 +35,9 @@ public:
 	float Tempo = 0.f;
 
 	float TimerTest = 0.f;
-
+	
+	UPROPERTY(EditDefaultsOnly)
+	float TimeTolerance = 0.4f;
 
 	bool IsLerpingOffset = true;
 
@@ -43,9 +45,6 @@ private:
 	bool IsInCountDown = false;
 	
 	float TimerCountDown = 3.f;
-	
-	UPROPERTY(EditDefaultsOnly)
-	float TimeTolerance = 0.2f;
 
 	void StartCountDown();
 	

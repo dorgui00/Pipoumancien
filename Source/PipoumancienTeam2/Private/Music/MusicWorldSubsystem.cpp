@@ -6,6 +6,7 @@
 #include "Camera/CameraWorldSubsystem.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
+#include "Components/TextBlock.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
 #include "Game/GlobalGameSubsystem.h"
@@ -100,7 +101,8 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 				// success
 				if(HasAchievedQte())
 				{
-					CurrentNoteSlot->RemoveFromParent();
+					CurrentNoteSlot->NoteImage->SetColorAndOpacity({1, 0, 0, 0.f});
+					CurrentNoteSlot->LetterText->SetColorAndOpacity(FSlateColor(FLinearColor({0, 0, 0, 0.f})));
 					
 					//Melodie finie et réussie
 					if (CurrentWaitingNoteIndex == CurrentSkeleton->MySkeleton->Notes.Num()-1)
@@ -121,10 +123,18 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 				{
 					GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Black, FString::Printf(TEXT("Tu as raté la note")), true, FVector2D(2, 2));
 					CurrentNoteSlot->NoteImage->SetColorAndOpacity({1, 0, 0, 1.f});
+					CurrentNoteSlot->LetterText->SetColorAndOpacity(FSlateColor(FLinearColor({0, 0, 0, 1.f})));
 					
 					// go back from two previous notes
-					CurrentWaitingNoteIndex = FMath::Max(0, CurrentWaitingNoteIndex-2);
+					CurrentWaitingNoteIndex = FMath::Max(0, CurrentWaitingNoteIndex - 2);
+
+					GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex]->NoteImage->SetColorAndOpacity({1, 0, 0, 1.f});
+					GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex + 1]->NoteImage->SetColorAndOpacity({1, 0, 0, 1.f});
+					GlobalHUDSubsystem->UpdatePartition(CurrentWaitingNoteIndex);
+					
 					StartCountDown();
+
+					Tempo = (CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed;
 				}
 				
 				// reset
