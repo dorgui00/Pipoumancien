@@ -375,8 +375,10 @@ void UCameraWorldSubsystem::SetCamera(float DeltaTime, bool IsWorld)
 
 		FVector gdh = CameraMain->GetRelativeLocation();
 		FVector zhjh = AimedCameraTransform.GetLocation();
+
+		float test = gdh.Z - zhjh.Z;
 		
-		if (FMath::IsNearlyEqual(CameraMain->GetRelativeLocation().Z,AimedCameraTransform.GetLocation().Z))
+		if (test <= 0.01 && test >= -0.01)
 		{
 			IsSettingCamera = false;
 			UE_LOG(LogTemp, Display, TEXT("A FINI Camera relative"));
