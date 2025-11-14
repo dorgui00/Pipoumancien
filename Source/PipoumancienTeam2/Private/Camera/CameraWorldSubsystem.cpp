@@ -4,6 +4,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
+#include "Logging/StructuredLog.h"
 #include "PipoumancienTeam2/Public/Camera/CameraFollowTarget.h"
 
 
@@ -358,19 +359,29 @@ void UCameraWorldSubsystem::SetCamera(float DeltaTime, bool IsWorld)
 		if (FMath::IsNearlyEqual(CameraMain->GetComponentLocation().Z,AimedCameraTransform.GetLocation().Z))
 		{
 			IsSettingCamera = false;
+			UE_LOG(LogTemp, Display, TEXT("Setting Camera world"));
 		}
 	}
 	else
 	{
+		UE_LOG(LogTemp, Display, TEXT("DS RELATIVE"));
 		
 		FVector NewPos = FMath::Lerp(CameraMain->GetRelativeLocation(),AimedCameraTransform.GetLocation(),DeltaTime*1.f);
 		FRotator NewRot = FMath::Lerp(CameraMain->GetRelativeRotation(),AimedCameraTransform.Rotator(),DeltaTime*1.f);
 
 		CameraMain->SetRelativeLocationAndRotation(NewPos,NewRot);
+		//UE_LOG(LogTemp, Display, TEXT( " MainPos : %s , AimedPos : %s"), CameraMain->GetRelativeLocation(), AimedCameraTransform.GetLocation());
+		//UE_LOGFMT(LogCore, Display," MainPos : {mainpos}, AimedPos : {aimedpos}", ("mainpos", CameraMain->GetRelativeLocation()), ("aimedpos", AimedCameraTransform.GetLocation()));
 
-		FVector g = CameraMain->GetRelativeLocation() - AimedCameraTransform.GetLocation();
-		if (g.IsNearlyZero())
+		FVector gdh = CameraMain->GetRelativeLocation();
+		FVector zhjh = AimedCameraTransform.GetLocation();
+		
+		if (FMath::IsNearlyEqual(CameraMain->GetRelativeLocation().Z,AimedCameraTransform.GetLocation().Z))
+		{
 			IsSettingCamera = false;
+			UE_LOG(LogTemp, Display, TEXT("A FINI Camera relative"));
+		}
+		
 	}
 
 
