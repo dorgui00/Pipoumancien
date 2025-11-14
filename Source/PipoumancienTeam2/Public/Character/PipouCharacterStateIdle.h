@@ -25,4 +25,5 @@ public:
 
 	// Music
 	virtual void OnCharacterPressedNote(UInputAction* InputAction) override;
+	virtual void OnCharacterTriggeredNote(UInputAction* InputAction) override;
 };

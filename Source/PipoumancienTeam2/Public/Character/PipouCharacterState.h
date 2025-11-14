@@ -37,6 +37,8 @@ public:
 	virtual void StateEnter(EPipouCharacterStateID PreviousStateID);
 	virtual void StateTick(float Deltatime);
 	virtual void StateExit(EPipouCharacterStateID NextStateID);
+	
+	bool HasPressedNotes = false;
 
 protected:
 	UPROPERTY()
@@ -50,6 +52,9 @@ protected:
 
 	UFUNCTION()
 	virtual void OnCharacterPressedNote(UInputAction* InputAction);
+
+	UFUNCTION()
+	virtual void OnCharacterTriggeredNote(UInputAction* InputAction);
 
 	UFUNCTION()
 	virtual void OnCharacterPitch(FInputActionValue InputActionValue);

@@ -125,10 +125,10 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(const ASkeletonController* Current
 		NoteSlotInstance->SetPosition(NotePos);
 		
 		// Set Slot Size
-		if (!MusicWorldSubsystem) UE_LOG(LogTemp, Error, TEXT("UGlobalHUDSubsystem::MusicWorldSubsystem is NULL"));
-		
-		float SizeX = MusicWorldSubsystem->TimeTolerance*RatioDistance;
-		NoteSlotInstance->SetSize(FVector2D(SizeX, NoteSlotInstance->GetSize().Y));
+		// if (!MusicWorldSubsystem) UE_LOG(LogTemp, Error, TEXT("UGlobalHUDSubsystem::MusicWorldSubsystem is NULL"));
+		//
+		// float SizeX = MusicWorldSubsystem->TimeTolerance*RatioDistance;
+		// NoteSlotInstance->SetSize(FVector2D(SizeX, NoteSlotInstance->GetSize().Y));
 		
 		// Set Music Note Type
 		WBPNoteInstance->SetSlotNote(GetMusicNoteTypeFromInputAction(Note.InputAction));

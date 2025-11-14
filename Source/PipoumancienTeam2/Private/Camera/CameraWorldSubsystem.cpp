@@ -49,7 +49,6 @@ void UCameraWorldSubsystem::InitCameraSubsystem()
 
 	//zoom
 	//InitCameraZoomParameters();
-	
 }
 
 void UCameraWorldSubsystem::Tick(float DeltaTime)
@@ -64,11 +63,7 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 	}
 	
 	TickUpdateCameraPosition(DeltaTime);
-
-	
 }
-
-
 
 void UCameraWorldSubsystem::AddFollowTarget(UObject* FollowTarget)
 {
