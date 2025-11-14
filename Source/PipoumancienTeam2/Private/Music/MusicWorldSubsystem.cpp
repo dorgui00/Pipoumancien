@@ -170,19 +170,11 @@ void UMusicWorldSubsystem::FinishMelody()
 	Tempo = 0.f;
 	CurrentWaitingNoteIndex = 0;
 	
-	// Camera
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::GlobalCamera);
-
-	// Pass to transport
-	for (APipouCharacter* PipouCharacter : GlobalGameSubsystem->PipouCharacters)
-	{
-		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
-	}
-
 	// UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
 	
-	CurrentSkeleton->SetSkeletonForTransport();
+	// Camera
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::GlobalCamera);
 }
 
 F_Note* UMusicWorldSubsystem::GetWaitingNote() const

@@ -119,4 +119,9 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 	GetWorld()->GetSubsystem<UMusicWorldSubsystem>()->InitMusic(CurrentSkeleton);
 }
 
+EWorldState UGlobalGameSubsystem::GetWorldState() const
+{
+	return WorldState;
+}
+
 
