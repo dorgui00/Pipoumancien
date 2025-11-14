@@ -6,6 +6,7 @@
 #include "Camera/CameraWorldSubsystem.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
+#include "Components/Slider.h"
 #include "Components/TextBlock.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
@@ -14,6 +15,9 @@
 #include "Logging/StructuredLog.h"
 #include "PNJ/SkeletonController.h"
 #include "UI/GlobalHUDSubsystem.h"
+#include "UI/UResurrectionWidget.h"
+
+class USlider;
 
 void UMusicWorldSubsystem::PostInitialize()
 {
@@ -79,16 +83,16 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			if (Tempo < ((CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed))
 			{
 				IsAwaitingReply = false;
-				CurrentNoteSlot->NoteImage->SetColorAndOpacity({1, 0, 0, 1.f});
+				
 				return;
 			}
 			
 			// Is Awaiting Reply
 			if (Tempo >= ((CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed) && !IsAwaitingReply)
 			{
-				GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Red, FString::Printf(TEXT("INPUT : %s"), *CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName()), true, FVector2D(2, 2));
-				GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Blue, FString::Printf(TEXT("PITCH : %f"), CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Pitch), true, FVector2D(2, 2));
-				CurrentNoteSlot->NoteImage->SetColorAndOpacity({1, 0.5, 0, 1.f});
+				// GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Red, FString::Printf(TEXT("INPUT : %s"), *CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName()), true, FVector2D(2, 2));
+				// GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Blue, FString::Printf(TEXT("PITCH : %f"), CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Pitch), true, FVector2D(2, 2));
+				// CurrentNoteSlot->NoteImage->SetColorAndOpacity({1, 0.5, 0, 1.f});
 				
 				IsAwaitingReply = true;
 				return;
@@ -102,9 +106,6 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 				// success
 				if(HasAchievedQte())
 				{
-					
-					CurrentNoteSlot->NoteImage->SetColorAndOpacity({0, 1, 0, 1.f});
-					
 					//Melodie finie et réussie
 					if (CurrentWaitingNoteIndex == CurrentSkeleton->MySkeleton->Notes.Num()-1)
 					{
@@ -113,7 +114,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 					// go next note
 					else
 					{
-						GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Go Next Note")), true, FVector2D(2, 2));
+						// GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Go Next Note")), true, FVector2D(2, 2));
 						
 						Tempo = TimeTolerance * Speed;
 						CurrentWaitingNoteIndex++;
@@ -122,14 +123,11 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 				// lost qte time
 				else
 				{
-					GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Black, FString::Printf(TEXT("Tu as raté la note")), true, FVector2D(2, 2));
-					CurrentNoteSlot->NoteImage->SetColorAndOpacity({1, 0, 0, 1.f});
+					// GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Black, FString::Printf(TEXT("Tu as raté la note")), true, FVector2D(2, 2));
+					// CurrentNoteSlot->NoteImage->SetColorAndOpacity({1, 0, 0, 1.f});
 					
 					// go back from two previous notes
 					CurrentWaitingNoteIndex = FMath::Max(0, CurrentWaitingNoteIndex - 2);
-
-					GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex]->NoteImage->SetColorAndOpacity({1, 0, 0, 1.f});
-					GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex + 1]->NoteImage->SetColorAndOpacity({1, 0, 0, 1.f});
 					GlobalHUDSubsystem->RewindPartition(CurrentWaitingNoteIndex);
 					
 					StartCountDown();
@@ -200,14 +198,37 @@ void UMusicWorldSubsystem::ResetMusicianReply()
 
 bool UMusicWorldSubsystem::HasAchievedQte() const
 {
-	if (HasMusicianReceivedInput
-		&& GetWaitingNote()->Pitch >= CurrentCursorValue - PitchTolerance
+	bool HasAchievedQTE = true;
+
+	USlot* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
+	USlider* Slider = GlobalHUDSubsystem->WBPResurrectionInstance->PitchSlider;
+
+	// If musician not succeed qte
+	if (!HasMusicianReceivedInput)
+	{
+		HasAchievedQTE = false;
+		GlobalHUDSubsystem->SetObjectColor<USlot*>(CurrentNoteSlot, {1.f, 0, 0, 1.f});
+	}
+	// If musician succeed qte
+	else
+	{
+		GlobalHUDSubsystem->SetObjectColor<USlot*>(CurrentNoteSlot, {0, 1.f, 0, 1.f});
+	}
+
+	// If conductor succeed qte
+	if (GetWaitingNote()->Pitch >= CurrentCursorValue - PitchTolerance
 		&& GetWaitingNote()->Pitch <= CurrentCursorValue + PitchTolerance)
 	{
-		return true;
+		GlobalHUDSubsystem->SetObjectColor<USlider*>(Slider, {0, 1.f, 0, 1.f});
+	}
+	// If conductor not succeed qte
+	else
+	{
+		HasAchievedQTE = false;
+		GlobalHUDSubsystem->SetObjectColor<USlider*>(Slider, {1.f, 0, 0, 1.f});
 	}
 	
-	return false;
+	return HasAchievedQTE;
 }
 
 void UMusicWorldSubsystem::ReceivedMusicianInput()

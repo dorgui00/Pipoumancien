@@ -19,31 +19,44 @@
 void UGlobalHUDSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-
 	Init();
+}
+
+void UGlobalHUDSubsystem::Tick(float DeltaTime)
+{
+	if (TimerForResetingColor > 0)
+	{
+		TimerForResetingColor -= DeltaTime;
+
+		if (TimerForResetingColor > 0.5f)
+		{
+			TimerForResetingColor = 0;
+		}
+	}
 }
 
 void UGlobalHUDSubsystem::Init()
 {
-	//Init Global Game Subsystem
+	// Init Global Game Subsystem
 	GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
 
-	// Get Subsystem Settings and PipouCharacterSettings
+	// Init Subsystem Settings.
 	const USubsystemSettings* SubsystemSettings = GetDefault<USubsystemSettings>();
 	if (!SubsystemSettings) return;
 
+	// Init PipouCharacterSettings.
 	const UPipouCharacterSettings* CharacterSettings = GetDefault<UPipouCharacterSettings>();
 	if (!CharacterSettings) return;
 
+	// Load InputData.
 	InputData = CharacterSettings->InputData.LoadSynchronous();
-	if (!InputData)
-	{
-		UE_LOG(LogTemp,Fatal,TEXT("UGlobalHUDSubsystem::InputData is NULL"));
-	}
-	
+	if (!InputData) UE_LOG(LogTemp, Fatal, TEXT("UGlobalHUDSubsystem::InputData is NULL"));
+
+	// Initialize from SubsystemSettings Resurrection Widget class and Note Slot Class.
 	WBPResurrectionClass = SubsystemSettings->WBPResurrectionClass;
 	WBPNoteClass = SubsystemSettings->WBPNoteClass;
-	
+
+	// Initialize the association of InputAction to MusicNoteType.
 	MusicNoteFromInputAction =
 	{
 		{ InputData->InputNoteA, EMusicNoteType::A },
@@ -53,6 +66,7 @@ void UGlobalHUDSubsystem::Init()
 	};
 }
 
+// Display Resurrection Widget.
 void UGlobalHUDSubsystem::DisplayResurrectionWidget()
 {
 	if (WBPResurrectionClass == nullptr) return;
@@ -124,12 +138,6 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(const ASkeletonController* Current
 		FVector2D NotePos = FVector2D(PosX, PosY);
 		NoteSlotInstance->SetPosition(NotePos);
 		
-		// Set Slot Size
-		// if (!MusicWorldSubsystem) UE_LOG(LogTemp, Error, TEXT("UGlobalHUDSubsystem::MusicWorldSubsystem is NULL"));
-		//
-		// float SizeX = MusicWorldSubsystem->TimeTolerance*RatioDistance;
-		// NoteSlotInstance->SetSize(FVector2D(SizeX, NoteSlotInstance->GetSize().Y));
-		
 		// Set Music Note Type
 		WBPNoteInstance->SetSlotNote(GetMusicNoteTypeFromInputAction(Note.InputAction));
 
@@ -179,7 +187,7 @@ void UGlobalHUDSubsystem::RewindPartition(int NoteIndex)
 	float TargetPosX = NoteSlot->GetPosition().X;
 
 	float NewParitionPosX = (StartPointLerp - TargetPosX) - UiOffset;
-	
+
 	NotesBoxSlot->SetPosition(FVector2D(NewParitionPosX, NotesBoxSlot->GetPosition().Y));
 }
 
@@ -188,4 +196,3 @@ EMusicNoteType UGlobalHUDSubsystem::GetMusicNoteTypeFromInputAction(const UInput
 {
 	return MusicNoteFromInputAction[InputAction];
 }
-

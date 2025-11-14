@@ -35,11 +35,11 @@ public:
 	UPROPERTY(meta= (BindWidget))
 	UCanvasPanel* PartitionBox;
 
-private:
-	// Music
 	UPROPERTY(meta = (BindWidget))
 	USlider* PitchSlider;
-	
+
+private:
+	// Music
 	UPROPERTY(meta = (BindWidget))
 	UUserWidget* SpawnPoint_1;
 
