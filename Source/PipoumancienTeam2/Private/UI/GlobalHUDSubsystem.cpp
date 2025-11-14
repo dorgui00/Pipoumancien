@@ -35,7 +35,12 @@ void UGlobalHUDSubsystem::Init()
 	const UPipouCharacterSettings* CharacterSettings = GetDefault<UPipouCharacterSettings>();
 	if (!CharacterSettings) return;
 
-	InputData = CharacterSettings->InputData;
+	InputData = CharacterSettings->InputData.LoadSynchronous();
+	if (!InputData)
+	{
+		UE_LOG(LogTemp,Fatal,TEXT("UGlobalHUDSubsystem::InputData is NULL"));
+	}
+	
 	WBPResurrectionClass = SubsystemSettings->WBPResurrectionClass;
 	WBPNoteClass = SubsystemSettings->WBPNoteClass;
 	
@@ -147,12 +152,13 @@ void UGlobalHUDSubsystem::MovePartition(float DeltaTime)
 	if (!MusicWorldSubsystem) return;
 
 	float PreviousFrequencies = DistancePreviousFrequencies / RatioDistance;
-	float UISpeed = (DistancePreviousFrequencies / (PreviousFrequencies * MusicWorldSubsystem->Speed));
+	UiOffsetInTime = UiOffset / RatioDistance;
+	UISpeed = (DistancePreviousFrequencies + UiOffset) / ((PreviousFrequencies + UiOffsetInTime) * MusicWorldSubsystem->Speed);
 	
 	if (NotesBoxSlot->GetPosition().X >= EndPointLerp)
 	{
-		PosXDeux -= UISpeed * DeltaTime;
-		NotesBoxSlot->SetPosition(FVector2D(PosXDeux, NotesBoxSlot->GetPosition().Y));
+		PosXDeux = UISpeed * DeltaTime;
+		NotesBoxSlot->SetPosition(FVector2D(NotesBoxSlot->GetPosition().X - PosXDeux, NotesBoxSlot->GetPosition().Y));
 	}
 }
 
