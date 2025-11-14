@@ -36,7 +36,6 @@ public:
 
 	float TimerTest = 0.f;
 	
-	UPROPERTY(EditDefaultsOnly)
 	float TimeTolerance = 0.4f;
 
 	bool IsLerpingOffset = true;

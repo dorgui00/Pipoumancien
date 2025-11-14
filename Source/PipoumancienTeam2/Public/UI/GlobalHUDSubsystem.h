@@ -7,6 +7,7 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "GlobalHUDSubsystem.generated.h"
 
+class UMusicWorldSubsystem;
 class ASkeletonController;
 struct F_Skeleton;
 class UInputAction;
@@ -67,6 +68,10 @@ public:
 	UPROPERTY()
 	UCanvasPanelSlot* NotesBoxSlot;
 
+	// Set depuis MusicWorldSubsys
+	UPROPERTY()
+	UMusicWorldSubsystem* MusicWorldSubsystem;
+
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	
@@ -82,4 +87,5 @@ private:
 	UGlobalGameSubsystem* GlobalGameSubsystem;
 
 	void Init();
+
 };

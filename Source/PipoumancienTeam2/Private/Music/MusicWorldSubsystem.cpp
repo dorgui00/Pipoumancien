@@ -29,6 +29,7 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	IsInWorldStateMusic = false;
 
 	GlobalHUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
+	GlobalHUDSubsystem->MusicWorldSubsystem = this;
 }
 
 void UMusicWorldSubsystem::Tick(float DeltaTime)
