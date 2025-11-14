@@ -6,6 +6,7 @@
 #include "Camera/CameraWorldSubsystem.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
+#include "Components/TextBlock.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
 #include "Game/GlobalGameSubsystem.h"
@@ -28,6 +29,7 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	IsInWorldStateMusic = false;
 
 	GlobalHUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
+	GlobalHUDSubsystem->MusicWorldSubsystem = this;
 }
 
 void UMusicWorldSubsystem::Tick(float DeltaTime)
@@ -86,7 +88,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			{
 				GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Red, FString::Printf(TEXT("INPUT : %s"), *CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName()), true, FVector2D(2, 2));
 				GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Blue, FString::Printf(TEXT("PITCH : %f"), CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Pitch), true, FVector2D(2, 2));
-				CurrentNoteSlot->NoteImage->SetColorAndOpacity({0, 1, 0, 1.f});
+				CurrentNoteSlot->NoteImage->SetColorAndOpacity({1, 0.5, 0, 1.f});
 				
 				IsAwaitingReply = true;
 				return;
@@ -100,7 +102,8 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 				// success
 				if(HasAchievedQte())
 				{
-					CurrentNoteSlot->RemoveFromParent();
+					
+					CurrentNoteSlot->NoteImage->SetColorAndOpacity({0, 1, 0, 1.f});
 					
 					//Melodie finie et réussie
 					if (CurrentWaitingNoteIndex == CurrentSkeleton->MySkeleton->Notes.Num()-1)
@@ -123,8 +126,15 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 					CurrentNoteSlot->NoteImage->SetColorAndOpacity({1, 0, 0, 1.f});
 					
 					// go back from two previous notes
-					CurrentWaitingNoteIndex = FMath::Max(0, CurrentWaitingNoteIndex-2);
+					CurrentWaitingNoteIndex = FMath::Max(0, CurrentWaitingNoteIndex - 2);
+
+					GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex]->NoteImage->SetColorAndOpacity({1, 0, 0, 1.f});
+					GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex + 1]->NoteImage->SetColorAndOpacity({1, 0, 0, 1.f});
+					GlobalHUDSubsystem->RewindPartition(CurrentWaitingNoteIndex);
+					
 					StartCountDown();
+
+					Tempo = (CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * Speed;
 				}
 				
 				// reset

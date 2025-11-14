@@ -7,6 +7,7 @@
 #include "Components/Image.h"
 #include "USlot.generated.h"
 
+class UTextBlock;
 class UCanvasPanelSlot;
 class UCanvasPanel;
 
@@ -39,10 +40,23 @@ public:
 
 	float NoteAlpha = 0;
 
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* LetterText;
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Textures")
 	UTexture2D* Texture;
 
 	UPROPERTY()
 	EMusicNoteType SlotNote = EMusicNoteType::None;
+
+	TMap<EMusicNoteType, FText> SlotTextures
+	{
+		{ EMusicNoteType::A, FText::FromString(TEXT("A")) },
+		{ EMusicNoteType::B, FText::FromString(TEXT("B")) },
+		{ EMusicNoteType::Y, FText::FromString(TEXT("Y")) },
+		{ EMusicNoteType::X, FText::FromString(TEXT("X")) }
+	};
+
+	FText GetNameFromMusicNoteType(EMusicNoteType NoteType);
 };

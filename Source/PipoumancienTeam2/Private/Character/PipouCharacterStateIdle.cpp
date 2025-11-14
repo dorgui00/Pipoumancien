@@ -54,3 +54,8 @@ void UPipouCharacterStateIdle::OnCharacterPressedNote(UInputAction* InputAction)
 	Super::OnCharacterPressedNote(InputAction);
 }
 
+void UPipouCharacterStateIdle::OnCharacterTriggeredNote(UInputAction* InputAction)
+{
+	Super::OnCharacterTriggeredNote(InputAction);
+}
+

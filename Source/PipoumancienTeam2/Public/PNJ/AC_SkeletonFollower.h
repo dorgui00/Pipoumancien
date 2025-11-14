@@ -20,7 +20,7 @@ public:
     TArray<AActor*> PipouPlayers;
     AActor* ParentActor = nullptr;
 
-    const float FollowRange = 300.f;
+    const float FollowRange = 600.f;
 
     UPROPERTY(EditAnywhere, Category = "Follow|Players", meta = (ClampMin = "0"))
     float MoveSpeed = 10.f;
@@ -57,6 +57,24 @@ public:
 
     UPROPERTY(EditAnywhere, Category = "PathGen|Nav")
     float AdjustAngularStepDeg = 30.f;
+
+
+    UPROPERTY(EditAnywhere, Category = "Follow|Ground")
+    bool bSnapToGround = true;
+
+    UPROPERTY(EditAnywhere, Category = "Follow|Ground", meta = (ClampMin = "0"))
+    float GroundTraceUp = 200.f;
+
+    UPROPERTY(EditAnywhere, Category = "Follow|Ground", meta = (ClampMin = "0"))
+    float GroundTraceDown = 1200.f;
+
+    UPROPERTY(EditAnywhere, Category = "Follow|Ground")
+    float GroundOffset = 50.f;
+
+
+    UPROPERTY(EditAnywhere, Category = "Follow|Spline")
+    bool bYawOnly = true;
+
 
 protected:
     virtual void BeginPlay() override;
@@ -105,4 +123,6 @@ private:
     bool FindWalkablePoint(const FVector& Start, const FVector& Desired, FVector& OutAdjusted) const;
 
     bool HasLocalClearanceAt(const FVector& Location) const;
+
+    bool TrySnapToGround(const FVector& In, FVector& Out) const;
 };

@@ -55,10 +55,6 @@ void AGridGenerator::OnConstruction(const FTransform& Transform)
         FVector Start = Origin + FVector(0, 0, 1000);
         FVector End = Origin - FVector(0, 0, 10000);
 
-        if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_WorldStatic))
-        {
-            Origin.Z = Hit.ImpactPoint.Z + 5.f;
-        }
         for (int32 i = -NumLines / 2; i <= NumLines / 2; ++i)
         {
             const float Offset = i * GridSize;
@@ -67,8 +63,8 @@ void AGridGenerator::OnConstruction(const FTransform& Transform)
             FVector StartY = Origin + FVector(-HalfExtent, Offset, 0);
             FVector EndY = Origin + FVector(HalfExtent, Offset, 0);
 
-            DrawDebugLine(GetWorld(), StartX, EndX, FColor::Green, true, 0.f, 0, 5.f);
-            DrawDebugLine(GetWorld(), StartY, EndY, FColor::Green, true, 0.f, 0, 5.f);
+            DrawDebugLine(GetWorld(), StartX, EndX, FColor::Green, true, 0.f, 0, 1.f);
+            DrawDebugLine(GetWorld(), StartY, EndY, FColor::Green, true, 0.f, 0, 1.f);
         }
     }
 

@@ -46,7 +46,7 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 		Character->SetOrientXY(FVector2D(MoveDir.X, MoveDir.Y));
 		Character->AddMovementInput(MoveDir, 1);
 		
-		//CAMERA 
+		// Camera 
 		if (UCameraWorldSubsystem* CamSys = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
 		{
 			FVector ClampedPos;

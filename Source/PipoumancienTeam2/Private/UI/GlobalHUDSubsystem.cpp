@@ -124,6 +124,12 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(const ASkeletonController* Current
 		FVector2D NotePos = FVector2D(PosX, PosY);
 		NoteSlotInstance->SetPosition(NotePos);
 		
+		// Set Slot Size
+		// if (!MusicWorldSubsystem) UE_LOG(LogTemp, Error, TEXT("UGlobalHUDSubsystem::MusicWorldSubsystem is NULL"));
+		//
+		// float SizeX = MusicWorldSubsystem->TimeTolerance*RatioDistance;
+		// NoteSlotInstance->SetSize(FVector2D(SizeX, NoteSlotInstance->GetSize().Y));
+		
 		// Set Music Note Type
 		WBPNoteInstance->SetSlotNote(GetMusicNoteTypeFromInputAction(Note.InputAction));
 
@@ -147,9 +153,6 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(const ASkeletonController* Current
 void UGlobalHUDSubsystem::MovePartition(float DeltaTime)
 {
 	if (!WBPNoteInstance) return;
-	
-	UMusicWorldSubsystem* MusicWorldSubsystem = GetWorld()->GetSubsystem<UMusicWorldSubsystem>();
-	if (!MusicWorldSubsystem) return;
 
 	float PreviousFrequencies = DistancePreviousFrequencies / RatioDistance;
 	UiOffsetInTime = UiOffset / RatioDistance;
@@ -160,6 +163,24 @@ void UGlobalHUDSubsystem::MovePartition(float DeltaTime)
 		PosXDeux = UISpeed * DeltaTime;
 		NotesBoxSlot->SetPosition(FVector2D(NotesBoxSlot->GetPosition().X - PosXDeux, NotesBoxSlot->GetPosition().Y));
 	}
+}
+
+// Change Partition when losing
+void UGlobalHUDSubsystem::RewindPartition(int NoteIndex)
+{
+	if (NotesInstanciated.IsEmpty()) return;
+
+	USlot* Note = NotesInstanciated[NoteIndex];
+	if (!Note) return;
+
+	UCanvasPanelSlot* NoteSlot = Cast<UCanvasPanelSlot>(Note->Slot);
+	if (!NoteSlot) return;
+
+	float TargetPosX = NoteSlot->GetPosition().X;
+
+	float NewParitionPosX = (StartPointLerp - TargetPosX) - UiOffset;
+	
+	NotesBoxSlot->SetPosition(FVector2D(NewParitionPosX, NotesBoxSlot->GetPosition().Y));
 }
 
 // Utilities functions

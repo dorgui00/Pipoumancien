@@ -83,14 +83,13 @@ void UAC_SkeletonFollower::CheckPlayerRange()
 void UAC_SkeletonFollower::EnsureGeneratedSpline()
 {
     if (SplineToFollow) return;
-
     if (!ParentActor) return;
 
-    SplineToFollow = NewObject<USplineComponent>(ParentActor, TEXT("GeneratedFollowSpline"));
-    SplineToFollow->SetupAttachment(ParentActor->GetRootComponent());
+    SplineToFollow = NewObject<USplineComponent>(this, TEXT("GeneratedFollowSpline"));
     SplineToFollow->RegisterComponent();
 
     const FVector StartLoc = ParentActor->GetActorLocation();
+
     SplineToFollow->ClearSplinePoints(false);
     SplineToFollow->AddSplinePoint(StartLoc, ESplineCoordinateSpace::World, false);
     SplineToFollow->SetSplinePointType(0, ESplinePointType::Linear, false);
@@ -101,6 +100,8 @@ void UAC_SkeletonFollower::EnsureGeneratedSpline()
 
 void UAC_SkeletonFollower::StartPathGeneration()
 {
+    UE_LOG(LogTemp, Warning, TEXT("Starting StartPathGeneration();"));
+
     EnsureGeneratedSpline();
 
     if (UWorld* World = GetWorld())
@@ -139,22 +140,9 @@ void UAC_SkeletonFollower::GenerateNextPathPoint()
 
     const FVector SkelPos = ParentActor->GetActorLocation();
 
-    if (bDrawDebug)
-    {
-        DrawDebugCircle(GetWorld(), Player1Location, PlayerCircleRadius, 32, FColor::Red, false, SegmentDelay * 1.1f, 0, 2.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
-        DrawDebugCircle(GetWorld(), Player2Location, PlayerCircleRadius, 32, FColor::Blue, false, SegmentDelay * 1.1f, 0, 2.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
-    }
 
     const FVector P1OnCircle = ClosestPointOnPlayerCircle(Player1Location, SkelPos, PlayerCircleRadius);
     const FVector P2OnCircle = ClosestPointOnPlayerCircle(Player2Location, SkelPos, PlayerCircleRadius);
-
-    if (bDrawDebug)
-    {
-        DrawDebugPoint(GetWorld(), P1OnCircle, 12.f, FColor::Red, false, SegmentDelay * 1.1f);
-        DrawDebugPoint(GetWorld(), P2OnCircle, 12.f, FColor::Blue, false, SegmentDelay * 1.1f);
-        DrawDebugLine(GetWorld(), P1OnCircle, P2OnCircle, FColor::Purple, false, SegmentDelay * 1.1f, 0, 1.5f);
-    }
-
     const FVector Mid = (P1OnCircle + P2OnCircle) * 0.5f;
 
     if (!SplineToFollow)
@@ -173,7 +161,17 @@ void UAC_SkeletonFollower::GenerateNextPathPoint()
             Adjusted = Mid;
         }
 
+        if (bSnapToGround)
+        {
+            FVector Grounded = Adjusted;
+            if (TrySnapToGround(Adjusted, Grounded))
+            {
+                Adjusted = Grounded;
+            }
+        }
+
         SplineToFollow->AddSplinePoint(Adjusted, ESplineCoordinateSpace::World, false);
+
         const int32 NewIdx = SplineToFollow->GetNumberOfSplinePoints() - 1;
         SplineToFollow->SetSplinePointType(NewIdx, ESplinePointType::Linear, false);
         SplineToFollow->UpdateSpline();
@@ -185,8 +183,6 @@ void UAC_SkeletonFollower::GenerateNextPathPoint()
             DrawDebugLine(GetWorld(), Prev, Adjusted, FColor::Green, false, SegmentDelay * 1.1f, 0, 2.f);
         }
     }
-
-
 }
 
 USplineComponent* UAC_SkeletonFollower::FindNearestSplineToOwner(bool bVillageOnly) const
@@ -247,21 +243,63 @@ void UAC_SkeletonFollower::TickFollowSpline(float DeltaTime)
     if (!ParentActor || !SplineToFollow) return;
 
     TargetDistance = SplineToFollow->GetSplineLength();
-
     CurrentDistance = FMath::Min(CurrentDistance + SplineFollowSpeed * DeltaTime, TargetDistance);
 
-    const FVector NewLoc = SplineToFollow->GetLocationAtDistanceAlongSpline(CurrentDistance, ESplineCoordinateSpace::World);
+    const float Dist = CurrentDistance;
 
-    if (bOrientToSpline)
+
+    const FVector NewLoc = SplineToFollow->GetLocationAtDistanceAlongSpline(
+        Dist,
+        ESplineCoordinateSpace::World
+    );
+
+
+    FVector FinalLoc = NewLoc;
+    if (bSnapToGround)
     {
-        const FRotator NewRot = SplineToFollow->GetRotationAtDistanceAlongSpline(CurrentDistance, ESplineCoordinateSpace::World);
-        ParentActor->SetActorLocationAndRotation(NewLoc, NewRot);
+        TrySnapToGround(NewLoc, FinalLoc);
     }
-    else
-    {
-        ParentActor->SetActorLocation(NewLoc);
+
+    if (bOrientToSpline) {
+
+        FRotator NewRot;
+
+        if (bYawOnly) {
+
+            FVector Dir = SplineToFollow->GetDirectionAtDistanceAlongSpline(
+                Dist,
+                ESplineCoordinateSpace::World
+            );
+
+            Dir.Z = 0.f;
+
+            if (!Dir.IsNearlyZero()) {
+
+                NewRot = Dir.Rotation();
+
+            } else {
+
+                NewRot = ParentActor->GetActorRotation();
+                NewRot.Pitch = 0.f;
+                NewRot.Roll = 0.f;
+            }
+
+        } else {
+
+            NewRot = SplineToFollow->GetRotationAtDistanceAlongSpline(
+                Dist,
+                ESplineCoordinateSpace::World
+            );
+        }
+
+        ParentActor->SetActorLocationAndRotation(FinalLoc, NewRot);
+
+    } else {
+
+        ParentActor->SetActorLocation(FinalLoc);
     }
 }
+
 
 
 void UAC_SkeletonFollower::OnParentHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
@@ -402,6 +440,27 @@ bool UAC_SkeletonFollower::FindWalkablePoint(const FVector& Start, const FVector
         }
     }
 
+    return false;
+}
+
+bool UAC_SkeletonFollower::TrySnapToGround(const FVector& In, FVector& Out) const
+{
+    UWorld* World = GetWorld();
+    if (!World) return false;
+
+    const FVector Start = In + FVector(0, 0, GroundTraceUp);
+    const FVector End = In - FVector(0, 0, GroundTraceDown);
+
+    FHitResult Hit;
+    FCollisionQueryParams Params(SCENE_QUERY_STAT(SnapToGround), false, GetOwner());
+
+    bool bHit = World->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
+    if (bHit)
+    {
+        Out = In;
+        Out.Z = Hit.ImpactPoint.Z + GroundOffset;
+        return true;
+    }
     return false;
 }
 

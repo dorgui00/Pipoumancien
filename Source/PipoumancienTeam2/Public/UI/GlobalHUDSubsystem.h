@@ -7,6 +7,7 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "GlobalHUDSubsystem.generated.h"
 
+class UMusicWorldSubsystem;
 class ASkeletonController;
 struct F_Skeleton;
 class UInputAction;
@@ -44,6 +45,8 @@ public:
 
 	void MovePartition(float DeltaTime);
 
+	void RewindPartition(int NoteIndex);
+
 	// TO EDIT les mettre dans les settings
 	// DistanceBetweenNote = Frequency/RatioDistance
 	// Our RatioDistance
@@ -65,6 +68,10 @@ public:
 	UPROPERTY()
 	UCanvasPanelSlot* NotesBoxSlot;
 
+	// Set depuis MusicWorldSubsys
+	UPROPERTY()
+	UMusicWorldSubsystem* MusicWorldSubsystem;
+
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	
@@ -80,4 +87,5 @@ private:
 	UGlobalGameSubsystem* GlobalGameSubsystem;
 
 	void Init();
+
 };

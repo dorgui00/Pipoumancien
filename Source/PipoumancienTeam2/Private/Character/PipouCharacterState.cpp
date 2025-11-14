@@ -81,7 +81,7 @@ void UPipouCharacterState::ResetWorldInteraction()
 
 void UPipouCharacterState::OnCharacterPressedNote(UInputAction* InputAction)
 {
-	UGlobalGameSubsystem*  GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
+	UGlobalGameSubsystem* GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
 	
 	// if players overlap the same skeleton
 	if (GlobalGameSubsystem->GetCurrentSkeleton())
@@ -98,6 +98,31 @@ void UPipouCharacterState::OnCharacterPressedNote(UInputAction* InputAction)
 	{
 		AddNoteForWorldInteraction();
 	}
+}
+
+void UPipouCharacterState::OnCharacterTriggeredNote(UInputAction* InputAction)
+{
+	// SAME AS THE PRESSED NOTE EVENT BUT WITH SECURITY TO AVOID MULTIPLE PRESSED AT THE SAME TIME
 	
+	UGlobalGameSubsystem* GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
+	
+	// if players overlap the same skeleton
+	if (GlobalGameSubsystem->GetCurrentSkeleton() && !HasPressedNotes)
+	{
+		HasPressedNotes = true;
+
+		// UE_LOG(LogTemp, Display, TEXT("Add note"));
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Add note")), true, FVector2D{2, 2});
+		
+		GlobalGameSubsystem->AddNoteForSkeletonInteraction(InputAction);
+	}
+	// else if I have an interactor : World Interaction
+	// else if => can't play one music to trigger skeleton & world at the same time
+	// if => can trigger World && Skeleton at the same time
+	else if (Character->Interactor && !HasPressedNotes)
+	{
+		HasPressedNotes = true;
+		AddNoteForWorldInteraction();
+	}
 }
 

@@ -32,7 +32,6 @@ APipouCharacter::~APipouCharacter()
 	// }
 }
 
-
 void APipouCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -87,7 +86,6 @@ EPipouCharacterClass APipouCharacter::GetPipouCharacterClass() const
 {
 	return PipouClass;
 }
-
 
 // State Machine
 void APipouCharacter::CreateStateMachine()
@@ -215,24 +213,28 @@ void APipouCharacter::BindInputMusicActions(UEnhancedInputComponent* EnhancedInp
 	if (InputData->InputNoteA)
 	{
 		EnhancedInputComponent->BindAction(InputData->InputNoteA, ETriggerEvent::Started, this, &APipouCharacter::OnInputNoteAStarted);
+		EnhancedInputComponent->BindAction(InputData->InputNoteA, ETriggerEvent::Triggered, this, &APipouCharacter::OnInputNoteATriggered);
 		EnhancedInputComponent->BindAction(InputData->InputNoteA, ETriggerEvent::Completed, this, &APipouCharacter::OnInputNoteACompleted);
 	}
 
 	if (InputData->InputNoteB)
 	{
 		EnhancedInputComponent->BindAction(InputData->InputNoteB, ETriggerEvent::Started, this, &APipouCharacter::OnInputNoteBStarted);
+		EnhancedInputComponent->BindAction(InputData->InputNoteB, ETriggerEvent::Triggered, this, &APipouCharacter::OnInputNoteBTriggered);
 		EnhancedInputComponent->BindAction(InputData->InputNoteB, ETriggerEvent::Completed, this, &APipouCharacter::OnInputNoteBCompleted);
 	}
 	
 	if (InputData->InputNoteX)
 	{
 		EnhancedInputComponent->BindAction(InputData->InputNoteX, ETriggerEvent::Started, this, &APipouCharacter::OnInputNoteXStarted);
+		EnhancedInputComponent->BindAction(InputData->InputNoteX, ETriggerEvent::Triggered, this, &APipouCharacter::OnInputNoteXTriggered);
 		EnhancedInputComponent->BindAction(InputData->InputNoteX, ETriggerEvent::Completed, this, &APipouCharacter::OnInputNoteXCompleted);
 	}
 
 	if (InputData->InputNoteY)
 	{
 		EnhancedInputComponent->BindAction(InputData->InputNoteY, ETriggerEvent::Started, this, &APipouCharacter::OnInputNoteYStarted);
+		EnhancedInputComponent->BindAction(InputData->InputNoteY, ETriggerEvent::Started, this, &APipouCharacter::OnInputNoteYTriggered);
 		EnhancedInputComponent->BindAction(InputData->InputNoteY, ETriggerEvent::Completed, this, &APipouCharacter::OnInputNoteYCompleted);
 	}
 }
@@ -256,9 +258,15 @@ void APipouCharacter::OnInputNoteAStarted(const FInputActionValue& InputActionVa
 	// play son A
 }
 
+void APipouCharacter::OnInputNoteATriggered(const FInputActionValue& InputActionValue)
+{
+	InputTriggeredNoteEvent.Broadcast(InputData->InputNoteA);
+}
+
 void APipouCharacter::OnInputNoteACompleted(const FInputActionValue& InputActionValue)
 {
 	InputNoteA = false;
+	StateMachine->GetCurrentState()->HasPressedNotes = false;
 }
 
 void APipouCharacter::OnInputNoteBStarted(const FInputActionValue& InputActionValue)
@@ -269,9 +277,15 @@ void APipouCharacter::OnInputNoteBStarted(const FInputActionValue& InputActionVa
 	// play son B
 }
 
+void APipouCharacter::OnInputNoteBTriggered(const FInputActionValue& InputActionValue)
+{
+	InputTriggeredNoteEvent.Broadcast(InputData->InputNoteB);
+}
+
 void APipouCharacter::OnInputNoteBCompleted(const FInputActionValue& InputActionValue)
 {
 	InputNoteB = false;
+	StateMachine->GetCurrentState()->HasPressedNotes = false;
 }
 
 void APipouCharacter::OnInputNoteXStarted(const FInputActionValue& InputActionValue)
@@ -282,9 +296,15 @@ void APipouCharacter::OnInputNoteXStarted(const FInputActionValue& InputActionVa
 	// play son x
 }
 
+void APipouCharacter::OnInputNoteXTriggered(const FInputActionValue& InputActionValue)
+{
+	InputTriggeredNoteEvent.Broadcast(InputData->InputNoteX);
+}
+
 void APipouCharacter::OnInputNoteXCompleted(const FInputActionValue& InputActionValue)
 {
 	InputNoteX = false;
+	StateMachine->GetCurrentState()->HasPressedNotes = false;
 }
 
 void APipouCharacter::OnInputNoteYStarted(const FInputActionValue& InputActionValue)
@@ -295,9 +315,15 @@ void APipouCharacter::OnInputNoteYStarted(const FInputActionValue& InputActionVa
 	// play son Y
 }
 
+void APipouCharacter::OnInputNoteYTriggered(const FInputActionValue& InputActionValue)
+{
+	InputTriggeredNoteEvent.Broadcast(InputData->InputNoteY);
+}
+
 void APipouCharacter::OnInputNoteYCompleted(const FInputActionValue& InputActionValue)
 {
 	InputNoteY = false;
+	StateMachine->GetCurrentState()->HasPressedNotes = false;
 }
 
 void APipouCharacter::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -339,8 +365,6 @@ void APipouCharacter::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCom
 				GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
 				FString::Printf(TEXT("INPUT : %s"), *GlobalGameSubsystem->GetCurrentSkeleton()->MySkeleton->Notes[i].InputAction->GetName()), true, FVector2D(2, 2));
 			}
-
-			GlobalGameSubsystem->SetWorldMusicState();
 			
 		}
 	}
