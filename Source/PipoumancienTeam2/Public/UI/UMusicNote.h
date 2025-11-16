@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/Image.h"
-#include "USlot.generated.h"
+#include "UMusicNote.generated.h"
 
 class UTextBlock;
 class UCanvasPanelSlot;
@@ -22,7 +22,7 @@ enum class EMusicNoteType : uint8
 };
 
 UCLASS()
-class PIPOUMANCIENTEAM2_API USlot : public UUserWidget
+class PIPOUMANCIENTEAM2_API UMusicNote : public UUserWidget
 {
 	GENERATED_BODY()
 
