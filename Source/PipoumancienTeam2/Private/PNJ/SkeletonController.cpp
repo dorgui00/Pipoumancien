@@ -48,7 +48,12 @@ void ASkeletonController::BeginOverlaps(UPrimitiveComponent* OverlappedComp, AAc
 	if (OtherActor->IsA(APipouCharacter::StaticClass()))
 	{
 		PlayerWidget = CreateWidget<UUIDialoge>(GetWorld(), PlayerWidgetClass);
-		PlayerWidget->SetDialogue(MySkeleton);
+		PlayerWidget->SetDialogue(MySkeleton,ValutFrase);
+		if (ValutFrase == 0)
+		{
+			ValutFrase = 1;
+		}
+		
 	}
 }
 

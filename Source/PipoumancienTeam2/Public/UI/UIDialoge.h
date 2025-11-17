@@ -22,7 +22,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Typewriter")
 	float TextSpeed = 0.05f;
 
-	void SetDialogue(F_Skeleton* Skeleton);
+	void SetDialogue(F_Skeleton* Skeleton, int Valut);
 	
 protected:
 	

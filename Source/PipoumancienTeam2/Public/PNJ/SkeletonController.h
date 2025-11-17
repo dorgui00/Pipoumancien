@@ -49,6 +49,8 @@ protected:
 	void endOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
 
+	int ValutFrase = 0;
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

@@ -44,16 +44,22 @@ void UUIDialoge::NativeConstruct()
 }
 
 
-void UUIDialoge::SetDialogue(F_Skeleton* Skeleton)
+void UUIDialoge::SetDialogue(F_Skeleton* Skeleton , int Valut)
 {
+	
 	CurrentDialogue = Skeleton->Discution;
 	CurrentName = Skeleton->Name.ToString();
 
 	CurrentDialogueIndex = 0;
 	CurrentCharIndex = 0;
+	if (Valut == 1)
+	{
+		CurrentDialogueIndex = 1;
+	}
+	
 
 	if (CurrentDialogue.Num() > 0)
-		FullText = CurrentDialogue[0];
+		FullText = CurrentDialogue[CurrentDialogueIndex];
 
 	AddToViewport();
 }
