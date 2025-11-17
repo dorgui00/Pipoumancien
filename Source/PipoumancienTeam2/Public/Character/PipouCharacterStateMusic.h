@@ -37,7 +37,7 @@ public:
 	UInputAction* InputPitch;
 
 	UPROPERTY()
-	float SliderPitchSpeed = 0.05f;
+	float SliderPitchSpeed = 0.02f;
 	
 	UPROPERTY()
 	UMusicWorldSubsystem* MusicWorldSubsystem;

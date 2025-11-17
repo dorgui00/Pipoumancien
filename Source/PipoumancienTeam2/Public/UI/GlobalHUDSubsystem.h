@@ -3,10 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "USlot.h"
+#include "UMusicNote.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "Components/TextBlock.h"
 #include "GlobalHUDSubsystem.generated.h"
 
+struct F_Note;
 class USlider;
 class UMusicWorldSubsystem;
 class ASkeletonController;
@@ -22,7 +24,7 @@ class PIPOUMANCIENTEAM2_API UGlobalHUDSubsystem : public UGameInstanceSubsystem,
 	GENERATED_BODY()
 
 public:
-	/// Music
+	#pragma region Music
 	// Resurrection Widget Class
 	UPROPERTY()
 	TSubclassOf<UResurrectionWidget> WBPResurrectionClass;
@@ -39,11 +41,11 @@ public:
 
 	// Note Widget Class
 	UPROPERTY()
-	TSubclassOf<USlot> WBPNoteClass;
+	TSubclassOf<UMusicNote> WBPNoteClass;
 
 	// Note Widget Object (Use to store the creation of the widget with the Note Widget Class)
 	UPROPERTY()
-	USlot* WBPNoteInstance;
+	UMusicNote* WBPNoteInstance;
 
 	// Spawn the note in the NoteBox of the partition from the Skeleton Current Notes.
 	void SpawnNotesPartition(const ASkeletonController* CurrentSkeleton);
@@ -52,26 +54,27 @@ public:
 	void MovePartition(float DeltaTime);
 
 	// Move UI backwards depending on the position of the note the player has to play (Only if he lost the qte) 
-	void RewindPartition(int NoteIndex);
+	void RewindPartition(int CurrentNoteIndex, const F_Note& NewNote);
 
-	// TO EDIT les mettre dans les settings
-	// DistanceBetweenNote = Frequency/RatioDistance
-	// Our RatioDistance
-	float RatioDistance = 100.f;
+	// Initialize by the Subsystem Settings in the Init function.
+	float RatioDistance = 0;
+
+	// UI Speed calculate each time UI moves during music. 
+	float UISpeed = 0;
+	
+	// Size of the partition UI.
 	float UiOffset;
-	float Timer = 0.f;
 
-	float PosXDeux = 0;
+	// Moving Start and End Point of the NotesBox.
+	float MovementStartPoint = 0.f;
+	float MovementEndPoint = 0.f;
 
-	float StartPointLerp = 0.f;
-	float EndPointLerp = 0.f;
-	float UISpeed = 0.f;
-	float UiOffsetInTime = 0.f;
-
+	// Store the distance of all the frequencies when spawning notes.
 	float DistancePreviousFrequencies;
 
 	// Store the note widget spawned.
-	TArray<USlot*> NotesInstanciated;
+	UPROPERTY()
+	TArray<UMusicNote*> NotesInstanciated;
 
 	// Canvas Panel Slot of the Note Instance. 
 	UPROPERTY()
@@ -81,42 +84,112 @@ public:
 	UPROPERTY()
 	UMusicWorldSubsystem* MusicWorldSubsystem;
 
-	/// Utilities
+	#pragma endregion
+	
+	#pragma region Utilities
 	// Use to store the Input Data
 	UPROPERTY()
 	TObjectPtr<UPipouCharacterInputData> InputData;
 	
-	// Set Color
+	// Set Color of an object to snap and reset the color.
 	float TimerForResetingColor = 0;
 
+	// Timer event to reset the colors after a number of seconds.
+	FTimerHandle ResetColorTimerHandle;
+
+	// Store the color link to an object.
+	UPROPERTY()
+	TMap<UObject*, FTimerHandle> ColorResetTimers;
+
+	// My template function to be called for either changing color of a slider handle or one of my note 
 	template<class T>
-	void SetObjectColor(T CurrentObject, FLinearColor NewColor)
+	void SetObjectColor(T* CurrentObject, FLinearColor NewColor)
 	{
-		if constexpr (std::is_same_v<T, USlot*>)
+		if (!CurrentObject) return;
+
+		// Depending on the object I change the color differently. 
+		if constexpr (std::is_same_v<T, UMusicNote>)
 		{
-			CurrentObject->SetColorAndOpacity(NewColor);
+			CurrentObject->NoteImage->SetColorAndOpacity(NewColor);
+			CurrentObject->LetterText->SetColorAndOpacity(FLinearColor::Black);
 		}
 
-		if constexpr (std::is_same_v<T, USlider*>)
+		if constexpr (std::is_same_v<T, USlider>)
 		{
-			CurrentObject->SetSliderHandleColor(NewColor);
+			FSliderStyle Style = CurrentObject->GetWidgetStyle();
+			FSlateBrush ThumbBrush = Style.NormalThumbImage;
+
+			ThumbBrush.OutlineSettings.Color = NewColor; 
+			Style.SetNormalThumbImage(ThumbBrush);
+
+			CurrentObject->SetWidgetStyle(Style);
 		}
-	
-		TimerForResetingColor = 0.5f;
+
+		// Add to my map the current object and associate it with handle or find it if there is one.
+		FTimerHandle& Handle = ColorResetTimers.FindOrAdd(CurrentObject);
+
+		// Clear all the timer in case one is started.
+		GetWorld()->GetTimerManager().ClearTimer(Handle);
+
+		// Remove the pointer to get only the object and store it in case it is destroyed.
+		using TObjectClass = std::remove_pointer_t<T>;
+		TWeakObjectPtr<TObjectClass> WeakObj = CurrentObject;
+
+		// Create a timer with our timer event on our WeakObj.
+		GetWorld()->GetTimerManager().SetTimer(
+			Handle,
+			[WeakObj]()
+			{
+				if (!WeakObj.IsValid()) return;
+
+				// Get back the object in pointer.
+				T* Obj = WeakObj.Get();
+
+				// Set a default color: blue.
+				FLinearColor DefaultColor = {0, 0, 1.f, 1.f};
+
+				// Check if it's a note or a slider to change the color or the slider handle color depending on the object.
+				if constexpr (std::is_same_v<T, UMusicNote>)
+				{
+					Obj->NoteImage->SetColorAndOpacity(DefaultColor);
+					Obj->LetterText->SetColorAndOpacity(FLinearColor::White);
+				}
+
+				if constexpr (std::is_same_v<T, USlider>)
+				{
+					FSliderStyle Style = WeakObj->GetWidgetStyle();
+					FSlateBrush ThumbBrush = Style.NormalThumbImage;
+
+					ThumbBrush.OutlineSettings.Color = DefaultColor; 
+					Style.SetNormalThumbImage(ThumbBrush);
+
+					WeakObj->SetWidgetStyle(Style);
+				}
+			},
+			// It will start after 0.2f seconds of wait. 
+			0.2f,
+			false
+		);
 	}
+
+	#pragma endregion 
 	
 protected:
-	// Default Unreal Functions
+	#pragma region GameInstanceSubsystem
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-	// Tickable
+	#pragma endregion
+
+	#pragma region FTickableGameObject
 	virtual UWorld* GetTickableGameObjectWorld() const override { return GetWorld(); }
 	virtual ETickableTickType GetTickableTickType() const override { return ETickableTickType::Always; }
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override { return TStatId(); };
+
+	#pragma endregion
 	
 private:
-	/// Utilities Functions
+	#pragma region Utilities
 	// Map to associate an InputAction (Key of Controller) to a MusicNoteType (The notes in ENUM).
 	UPROPERTY()
 	TMap<UInputAction*, EMusicNoteType> MusicNoteFromInputAction;
@@ -128,7 +201,9 @@ private:
 	UPROPERTY()
 	UGlobalGameSubsystem* GlobalGameSubsystem;
 
-	// Initialize data for GlobalHUDSubsystem
+	// Initialize data for GlobalHUDSubsystem.
 	void Init();
+
+	#pragma endregion
 
 };

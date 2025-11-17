@@ -8,7 +8,7 @@
 
 class UCanvasPanelSlot;
 class UInputAction;
-class USlot;
+class UMusicNote;
 class UResurrectionWidget;
 class UGlobalGameSubsystem;
 

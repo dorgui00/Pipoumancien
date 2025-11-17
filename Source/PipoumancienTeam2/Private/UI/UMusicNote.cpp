@@ -1,18 +1,18 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UI/USlot.h"
+#include "UI/UMusicNote.h"
 
 #include "Components/TextBlock.h"
 
-void USlot::SetSlotNote(EMusicNoteType NewNoteType)
+void UMusicNote::SetSlotNote(EMusicNoteType NewNoteType)
 {
 	SlotNote = NewNoteType;
 	LetterText->SetText(GetNameFromMusicNoteType(NewNoteType));
-	LetterText->SetColorAndOpacity(FSlateColor(FLinearColor({0, 0, 0, 1.f})));
+	LetterText->SetColorAndOpacity(FSlateColor(FLinearColor({1.f, 1.f, 1.f, 1.f})));
 }
 
-FText USlot::GetNameFromMusicNoteType(EMusicNoteType NoteType)
+FText UMusicNote::GetNameFromMusicNoteType(EMusicNoteType NoteType)
 {
 	return SlotTextures[NoteType];
 }

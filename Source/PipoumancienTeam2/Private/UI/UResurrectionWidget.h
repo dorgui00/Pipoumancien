@@ -36,6 +36,9 @@ public:
 	UCanvasPanel* PartitionBox;
 
 	UPROPERTY(meta = (BindWidget))
+	UCanvasPanel* SliderBox;
+	
+	UPROPERTY(meta = (BindWidget))
 	USlider* PitchSlider;
 
 private:
