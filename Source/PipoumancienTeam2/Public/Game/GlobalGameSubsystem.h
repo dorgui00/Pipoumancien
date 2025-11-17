@@ -55,6 +55,7 @@ public :
 
 	//DEBUG
 	void SetWorldMusicState();
+	EWorldState GetWorldState() const;
 	
 private :
 
