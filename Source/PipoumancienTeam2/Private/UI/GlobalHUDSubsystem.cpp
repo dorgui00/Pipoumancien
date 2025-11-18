@@ -176,8 +176,8 @@ void UGlobalHUDSubsystem::RewindPartition(int CurrentNoteIndex, const F_Note& Ne
 	UCanvasPanelSlot* CurrentWidgetNoteSlot = Cast<UCanvasPanelSlot>(CurrentWidgetNote->Slot);
 	if (!CurrentWidgetNoteSlot) return;
 
-	PreviewTime = (UiOffset / 2) / UISpeed;
-	float PreviewDistance = UISpeed * PreviewTime;
+	float PreviewDistance = UiOffset / 2;
+	PreviewTime = PreviewDistance / UISpeed;
 
 	float NewPartitionPosX = MovementStartPoint - CurrentWidgetNoteSlot->GetPosition().X - UiOffset + PreviewDistance;
 	NotesBoxSlot->SetPosition(FVector2D(NewPartitionPosX, NotesBoxSlot->GetPosition().Y));

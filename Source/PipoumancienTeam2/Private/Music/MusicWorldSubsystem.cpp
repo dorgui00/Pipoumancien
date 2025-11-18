@@ -55,7 +55,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	if (!IsInWorldStateMusic) return;
-	
+
 	if (IsInCountDown)
 	{
 		TimerCountDown -= DeltaTime;
@@ -276,7 +276,7 @@ void UMusicWorldSubsystem::LostQTE()
 	StartCountDown();
 
 	// Set Tempo to the Note you have to play + PreviewTime.
-	Tempo = ((CurrentSkeleton->MySkeleton->Notes[GetCurrentWaitingNoteIndex()].Frequency - GlobalHUDSubsystem->PreviewTime) - TimeTolerance) * MusicGlobalSpeed;
+	Tempo = (CurrentSkeleton->MySkeleton->Notes[GetCurrentWaitingNoteIndex()].Frequency - GlobalHUDSubsystem->PreviewTime) * MusicGlobalSpeed;
 }
 
 void UMusicWorldSubsystem::StartCountDown()
