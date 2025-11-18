@@ -172,7 +172,12 @@ void UMusicWorldSubsystem::FinishMelody()
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
 	
 	// Camera
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::GlobalCamera);
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
+
+	for (auto Character : GlobalGameSubsystem->PipouCharacters)
+	{
+		Character->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
+	}
 }
 
 F_Note* UMusicWorldSubsystem::GetWaitingNote() const

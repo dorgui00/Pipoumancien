@@ -1,16 +1,15 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Camera/CameraWorldSubsystem.h"
+
 #include "Camera/CameraComponent.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
 #include "Game/GlobalGameSubsystem.h"
-#include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
-#include "Logging/StructuredLog.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "PipoumancienTeam2/Public/Camera/CameraFollowTarget.h"
 #include "PNJ/SkeletonController.h"
-#include "UI/GlobalHUDSubsystem.h"
 
 
 void UCameraWorldSubsystem::PostInitialize()
@@ -24,27 +23,12 @@ void UCameraWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	
 }
 
-void UCameraWorldSubsystem::OnWorldComponentsUpdated(UWorld& World)
-{
-	Super::OnWorldComponentsUpdated(World);
-}
 
 void UCameraWorldSubsystem::InitCameraSubsystem()
-{
-	// get/set main camera
-	CameraMain = FindCameraByTag(TEXT("CameraMain"));
-	if(!CameraMain)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Main Camera is null"));
-		return;
-	}
-	// camera look at rotation
-	InitCameraRotationToPivot();
-	// set init camera pos (main cam)
-	InitMainCameraTransform = CameraMain->GetRelativeTransform();
+{	
+	AssignAllCameras();
 	
-	// get/set music camera 
-	// World Camera ? Component Camera in BP_Camera ?
+	InitMainCamera(); //pos
 	
 	//bounds
 	// AActor* CameraBoundsActor = FindCameraBoundsActor();
@@ -64,11 +48,12 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 	
 	if (IsSettingCamera)
 	{
-		SetCamera(DeltaTime, IsWorldTransform);
-		return;
+		LerpCamera(DeltaTime);
 	}
-	
-	TickUpdateCameraPosition(DeltaTime);
+	else if (CameraState == ECameraState::GlobalCamera)
+	{
+		TickUpdateCameraPosition(DeltaTime);
+	}
 }
 
 void UCameraWorldSubsystem::AddFollowTarget(UObject* FollowTarget)
@@ -298,133 +283,262 @@ float UCameraWorldSubsystem::CalculateGreatestDistanceBetweenTargets()
 void UCameraWorldSubsystem::InitCameraZoomParameters()
 {
 	//Find CameraDistanceMin (using tag) and Update CameraZoomYMin according to Y position if found
-	AActor* CameraDistanceMin = FindCameraByTag(TEXT("CameraDistanceMin"))->GetOwner();
+	AActor* CameraDistanceMin = FindCameraActorByTag(TEXT("CameraDistanceMin"))->GetOwner();
 	
 	if (CameraDistanceMin != nullptr)
 		CameraZoomYMin = CameraDistanceMin->GetActorLocation().Y;
 
 	//Find CameraDistanceMax (using tag) and Update CameraZoomYMax according to Y position if found
-	AActor* CameraDistanceMax = FindCameraByTag(TEXT("CameraDistanceMax"))->GetOwner();
+	AActor* CameraDistanceMax = FindCameraActorByTag(TEXT("CameraDistanceMax"))->GetOwner();
 	
 	if (CameraDistanceMax != nullptr)
 		CameraZoomYMax = CameraDistanceMax->GetActorLocation().Y;
 }
 
 
-void UCameraWorldSubsystem::CallCamera(const ECameraType CameraType)
+void UCameraWorldSubsystem::SetMusicCamera()
 {
-	switch (CameraType)
-	{
-		case ECameraType::GlobalCamera :
-				AimedCameraTransform = InitMainCameraTransform ; // relative transform
-				IsWorldTransform = false;
-			
-				break;
-			
-		case ECameraType::Dialogue:
-				// Set pos of Dialogue Cam (middle of the speaker && player)
-				//IsWorldTransform = ? 
-				break;
-			
-		case ECameraType::MusicCamera:
-			{
-				UCameraComponent* MusicCamera = nullptr;
-
-				//Find Music Camera in child components
-				TArray<UActorComponent*> Components =  CameraMain->GetOwner()->GetComponentsByTag(USceneComponent::StaticClass(),FName("MusicCamera"));
-				if (Components.Num() != 0)
-				{
-					MusicCamera = Cast<UCameraComponent>(Components[0]);
-
-					AimedCameraTransform = MusicCamera->GetComponentTransform();
-			
-					IsWorldTransform = true;
-				}
-			
-				break;
-			}
-		default :
-			UE_LOG(LogTemp, Warning, TEXT("SwitchCamera is not a valid"));
-			break;
-	}
-
+	StartComponentTransform = CameraMain->GetRelativeTransform();
+	EndComponentTransform = MusicCamera->GetRelativeTransform();
+		
+	//IsWorldTransform = true;
+	CameraState = ECameraState::MusicCamera;
+	
 	IsSettingCamera = true;
 }
 
-// GET WORLD TRANSFORM 
-void UCameraWorldSubsystem::SetCamera(float DeltaTime, bool IsWorld)
+void UCameraWorldSubsystem::SetGlobalCamera()
 {
-	if (IsWorld)
+	//Camera Actor pos & rotation
+	StartActorTransform = CameraMain->GetOwner()->GetActorTransform();
+	FVector EndLocation = CalculateAveragePositionBetweenTargets();
+	FRotator EndRotation = FRotator(0,-90,0); // default
+	EndActorTransform = FTransform(EndRotation,EndLocation, FVector(1,1,1));
+	
+	//Camera Component pos
+	StartComponentTransform = CameraMain->GetRelativeTransform();
+	EndComponentTransform = GlobalCamera->GetRelativeTransform();
+
+	// Main camera looks at the middle of the bp
+	// target - look at
+	FVector Forward =  - EndComponentTransform.GetLocation(); //CameraMain->GetRelativeLocation() - EndComponentTransform.GetLocation();
+	FRotator Rot = UKismetMathLibrary::MakeRotFromXZ(Forward, FVector::UpVector);
+	EndComponentTransform.SetRotation(Rot.Quaternion());
+	
+	CameraState = ECameraState::GlobalCamera;
+	
+	IsSettingCamera = true;
+}
+
+
+void UCameraWorldSubsystem::FinishCameraLerp()
+{
+	switch (CameraState)
 	{
-		FVector NewPos = FMath::Lerp(CameraMain->GetComponentLocation(),AimedCameraTransform.GetLocation(),DeltaTime*1.f);
-		FRotator NewRot = FMath::Lerp(CameraMain->GetComponentRotation(),AimedCameraTransform.Rotator(),DeltaTime*1.f);
+	case ECameraState::GlobalCamera :
+		FinishGlobalCameraLerp();
+		break;
+			
+	case ECameraState::DialogueCamera:
+		FinishDialogueCameraLerp();
+		break;
+			
+	case ECameraState::MusicCamera:
+		FinishMusicCameraLerp();
+		break;
 		
-		CameraMain->SetWorldLocationAndRotation(NewPos,NewRot);
-		
-		if (FMath::IsNearlyEqual(CameraMain->GetComponentLocation().Z,AimedCameraTransform.GetLocation().Z))
-		{
-			IsSettingCamera = false;
-			UE_LOG(LogTemp, Display, TEXT("Setting Camera world"));
-		}
+	default :
+		UE_LOG(LogTemp, Warning, TEXT("SwitchCamera is not a valid"));
+		break;
 	}
-	else
-	{
-		UE_LOG(LogTemp, Display, TEXT("DS RELATIVE"));
-		
-		FVector NewPos = FMath::Lerp(CameraMain->GetRelativeLocation(),AimedCameraTransform.GetLocation(),DeltaTime*1.f);
-		FRotator NewRot = FMath::Lerp(CameraMain->GetRelativeRotation(),AimedCameraTransform.Rotator(),DeltaTime*1.f);
+}
 
-		CameraMain->SetRelativeLocationAndRotation(NewPos,NewRot);
-
-		FVector RelativeMainCameraPos = CameraMain->GetRelativeLocation();
-		FVector AimedCameraPos = AimedCameraTransform.GetLocation();
-
-		// Compare Main Camera Pos / Aimed Camera Pos
-		float PosX = RelativeMainCameraPos.X - AimedCameraPos.X;
-		float PosY = RelativeMainCameraPos.Y - AimedCameraPos.Y;
-		float PosZ = RelativeMainCameraPos.Z - AimedCameraPos.Z; // TO EDIT (ONLY ON Z)
-		
-		if (PosX <= 0.5 && PosX >= -0.5
-			&& PosY <= 0.5 && PosY >= -0.5
-			&& PosZ <= 0.5 && PosZ >= -0.5 ) // EDIT tolerance à la mano
-		{
-			IsSettingCamera = false;
-			UE_LOG(LogTemp, Display, TEXT("A FINI Camera relative"));
-
-			// TO EDIT : SET MUSIC CAMERA  (trop spécifique)
-			// CHANGER LE WORLD STATE A LA FIN
-			UGlobalGameSubsystem* GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
-			if ( GlobalGameSubsystem->GetWorldState()== EWorldState::WorldMusic)
-			{
-				// Pass to transport
-				for (APipouCharacter* PipouCharacter : GlobalGameSubsystem->PipouCharacters)
-				{
-					PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
-				}
-				
-				GlobalGameSubsystem->GetCurrentSkeleton()->SetSkeletonForTransport();
-			}
-		}
-		
-	}
-
-
+void UCameraWorldSubsystem::FinishDialogueCameraLerp()
+{
 	
 }
 
-UCameraComponent* UCameraWorldSubsystem::FindCameraByTag(const FName& Tag) const
+void UCameraWorldSubsystem::FinishMusicCameraLerp()
 {
-	//Retourne un composant UCameraComponent en recherchant un actor dans la scène à l’aide de son tag.
+}
+
+void UCameraWorldSubsystem::FinishGlobalCameraLerp()
+{
+}
+
+void UCameraWorldSubsystem::AssignAllCameras()
+{
+	// get/set main camera
+	AActor* CameraActor = FindCameraActorByTag(TEXT("CameraMain"));
+	
+	CameraMain = FindCameraComponentByTag(CameraActor, ("CameraMain"));
+	if(!CameraMain)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Main Camera is null"));
+	}
+
+	// Init Dialogue Camera
+	DialogueCamera = FindCameraComponentByTag(CameraActor, ("DialogueCamera"));
+	if(!DialogueCamera)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Dialogue Camera is null"));
+	}
+	
+	// Init Music Camera
+	MusicCamera = FindCameraComponentByTag(CameraActor, ("MusicCamera"));
+	if(!MusicCamera)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Music Camera is null"));
+	}
+	
+	// Init Global Camera
+	GlobalCamera = FindCameraComponentByTag(CameraActor, ("GlobalCamera"));
+	if(!GlobalCamera)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Global Camera is null"));
+	}
+	
+}
+
+void UCameraWorldSubsystem::InitMainCamera()
+{
+	// // set init camera pos (main cam)
+	CameraMain->SetRelativeLocation(GlobalCamera->GetRelativeLocation());
+	
+	// camera look at rotation
+	InitCameraRotationToPivot();
+
+	// is global camera
+	CameraState = ECameraState::GlobalCamera;
+}
+
+
+// camera moves closer, places itself between the two interlocutors but targets the speaker
+void UCameraWorldSubsystem::SetDialogueCamera(APipouCharacter* Interactor, ASkeletonController* Speaker)
+{
+	// Speaker look at interactor
+	// forward = target - look at
+	FVector Forward1 = Interactor->GetActorLocation() - Speaker->GetActorLocation();
+	FRotator Rot1 = UKismetMathLibrary::MakeRotFromXZ(Forward1, FVector::UpVector);
+	FRotator Rot2 = FRotator(Speaker->GetActorRotation().Pitch, Rot1.Yaw, Speaker->GetActorRotation().Roll);	
+	Speaker->SetActorRotation(Rot2.Quaternion());
+	
+	// BP Camera in the middle
+	StartActorTransform = CameraMain->GetOwner()->GetActorTransform();
+	FVector EndActorPosition =  (Interactor->GetActorLocation()+Speaker->GetActorLocation())*0.5f; // places itself in the middle
+	
+	FRotator EndRotation = FRotator(0,-90,0); // default
+	EndActorTransform = FTransform(EndRotation,EndActorPosition, FVector(1,1,1));
+		
+	// Dialogue Camera Component
+    StartComponentTransform = CameraMain->GetRelativeTransform();
+    EndComponentTransform = DialogueCamera->GetRelativeTransform();
+
+    //FTransform EndComponentTransformWorld = DialogueCamera->GetComponentTransform();
+    
+    // Camera Looks nearly in the direction of the speaker
+    // look at between the middle of locutors & the speaker (75% toward the speaker)
+    //FVector TargetLocation = (EndActorPosition + Speaker->GetActorLocation())/2; //(Speaker->GetActorLocation() - Interactor->GetActorLocation()) * 0.75f;//(CameraMain->GetOwner()->GetActorLocation() +  Speaker->GetActorLocation())/2;
+	
+	// //look at
+	// FVector DialogueCameraRelativePos = DialogueCamera->GetRelativeLocation();
+	// FVector LookAtLocation = EndActorTransform.InverseTransformPosition(DialogueCameraRelativePos);
+	//
+	// FVector Forward = TargetLocation - LookAtLocation;  // forward = target - look at
+	// FRotator WorldRot = UKismetMathLibrary::MakeRotFromXZ(Forward, FVector::UpVector);
+	////EndComponentTransformWorld.SetRotation(WorldRot.Quaternion());
+
+    //DrawDebugLine(GetWorld(), EndActorPosition, Speaker->GetActorLocation(), FColor::Blue, false, 2.f, 0, 2.f);
+    //DrawDebugLine(GetWorld(), EndActorPosition, EndActorPosition+Forward*2, FColor::Red, false, 30.f, 0, 2.f);
+	
+    // // Convert world rot to relative rot
+    // FTransform ParentWorld = DialogueCamera->GetAttachParent()->GetComponentTransform(); // Get dialogue camera parent
+    // FQuat RelativeRot = ParentWorld.InverseTransformRotation(WorldRot.Quaternion());
+
+    // to edit world => world rot
+    // EndComponentTransformWorld.SetRotation(WorldRot.Quaternion());
+	// TO EDIT DEBUG
+    // CameraMain->SetWorldRotation(WorldRot.Quaternion());
+
+	// Update state
+    CameraState = ECameraState::DialogueCamera;
+
+	// Begin lerp in tick
+	IsSettingCamera = true;
+	
+}
+
+
+void UCameraWorldSubsystem::LerpCamera(float DeltaTime)
+{
+	LerpTimer += DeltaTime * 0.5f;
+
+	//Lerp Camera Actor
+	LerpCameraActor(DeltaTime); // World
+
+	//Lerp Camera Component
+	LerpCameraComponent(DeltaTime); // relative to bp
+
+	// On finished lerp
+	if (LerpTimer>=1){
+		UE_LOG(LogTemp, Display, TEXT("Fini de lerp"));
+	
+		LerpTimer = 0;
+
+		FinishCameraLerp();
+		
+		IsSettingCamera = false;
+	}
+}
+
+void UCameraWorldSubsystem::LerpCameraComponent(float DeltaTime)
+{
+	// Lerp Camera Component
+	FVector NewPos = FMath::Lerp(StartComponentTransform.GetLocation(),EndComponentTransform.GetLocation(),LerpTimer);
+	FRotator NewRot = FMath::Lerp(StartComponentTransform.Rotator(),EndComponentTransform.Rotator(),LerpTimer);
+	CameraMain->SetRelativeLocationAndRotation(NewPos, NewRot);
+	//CameraMain->SetRelativeLocation(NewPos);
+}
+
+void UCameraWorldSubsystem::LerpCameraActor(float DeltaTime)
+{
+	// Lerp Camera Actor
+	FVector NewPos = FMath::Lerp(StartActorTransform.GetLocation(),EndActorTransform.GetLocation(),LerpTimer);
+	//FRotator NewRot = FMath::Lerp(StartActorTransform.Rotator(),EndActorTransform.Rotator(),LerpTimer);
+	//CameraMain->GetOwner()->SetActorLocationAndRotation(NewPos, NewRot);
+	CameraMain->GetOwner()->SetActorLocation(NewPos);
+}
+
+
+AActor* UCameraWorldSubsystem::FindCameraActorByTag(const FName& Tag) const
+{
+	//Return actor by tag
 
 	TArray<AActor*> Cameras;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), Tag,Cameras);
 	
-	UCameraComponent* CameraComponent = nullptr;
+	AActor* CameraActor = nullptr;
+
+	// Get Cam Actor 
 	if (Cameras.Num() > 0)
 	{
-		CameraComponent = Cameras[0]->FindComponentByClass<UCameraComponent>();
+		CameraActor =  Cameras[0];
 	}
+
+	return CameraActor;
+}
+
+UCameraComponent* UCameraWorldSubsystem::FindCameraComponentByTag(const AActor* Parent, const FName& Tag) const
+{
+	UCameraComponent* CameraComponent = nullptr;
 	
+	//Find Camera in child components
+	TArray<UActorComponent*> Components =  Parent->GetComponentsByTag(UCameraComponent::StaticClass(),Tag);
+	if (Components.Num() != 0)
+	{
+		CameraComponent = Cast<UCameraComponent>(Components[0]);
+	}
+		
 	return CameraComponent;
 }
 
