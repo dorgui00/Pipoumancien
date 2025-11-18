@@ -167,16 +167,17 @@ void UGlobalHUDSubsystem::MovePartition(float DeltaTime)
 
 void UGlobalHUDSubsystem::RewindPartition(int CurrentNoteIndex, const F_Note& NewNote)
 {
-	UMusicNote* CurrentNote = NotesInstanciated[CurrentNoteIndex];
-	if (!CurrentNote) return;
+	// Current Note Widget.
+	UMusicNote* CurrentWidgetNote = NotesInstanciated[CurrentNoteIndex];
+	if (!CurrentWidgetNote) return;
 
-	UCanvasPanelSlot* CurrentNoteSlot = Cast<UCanvasPanelSlot>(CurrentNote->Slot);
-	if (!CurrentNoteSlot) return;
+	UCanvasPanelSlot* CurrentWidgetNoteSlot = Cast<UCanvasPanelSlot>(CurrentWidgetNote->Slot);
+	if (!CurrentWidgetNoteSlot) return;
 
 	float PreviewTime = NewNote.Frequency;
 	float PreviewDistance = UISpeed * PreviewTime;
 
-	float NewPartitionPosX = MovementStartPoint - CurrentNoteSlot->GetPosition().X - UiOffset + PreviewDistance;
+	float NewPartitionPosX = MovementStartPoint - CurrentWidgetNoteSlot->GetPosition().X - UiOffset + PreviewDistance;
 	NotesBoxSlot->SetPosition(FVector2D(NewPartitionPosX, NotesBoxSlot->GetPosition().Y));
 }
 
