@@ -47,7 +47,8 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	// Initialize Pitch Tolerance.
 	PitchTolerance = SubsystemSettings->PitchTolerance;
 
-	// Initialize 
+	// Initialize
+	PitchSpeed = SubsystemSettings->PitchSpeed;
 }
 
 #pragma endregion

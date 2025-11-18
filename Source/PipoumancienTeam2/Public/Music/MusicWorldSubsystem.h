@@ -50,6 +50,9 @@ public:
 
 	// Store the current cursor value.
 	float CurrentCursorValue = 0.f;
+
+	// When you're not at the right time for the QTE.
+	void LostQTE();
 	
 	#pragma endregion
 
@@ -108,7 +111,6 @@ private:
 
 	bool HasAchievedQte();
 
-	void LostQTE();
 
 	#pragma endregion
 

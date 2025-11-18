@@ -7,6 +7,7 @@
 #include "PipouCharacterStateID.h"
 #include "PipouCharacterState.generated.h"
 
+class USubsystemSettings;
 class ASkeletonController;
 class UInputAction;
 struct FInputActionValue;
@@ -51,6 +52,12 @@ protected:
 	ASkeletonController* Skeleton = nullptr;
 
 	UFUNCTION()
+	virtual void InitSubsytemSettings();
+
+	UPROPERTY()
+	const USubsystemSettings* SubsytemSettings = nullptr;
+	
+	UFUNCTION()
 	virtual void OnCharacterPressedNote(UInputAction* InputAction);
 
 	UFUNCTION()
@@ -59,7 +66,7 @@ protected:
 	UFUNCTION()
 	virtual void OnCharacterPitch(FInputActionValue InputActionValue);
 	
-	//World Interaction
+	// World Interaction
 	int WorldNotesToPlay = 3; // check 3 world notes to interact
 	int CurrentWorldNotes = 0;
 	float WorldNotesInterval = 2.f;
@@ -67,6 +74,7 @@ protected:
 	bool IsTryingToInteractWithWorld = false;
 	
 	void AddNoteForWorldInteraction();
+
 public :
 	void ResetWorldInteraction();
 };

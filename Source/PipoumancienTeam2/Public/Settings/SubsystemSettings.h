@@ -24,6 +24,9 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
 	float RatioDistance = 100.f;
+
+	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
+	float SliderPitchSpeed = 0.05f;
 	
 	#pragma endregion
 
