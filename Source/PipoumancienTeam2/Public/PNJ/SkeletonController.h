@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/SphereComponent.h"
+#include "Subsystems/GameInstanceSubsystem.h"
 #include "SkeletonController.generated.h"
 
 class UUIDialoge;
@@ -40,6 +41,9 @@ protected:
 
 	UPROPERTY()
 	UUIDialoge* PlayerWidget;
+	
+	UPROPERTY()
+	bool isDialoge = true;
 
 	UFUNCTION()
 	void BeginOverlaps(UPrimitiveComponent* OverlappedComp,AActor* OtherActor,
@@ -50,6 +54,7 @@ protected:
 		UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
 
 	int ValutFrase = 0;
+
 
 public:
 	// Called every frame

@@ -46,28 +46,32 @@ void UUIDialoge::NativeConstruct()
 
 void UUIDialoge::SetDialogue(F_Skeleton* Skeleton , int Valut)
 {
-	
-	CurrentDialogue = Skeleton->Discution;
-	CurrentName = Skeleton->Name.ToString();
-
-	CurrentDialogueIndex = 0;
-	CurrentCharIndex = 0;
-	if (Valut == 1)
+	if (!IsInViewport())
 	{
-		CurrentDialogueIndex = 1;
+		CurrentDialogue = Skeleton->Discution;
+		CurrentName = Skeleton->Name.ToString();
+
+		CurrentDialogueIndex = 0;
+		CurrentCharIndex = 0;
+		if (Valut == 1)
+		{
+			CurrentDialogueIndex = 1;
+		}
+	
+
+		if (CurrentDialogue.Num() > 0)
+			FullText = CurrentDialogue[CurrentDialogueIndex];
+
+		AddToViewport();
 	}
 	
-
-	if (CurrentDialogue.Num() > 0)
-		FullText = CurrentDialogue[CurrentDialogueIndex];
-
-	AddToViewport();
 }
 
 FReply UUIDialoge::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
 {
 	if (InKeyEvent.GetKey() == EKeys::E)
 	{
+		
 		// Passer à la phrase suivante
 		CurrentDialogueIndex++;
 

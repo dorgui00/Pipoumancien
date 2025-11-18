@@ -47,13 +47,16 @@ void ASkeletonController::BeginOverlaps(UPrimitiveComponent* OverlappedComp, AAc
 {
 	if (OtherActor->IsA(APipouCharacter::StaticClass()))
 	{
-		PlayerWidget = CreateWidget<UUIDialoge>(GetWorld(), PlayerWidgetClass);
-		PlayerWidget->SetDialogue(MySkeleton,ValutFrase);
-		if (ValutFrase == 0)
+		if (isDialoge)
 		{
-			ValutFrase = 1;
+			isDialoge = false;
+			PlayerWidget = CreateWidget<UUIDialoge>(GetWorld(), PlayerWidgetClass);
+			PlayerWidget->SetDialogue(MySkeleton,ValutFrase);
+			if (ValutFrase == 0)
+			{
+				ValutFrase = 1;
+			}
 		}
-		
 	}
 }
 
@@ -63,10 +66,12 @@ void ASkeletonController::endOverlaps(UPrimitiveComponent* OverlappedComp, AActo
 	{
 		if (PlayerWidget)
 		{
+			isDialoge = true;
 			PlayerWidget->RemoveFromParent();
 			PlayerWidget = nullptr;
 			UE_LOG(LogTemp, Warning, TEXT("HUD Supprimé"));
 		}
 	}
 }
+
 
