@@ -14,11 +14,12 @@
 #include "NavigationPath.h"
 #include "CollisionShape.h" 
 
+
 UAC_SkeletonFollower::UAC_SkeletonFollower()
 {
     PrimaryComponentTick.bCanEverTick = true;
 
-    UE_LOG(LogTemp,Display,TEXT("UAC_SkeletonFollower Added"));
+    UE_LOG(LogTemp, Display, TEXT("UAC_SkeletonFollower Added"));
 }
 
 void UAC_SkeletonFollower::BeginPlay()
@@ -133,33 +134,25 @@ static FVector ClosestPointOnPlayerCircle(const FVector& PlayerPos, const FVecto
 
 void UAC_SkeletonFollower::GenerateNextPathPoint()
 {
-    if (!ParentActor || PipouPlayers.Num() < 2) return;
+    if (!ParentActor || PipouPlayers.Num() < 2)
+        return;
 
     Player1Location = PipouPlayers[0] ? PipouPlayers[0]->GetActorLocation() : FVector::ZeroVector;
     Player2Location = PipouPlayers[1] ? PipouPlayers[1]->GetActorLocation() : FVector::ZeroVector;
 
     const FVector SkelPos = ParentActor->GetActorLocation();
 
-
     const FVector P1OnCircle = ClosestPointOnPlayerCircle(Player1Location, SkelPos, PlayerCircleRadius);
     const FVector P2OnCircle = ClosestPointOnPlayerCircle(Player2Location, SkelPos, PlayerCircleRadius);
+
     const FVector Mid = (P1OnCircle + P2OnCircle) * 0.5f;
 
-    if (!SplineToFollow)
-    {
-        EnsureGeneratedSpline();
-    }
+    FVector Adjusted;
+    const bool bFoundNavPoint = FindWalkablePoint(SkelPos, Mid, Adjusted);
 
-    if (SplineToFollow)
+    if (!bFoundNavPoint)
     {
-        const int32 LastIdx = SplineToFollow->GetNumberOfSplinePoints() - 1;
-        const FVector StartLoc = SplineToFollow->GetLocationAtSplinePoint(LastIdx, ESplineCoordinateSpace::World);
-
-        FVector Adjusted;
-        if (!FindWalkablePoint(StartLoc, Mid, Adjusted))
-        {
-            Adjusted = Mid;
-        }
+        Adjusted = Mid;
 
         if (bSnapToGround)
         {
@@ -169,19 +162,21 @@ void UAC_SkeletonFollower::GenerateNextPathPoint()
                 Adjusted = Grounded;
             }
         }
+    }
 
+    if (SplineToFollow)
+    {
+        const int32 LastIdx = SplineToFollow->GetNumberOfSplinePoints() - 1;
         SplineToFollow->AddSplinePoint(Adjusted, ESplineCoordinateSpace::World, false);
 
-        const int32 NewIdx = SplineToFollow->GetNumberOfSplinePoints() - 1;
-        SplineToFollow->SetSplinePointType(NewIdx, ESplinePointType::Linear, false);
+        SplineToFollow->SetSplinePointType(LastIdx + 1, ESplinePointType::Curve, true);
         SplineToFollow->UpdateSpline();
+    }
 
-        if (bDrawDebug)
-        {
-            DrawDebugPoint(GetWorld(), Adjusted, 16.f, FColor::Green, false, SegmentDelay * 1.1f);
-            const FVector Prev = SplineToFollow->GetLocationAtSplinePoint(NewIdx - 1, ESplineCoordinateSpace::World);
-            DrawDebugLine(GetWorld(), Prev, Adjusted, FColor::Green, false, SegmentDelay * 1.1f, 0, 2.f);
-        }
+    if (!bFollowingSpline)
+    {
+        bFollowingSpline = true;
+        StartFollowingSplineFromClosestPoint();
     }
 }
 
@@ -253,12 +248,7 @@ void UAC_SkeletonFollower::TickFollowSpline(float DeltaTime)
         ESplineCoordinateSpace::World
     );
 
-
     FVector FinalLoc = NewLoc;
-    if (bSnapToGround)
-    {
-        TrySnapToGround(NewLoc, FinalLoc);
-    }
 
     if (bOrientToSpline) {
 
