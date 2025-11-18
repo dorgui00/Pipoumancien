@@ -25,4 +25,5 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float MoveSpeed;
+
 };

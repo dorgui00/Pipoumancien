@@ -8,6 +8,7 @@
 #include "Character/PipouCharacterStateMachine.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Interaction/Interact.h"
+#include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 
 UPipouCharacterState::UPipouCharacterState()
@@ -28,7 +29,6 @@ void UPipouCharacterState::StateInit(UPipouCharacterStateMachine* InStateMachine
 
 void UPipouCharacterState::StateEnter(EPipouCharacterStateID PreviousStateID)
 {
-	InitSubsytemSettings();
 }
 
 void UPipouCharacterState::StateTick(float Deltatime)
@@ -80,14 +80,10 @@ void UPipouCharacterState::ResetWorldInteraction()
 	WorldNotesTimer = 0;
 }
 
-void UPipouCharacterState::InitSubsytemSettings()
-{
-	SubsytemSettings = GetDefault<USubsystemSettings>();
-}
-
 void UPipouCharacterState::OnCharacterPressedNote(UInputAction* InputAction)
 {
-	UGlobalGameSubsystem* GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
+	TObjectPtr<UGlobalGameSubsystem> GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
+	if (!GlobalGameSubsystem) return;
 	
 	// if players overlap the same skeleton
 	if (GlobalGameSubsystem->GetCurrentSkeleton())
@@ -109,8 +105,9 @@ void UPipouCharacterState::OnCharacterPressedNote(UInputAction* InputAction)
 void UPipouCharacterState::OnCharacterTriggeredNote(UInputAction* InputAction)
 {
 	// SAME AS THE PRESSED NOTE EVENT BUT WITH SECURITY TO AVOID MULTIPLE PRESSED AT THE SAME TIME
-	
-	UGlobalGameSubsystem* GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
+
+	TObjectPtr<UGlobalGameSubsystem> GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
+	if (!GlobalGameSubsystem) return;
 	
 	// if players overlap the same skeleton
 	if (GlobalGameSubsystem->GetCurrentSkeleton() && !HasPressedNotes)

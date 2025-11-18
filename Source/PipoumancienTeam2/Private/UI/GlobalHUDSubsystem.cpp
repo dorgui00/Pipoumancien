@@ -2,6 +2,8 @@
 
 
 #include "UI/GlobalHUDSubsystem.h"
+
+#include "InterchangeSourceData.h"
 #include "UResurrectionWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Character/PipouCharacterInputData.h"
@@ -174,7 +176,7 @@ void UGlobalHUDSubsystem::RewindPartition(int CurrentNoteIndex, const F_Note& Ne
 	UCanvasPanelSlot* CurrentWidgetNoteSlot = Cast<UCanvasPanelSlot>(CurrentWidgetNote->Slot);
 	if (!CurrentWidgetNoteSlot) return;
 
-	float PreviewTime = NewNote.Frequency;
+	PreviewTime = (UiOffset / 2) / UISpeed;
 	float PreviewDistance = UISpeed * PreviewTime;
 
 	float NewPartitionPosX = MovementStartPoint - CurrentWidgetNoteSlot->GetPosition().X - UiOffset + PreviewDistance;

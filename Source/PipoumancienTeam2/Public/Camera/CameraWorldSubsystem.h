@@ -36,10 +36,11 @@ public :
 #pragma region MainCamera
 public :
 	void InitCameraSubsystem();
-protected:
+	
 	UPROPERTY()
 	TObjectPtr<UCameraComponent> CameraMain;
-
+	
+protected:
 	FTransform InitMainCameraTransform;
 	
 	void TickUpdateCameraZoom(float DeltaTime);
