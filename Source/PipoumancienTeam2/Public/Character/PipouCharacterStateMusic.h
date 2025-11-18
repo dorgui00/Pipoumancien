@@ -31,17 +31,19 @@ public:
 	void InitRole();
 	void InitSkeletons();
 	void InitInputPitch();
+	void InitSliderPitchSpeed();
 	void SetMusicManager();
 
 	UPROPERTY()
 	UInputAction* InputPitch;
 
 	UPROPERTY()
-	float SliderPitchSpeed = 0.02f;
+	float SliderPitchSpeed = 0.05f;
 	
 	UPROPERTY()
 	UMusicWorldSubsystem* MusicWorldSubsystem;
 	
 	virtual void OnCharacterPressedNote(UInputAction* InputAction) override;
 	virtual void OnCharacterPitch(FInputActionValue InputActionValue) override;
+
 };

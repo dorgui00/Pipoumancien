@@ -9,6 +9,7 @@
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Music/MusicWorldSubsystem.h"
+#include "Settings/SubsystemSettings.h"
 #include "UI/GlobalHUDSubsystem.h"
 #include "UI/UResurrectionWidget.h"
 
@@ -24,6 +25,7 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 	InitRole();
 	InitSkeletons();
 	InitInputPitch();
+	InitSliderPitchSpeed();
 	SetMusicManager();
 
 	// UE_LOG(LogTemp, Display, TEXT("Entre dans le state music"));
@@ -75,6 +77,11 @@ void UPipouCharacterStateMusic::InitInputPitch()
 	InputPitch = Character->InputData->InputPitch;
 }
 
+void UPipouCharacterStateMusic::InitSliderPitchSpeed()
+{
+	SliderPitchSpeed = SubsytemSettings->SliderPitchSpeed;
+}
+
 void UPipouCharacterStateMusic::SetMusicManager()
 {
 	MusicWorldSubsystem = GetWorld()->GetSubsystem<UMusicWorldSubsystem>();
@@ -108,7 +115,7 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 		}
 		else
 		{
-			
+			MusicWorldSubsystem->LostQTE();
 		}
 	}
 }

@@ -28,6 +28,7 @@ void UPipouCharacterState::StateInit(UPipouCharacterStateMachine* InStateMachine
 
 void UPipouCharacterState::StateEnter(EPipouCharacterStateID PreviousStateID)
 {
+	InitSubsytemSettings();
 }
 
 void UPipouCharacterState::StateTick(float Deltatime)
@@ -77,6 +78,11 @@ void UPipouCharacterState::ResetWorldInteraction()
 	CurrentWorldNotes = 0;
 
 	WorldNotesTimer = 0;
+}
+
+void UPipouCharacterState::InitSubsytemSettings()
+{
+	SubsytemSettings = GetDefault<USubsystemSettings>();
 }
 
 void UPipouCharacterState::OnCharacterPressedNote(UInputAction* InputAction)
