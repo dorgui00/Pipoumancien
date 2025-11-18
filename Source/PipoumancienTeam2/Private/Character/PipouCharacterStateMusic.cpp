@@ -28,7 +28,7 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 	InitSliderPitchSpeed();
 	SetMusicManager();
 
-	// UE_LOG(LogTemp, Display, TEXT("Entre dans le state music"));
+	UE_LOG(LogTemp, Error, TEXT("Entre dans le state music"));
 
 	Character->InputPressedNoteEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputTriggeredNoteEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
@@ -79,7 +79,7 @@ void UPipouCharacterStateMusic::InitInputPitch()
 
 void UPipouCharacterStateMusic::InitSliderPitchSpeed()
 {
-	SliderPitchSpeed = SubsytemSettings->SliderPitchSpeed;
+	//SliderPitchSpeed = SubsytemSettings->SliderPitchSpeed;
 }
 
 void UPipouCharacterStateMusic::SetMusicManager()

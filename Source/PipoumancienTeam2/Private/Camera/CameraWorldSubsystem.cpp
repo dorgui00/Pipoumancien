@@ -391,19 +391,22 @@ void UCameraWorldSubsystem::SetCamera(float DeltaTime, bool IsWorld)
 			IsSettingCamera = false;
 			UE_LOG(LogTemp, Display, TEXT("A FINI Camera relative"));
 
+			// TO EDIT
 			// TO EDIT : SET MUSIC CAMERA  (trop spécifique)
 			// CHANGER LE WORLD STATE A LA FIN
-			UGlobalGameSubsystem* GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
-			if ( GlobalGameSubsystem->GetWorldState()== EWorldState::WorldMusic)
-			{
-				// Pass to transport
-				for (APipouCharacter* PipouCharacter : GlobalGameSubsystem->PipouCharacters)
-				{
-					PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
-				}
-				
-				GlobalGameSubsystem->GetCurrentSkeleton()->SetSkeletonForTransport();
-			}
+			// UGlobalGameSubsystem* GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
+			// if ( GlobalGameSubsystem->GetWorldState()== EWorldState::WorldMusic)
+			// {
+			// 	UE_LOG(LogTemp, Display, TEXT("change state in camera : from music to idle"));
+			// 	
+			// 	// Pass to transport
+			// 	for (APipouCharacter* PipouCharacter : GlobalGameSubsystem->PipouCharacters)
+			// 	{
+			// 		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
+			// 	}
+			// 	
+			// 	GlobalGameSubsystem->GetCurrentSkeleton()->SetSkeletonForTransport();
+			// }
 		}
 		
 	}

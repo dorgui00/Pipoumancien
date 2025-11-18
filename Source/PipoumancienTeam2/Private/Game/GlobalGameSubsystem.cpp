@@ -98,21 +98,13 @@ void UGlobalGameSubsystem::CheckIfPlayersOverlapSameSkeleton()
 void UGlobalGameSubsystem::SetWorldMusicState()
 {
 	WorldState = EWorldState::WorldMusic; // TO EDIT
-
-	if (PipouCharacters.Num()<2)
-	{
-		UE_LOG(LogTemp, Fatal, TEXT("PipouCharacters not initalized in HUD Global Game Subsystem"));
-	}
+	
 	//change state for players
 	for (auto Character : PipouCharacters) 
 	{
 		if (Character && Character->StateMachine)
 		{
 			Character->StateMachine->ChangeState(EPipouCharacterStateID::Music); // Block Movement
-		}
-		else if (!Character->StateMachine)
-		{
-			UE_LOG(LogTemp, Fatal, TEXT("StateMachine not initalized in HUD Global Game Subsystem"));
 		}
 	}
 

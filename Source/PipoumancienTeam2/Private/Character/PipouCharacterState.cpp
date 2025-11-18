@@ -82,7 +82,7 @@ void UPipouCharacterState::ResetWorldInteraction()
 
 void UPipouCharacterState::InitSubsytemSettings()
 {
-	SubsytemSettings = GetDefault<USubsystemSettings>();
+	//SubsytemSettings = GetDefault<USubsystemSettings>();
 }
 
 void UPipouCharacterState::OnCharacterPressedNote(UInputAction* InputAction)

@@ -210,6 +210,14 @@ void UMusicWorldSubsystem::FinishMelody()
 	
 	// Camera
 	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::GlobalCamera);
+
+	// TO EDIT (just to fix build)
+	for (APipouCharacter* PipouCharacter : GlobalGameSubsystem->PipouCharacters)
+	{
+		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
+	}
+				
+	GlobalGameSubsystem->GetCurrentSkeleton()->SetSkeletonForTransport();
 }
 
 bool UMusicWorldSubsystem::HasAchievedQte()
