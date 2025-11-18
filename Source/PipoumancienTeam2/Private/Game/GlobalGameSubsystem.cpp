@@ -99,6 +99,10 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 {
 	WorldState = EWorldState::WorldMusic; // TO EDIT
 
+	if (PipouCharacters.Num()==0)
+	{
+		UE_LOG(LogTemp, Fatal, TEXT("PipouCharacters not initalized in HUD Global Game Subsystem"));
+	}
 	//change state for players
 	for (auto Character : PipouCharacters) 
 	{
