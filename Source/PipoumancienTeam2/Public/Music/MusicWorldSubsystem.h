@@ -18,30 +18,38 @@ class PIPOUMANCIENTEAM2_API UMusicWorldSubsystem : public UTickableWorldSubsyste
 	GENERATED_BODY()
 
 public:
-	#pragma region Timer
-
-	// Music Speed.
-	UPROPERTY()
-	float MusicGlobalSpeed = 0.f;
-
-	// Tempo handle all the music rythm.
-	float Tempo = 0.f;
-
-	// Tolerance for the player to play the QTE.
-	float TimeTolerance = 0.f;
-
-	// Check if the UI is lerping offset.
-	bool IsLerpingOffset = true;
-
+	#pragma region Timer Music
 	// Timer we increment while the UI is lerping.
 	float TimerLerpingOffset = 0.f;
 	
 	#pragma endregion
 
 	#pragma region Skeleton&Notes
-	F_Note* GetWaitingNote() const;
-	
+	// Get the current note playing.
+	F_Note* GetCurrentWaitingNote() const;
+
+	// Manage the WaitingNoteIndex.
+	int GetCurrentWaitingNoteIndex() const;
+	void SetCurrentWaitingNoteIndex(int NewIndex);
+
+	// Change variable HasMusicianReceivedInput to true if not.
 	void ReceivedMusicianInput();
+	
+	#pragma endregion
+
+	#pragma region Music
+	// Music Speed.
+	UPROPERTY()
+	float MusicGlobalSpeed = 1.f;
+
+	// Tolerance for the player to play the QTE.
+	float TimeTolerance = 0.2f;
+
+	// Check if the UI is lerping offset.
+	bool IsLerpingOffset = true;
+
+	// Store the current cursor value.
+	float CurrentCursorValue = 0.f;
 	
 	#pragma endregion
 
@@ -50,10 +58,8 @@ public:
 	
 	#pragma endregion
 
-	#pragma region Misc
+	#pragma region Utilities
 	void InitMusic(ASkeletonController* Skeleton);
-	
-	float CurrentCursorValue = 0.f;
 
 	#pragma endregion
 	
@@ -67,7 +73,7 @@ protected:
 	#pragma endregion
 
 private:
-	#pragma region Timer
+	#pragma region Countdown
 	bool IsInCountDown = false;
 	
 	float TimerCountDown = 3.f;
@@ -87,22 +93,26 @@ private:
 	bool IsConductorOnTheRightPitch = false;
 
 	int CurrentWaitingNoteIndex = 0;
+
+	void ResetMusicianReply();
 		
 	#pragma endregion
 
-	#pragma region Replies
-	UPROPERTY(EditDefaultsOnly)
-	float PitchTolerance = 0.2f;
+	#pragma region Music
+	// Tempo handle all the music rythm.
+	float Tempo = 0.f;
 	
-	bool HasAchievedQte();
-	
-	int Replies = 0;
+	void FinishMelody();
 
-	void ResetMusicianReply();
+	float PitchTolerance = 0.2f;
+
+	bool HasAchievedQte();
+
+	void LostQTE();
 
 	#pragma endregion
 
-	#pragma region Misc
+	#pragma region Utilities
 	bool IsInWorldStateMusic = false;
 
 	UPROPERTY()
@@ -110,8 +120,6 @@ private:
 
 	UPROPERTY()
 	UGlobalHUDSubsystem* GlobalHUDSubsystem;
-
-	void FinishMelody();
 
 	#pragma endregion
 

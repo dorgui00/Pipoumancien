@@ -16,6 +16,7 @@
 #include "UI/GlobalHUDSubsystem.h"
 #include "UI/UResurrectionWidget.h"
 
+#pragma region MusicWorldSubsystem
 void UMusicWorldSubsystem::PostInitialize()
 {
 	Super::PostInitialize();
@@ -42,7 +43,14 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
 	// Initialize TimeTolerance.
 	TimeTolerance = SubsystemSettings->TimeTolerance;
+
+	// Initialize Pitch Tolerance.
+	PitchTolerance = SubsystemSettings->PitchTolerance;
+
+	// Initialize 
 }
+
+#pragma endregion
 
 void UMusicWorldSubsystem::Tick(float DeltaTime)
 {
@@ -84,7 +92,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			
 			if (!CurrentSkeleton) return; // Secu check if current skeleton is set
 
-			F_Note* CurrentNote = GetWaitingNote();
+			F_Note* CurrentNote = GetCurrentWaitingNote();
 			UMusicNote* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
 
 			// Not yet time for qte => !IsAwaitingReply
@@ -129,14 +137,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 				// lost qte time
 				else
 				{
-					GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Tu as raté la note")), true, FVector2D(2, 2));
-
-					// go back from two previous notes
-					int RewindToIndex = FMath::Max(0, CurrentWaitingNoteIndex - 2);
-					GlobalHUDSubsystem->RewindPartition(RewindToIndex, CurrentSkeleton->MySkeleton->Notes[RewindToIndex]);
-					CurrentWaitingNoteIndex = RewindToIndex;
-					
-					StartCountDown();
+					LostQTE();
 				}
 				
 				// reset
@@ -146,6 +147,40 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 	}
 }
 
+#pragma region Skeletons&Notes
+F_Note* UMusicWorldSubsystem::GetCurrentWaitingNote() const
+{
+	if (CurrentWaitingNoteIndex > CurrentSkeleton->MySkeleton->Notes.Num()-1)
+		UE_LOG(LogTemp, Error, TEXT("Current waiting Note is out of range"));
+	
+	return &CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex];
+}
+
+int UMusicWorldSubsystem::GetCurrentWaitingNoteIndex() const
+{
+	return CurrentWaitingNoteIndex;
+}
+
+void UMusicWorldSubsystem::SetCurrentWaitingNoteIndex(int NewIndex)
+{
+	CurrentWaitingNoteIndex = NewIndex;	
+}
+
+void UMusicWorldSubsystem::ReceivedMusicianInput()
+{
+	if (HasMusicianReceivedInput) return;
+	HasMusicianReceivedInput = true;
+}
+
+void UMusicWorldSubsystem::ResetMusicianReply()
+{
+	HasMusicianReceivedInput = false;
+}
+
+#pragma endregion
+
+
+#pragma region Music Mechanic
 void UMusicWorldSubsystem::InitMusic(ASkeletonController* Skeleton)
 {
 	// Init Data
@@ -179,32 +214,19 @@ void UMusicWorldSubsystem::FinishMelody()
 	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::GlobalCamera);
 }
 
-F_Note* UMusicWorldSubsystem::GetWaitingNote() const
-{
-	if (CurrentWaitingNoteIndex > CurrentSkeleton->MySkeleton->Notes.Num()-1)
-		UE_LOG(LogTemp, Error, TEXT("Current waiting Note is out of range"));
-	
-	return &CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex];
-}
-
-void UMusicWorldSubsystem::ResetMusicianReply()
-{
-	HasMusicianReceivedInput = false;
-}
-
 bool UMusicWorldSubsystem::HasAchievedQte()
 {
 	UMusicNote* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
 	USlider* Slider = GlobalHUDSubsystem->WBPResurrectionInstance->PitchSlider;
 
-	if (!Slider || !CurrentNoteSlot || !GetWaitingNote())
+	if (!Slider || !CurrentNoteSlot || !GetCurrentWaitingNote())
 	{
 		UE_LOGFMT(LogTemp, Error, "Has not achived QTE because one reference or several references are null ! ");
 		return false;
 	}
 	
-	 IsConductorOnTheRightPitch = GetWaitingNote()->Pitch >= CurrentCursorValue - PitchTolerance
-		&& GetWaitingNote()->Pitch <= CurrentCursorValue + PitchTolerance;
+	 IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch >= CurrentCursorValue - PitchTolerance
+		&& GetCurrentWaitingNote()->Pitch <= CurrentCursorValue + PitchTolerance;
 
 	if (HasMusicianReceivedInput)
 	{
@@ -232,11 +254,19 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 	return false;
 }
 
-void UMusicWorldSubsystem::ReceivedMusicianInput()
+void UMusicWorldSubsystem::LostQTE()
 {
-	if (HasMusicianReceivedInput) return;
-	
-	HasMusicianReceivedInput = true;
+	// Going from 2 previous notes without exceed 0.
+	int RewindNoteIndex = FMath::Max(0, CurrentWaitingNoteIndex - 2);
+
+	// Rewind the partition in UI.
+	GlobalHUDSubsystem->RewindPartition(RewindNoteIndex, CurrentSkeleton->MySkeleton->Notes[RewindNoteIndex]);
+
+	// Set the CurrentNoteIndex to the NewNote after going to 2 previous notes.
+	SetCurrentWaitingNoteIndex(RewindNoteIndex);
+
+	// Restart countdown.
+	StartCountDown();
 }
 
 void UMusicWorldSubsystem::StartCountDown()
@@ -246,3 +276,5 @@ void UMusicWorldSubsystem::StartCountDown()
 	Tempo = 0.f;
 	IsInCountDown = true;
 }
+
+#pragma endregion

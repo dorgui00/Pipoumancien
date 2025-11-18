@@ -39,7 +39,7 @@ public:
 	// Remove the resurrection widget from screen.
 	void RemoveResurrectionWidget();
 
-	// Note Widget Class
+	// Note Widget Class.
 	UPROPERTY()
 	TSubclassOf<UMusicNote> WBPNoteClass;
 

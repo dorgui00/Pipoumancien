@@ -95,15 +95,6 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 		if (!HUDSubsystem) return;
 
 		HUDSubsystem->WBPResurrectionInstance->SetSliderPitch(MusicWorldSubsystem->CurrentCursorValue);
-		
-		// UE_LOG(LogTemp, Display, TEXT("CurrentCursorValue: %f"), MusicManager->CurrentCursorValue);
-		//
-		// if (MusicManager->IsAwaitingReply &&
-		// 	(MusicManager->GetWaitingNote()->Pitch >= MusicManager->CurrentCursorValue - PitchTolerance ||
-		// 	MusicManager->GetWaitingNote()->Pitch <= MusicManager->CurrentCursorValue + PitchTolerance))
-		// {
-		// 	MusicManager->ReceiveInput();
-		// }
 	}
 }
 
@@ -111,9 +102,13 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 {
 	if (CurrentRole == EPipouCharacterRoles::Musician)
 	{
-		if (MusicWorldSubsystem->IsAwaitingReply && MusicWorldSubsystem->GetWaitingNote()->InputAction == InputAction)
+		if (MusicWorldSubsystem->IsAwaitingReply && MusicWorldSubsystem->GetCurrentWaitingNote()->InputAction == InputAction)
 		{
 			MusicWorldSubsystem->ReceivedMusicianInput();
+		}
+		else
+		{
+			
 		}
 	}
 }
