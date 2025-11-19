@@ -219,6 +219,14 @@ void UMusicWorldSubsystem::SucceedMelody()
 	
 	// Camera
 	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::GlobalCamera);
+
+	// TO EDIT (just to fix build)
+	for (APipouCharacter* PipouCharacter : GlobalGameSubsystem->PipouCharacters)
+	{
+		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
+	}
+				
+	GlobalGameSubsystem->GetCurrentSkeleton()->SetSkeletonForTransport();
 }
 
 void UMusicWorldSubsystem::LostMelody()
@@ -240,6 +248,7 @@ void UMusicWorldSubsystem::LostMelody()
 
 bool UMusicWorldSubsystem::HasAchievedQte()
 {
+	
 	UMusicNote* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
 	USlider* Slider = GlobalHUDSubsystem->WBPResurrectionInstance->PitchSlider;
 

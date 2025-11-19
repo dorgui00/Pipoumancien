@@ -98,7 +98,7 @@ void UGlobalGameSubsystem::CheckIfPlayersOverlapSameSkeleton()
 void UGlobalGameSubsystem::SetWorldMusicState()
 {
 	WorldState = EWorldState::WorldMusic; // TO EDIT
-
+	
 	//change state for players
 	for (auto Character : PipouCharacters) 
 	{

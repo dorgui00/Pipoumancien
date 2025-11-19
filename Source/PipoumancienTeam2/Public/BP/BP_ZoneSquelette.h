@@ -27,7 +27,8 @@ protected:
 	USphereComponent* SphereComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ZoneVictoir")
-    	UWidgetComponent* WidgetComponent;
+	UWidgetComponent* WidgetComponent;
+	
 
 	UFUNCTION()
 	void BeginOverlaps(UPrimitiveComponent* OverlappedComp,AActor* OtherActor,
@@ -36,7 +37,7 @@ protected:
 	UFUNCTION()
 	void endOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
-
+	
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UResurrectionWidget> PlayerHUDClass;
 
@@ -46,4 +47,6 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
+
 };
