@@ -344,6 +344,11 @@ void UCameraWorldSubsystem::InitCameraZoomParameters()
 
 void UCameraWorldSubsystem::SetMusicCamera()
 {
+	// Actor Pos / Rot
+	CanLerpActor = false;
+	
+	// Component Pos / Rot
+	CanLerpComponent = true;
 	StartComponentTransform = CameraMain->GetRelativeTransform();
 	EndComponentTransform = MusicCamera->GetRelativeTransform();
 		
@@ -356,7 +361,8 @@ void UCameraWorldSubsystem::SetMusicCamera()
 
 void UCameraWorldSubsystem::SetGlobalCamera()
 {
-	//Camera Actor pos 
+	//Camera Actor pos
+	CanLerpActor = true;
 	StartActorTransform = CameraMain->GetOwner()->GetActorTransform();
 	FVector EndLocation = CalculateAveragePositionBetweenTargets();
 	EndActorTransform.SetLocation(EndLocation);
@@ -366,6 +372,7 @@ void UCameraWorldSubsystem::SetGlobalCamera()
 	//EndActorTransform = FTransform(EndRotation,EndLocation, FVector(1,1,1));
 	
 	//Camera Component pos
+	CanLerpComponent = true;
 	StartComponentTransform = CameraMain->GetRelativeTransform();
 	EndComponentTransform = GlobalCamera->GetRelativeTransform();
 
@@ -394,6 +401,7 @@ void UCameraWorldSubsystem::SetDialogueCamera(APipouCharacter* Interactor, ASkel
 	Speaker->SetActorRotation(Rot2.Quaternion());
 	
 	// EndActorPos = BP Camera in the middle
+	CanLerpActor = true;
 	StartActorTransform = CameraMain->GetOwner()->GetActorTransform();
 	FVector EndActorPosition =  (Interactor->GetActorLocation()+Speaker->GetActorLocation())*0.5f; // places itself in the middle
 	EndActorTransform.SetLocation(EndActorPosition);
@@ -403,6 +411,7 @@ void UCameraWorldSubsystem::SetDialogueCamera(APipouCharacter* Interactor, ASkel
 	//EndActorTransform = FTransform(EndRotation,EndActorPosition, FVector(1,1,1));
 	
 	// Dialogue Camera Component
+	CanLerpComponent = true;
     StartComponentTransform = CameraMain->GetRelativeTransform();
     EndComponentTransform = DialogueCamera->GetRelativeTransform();
 	
@@ -440,9 +449,11 @@ void UCameraWorldSubsystem::LerpCamera(float DeltaTime)
 	LerpTimer += DeltaTime * 0.5f;
 
 	//Lerp Camera Actor
+	if (CanLerpActor)
 	LerpCameraActor(DeltaTime); // World
 
 	//Lerp Camera Component
+	if (CanLerpComponent)
 	LerpCameraComponent(DeltaTime); // relative to bp
 
 	// On finished lerp

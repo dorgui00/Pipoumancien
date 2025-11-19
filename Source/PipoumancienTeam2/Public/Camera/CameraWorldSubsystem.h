@@ -151,6 +151,9 @@ protected :
 	FTransform StartActorTransform;
 	FTransform EndActorTransform;
 
+	bool CanLerpActor = false;
+	bool CanLerpComponent = false;
+	
 	void FinishCameraLerp();
 
 	void FinishDialogueCameraLerp();
