@@ -275,7 +275,7 @@ void UMusicWorldSubsystem::LostQTE()
 	// Restart countdown.
 	StartCountDown();
 
-	// Set Tempo to the Note you have to play + PreviewTime.
+	// Set Tempo to the Note you have to play - PreviewTime.
 	Tempo = (CurrentSkeleton->MySkeleton->Notes[GetCurrentWaitingNoteIndex()].Frequency - GlobalHUDSubsystem->PreviewTime) * MusicGlobalSpeed;
 }
 

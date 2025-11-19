@@ -45,6 +45,10 @@ void UPipouCharacterState::OnCharacterPitch(FInputActionValue InputActionValue)
 	
 }
 
+void UPipouCharacterState::OnCharacterPitchCompleted()
+{
+}
+
 void UPipouCharacterState::AddNoteForWorldInteraction()
 {
 	CurrentWorldNotes ++;
