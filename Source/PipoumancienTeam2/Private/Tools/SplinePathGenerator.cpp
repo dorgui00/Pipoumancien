@@ -194,6 +194,8 @@ void ASplinePathGenerator::UpdateDebugVisuals()
     {
         if (!Spline) continue;
 
+        FlushPersistentDebugLines(GetWorld());
+
         const int32 NumPoints = Spline->GetNumberOfSplinePoints();
         if (NumPoints < 2)
             continue;
@@ -208,8 +210,8 @@ void ASplinePathGenerator::UpdateDebugVisuals()
                 Start,
                 End,
                 FLinearColor::MakeRandomColor().ToFColor(true),
-                false,
-                10.f,
+                true,
+                -1.f,
                 0,
                 3.0f
             );

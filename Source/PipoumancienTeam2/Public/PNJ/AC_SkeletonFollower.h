@@ -81,8 +81,8 @@ protected:
 
     bool bPlayer1InRange = false;
     bool bPlayer2InRange = false;
-    FVector Player1Location;
-    FVector Player2Location;
+    FVector Player1Location = FVector::ZeroVector;
+    FVector Player2Location = FVector::ZeroVector;
 
     bool bStartFollowing = false;
     bool bFollowingSpline = false;
