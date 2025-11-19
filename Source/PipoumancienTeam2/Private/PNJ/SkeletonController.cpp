@@ -3,7 +3,9 @@
 
 #include "PNJ/SkeletonController.h"
 
-#include "Data/DataTableGameInstanceSubsystem.h"
+#include "Character/PipouCharacter.h"
+#include "Data/GlobalDataTableSubsystem.h"
+#include "PNJ/AC_SkeletonFollower.h"
 
 
 // Sets default values
@@ -21,7 +23,7 @@ ASkeletonController::ASkeletonController()
 	SphereComponent->SetSphereRadius(500);
 	
 	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ASkeletonController::ASkeletonController::BeginOverlaps);
-	SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ASkeletonController::endOverlaps);
+	//SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ASkeletonController::EndOverlaps);
 
 	//HUD
 	PlayerWidgetClass = nullptr;
@@ -46,18 +48,23 @@ void ASkeletonController::BeginOverlaps(UPrimitiveComponent* OverlappedComp, AAc
 {
 	if (OtherActor->IsA(APipouCharacter::StaticClass()))
 	{
-		if (isDialoge)
-		{
-			isDialoge = false;
-			PlayerWidget = CreateWidget<UUIDialoge>(GetWorld(), PlayerWidgetClass);
-			PlayerWidget->SetDialogue(MySkeleton,ValutFrase);
-			if (ValutFrase == 0)
-			{
-				ValutFrase = 1;
-			}
-		}
+		// if (isDialoge)
+		// {
+		// 	isDialoge = false;
+		// 	PlayerWidget = CreateWidget<UUIDialoge>(GetWorld(), PlayerWidgetClass);
+		// 	PlayerWidget->SetDialogue(MySkeleton,ValutFrase);
+		// 	if (ValutFrase == 0)
+		// 	{
+		// 		ValutFrase = 1;
+		// 	}
+		// }
 	}
 }
+
+// void ASkeletonController::EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+// {
+// 	
+// }
 
 
 
