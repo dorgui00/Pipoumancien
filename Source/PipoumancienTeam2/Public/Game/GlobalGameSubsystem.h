@@ -53,17 +53,17 @@ public :
 
 	void CheckIfPlayersOverlapSameSkeleton();
 
-	//DEBUG
-	void SetWorldMusicState();
+	// State
 	EWorldState GetWorldState() const;
+	
+	void SetWorldMusicState();
+
+	void SetWorldTransportState();
 	
 private :
 
 	// World State
 	EWorldState WorldState = EWorldState::WorldFree; // TO EDIT
-
-	//DEBUG
-	//void SetWorldMusicState();
 	
 	// Skeleton
 	UPROPERTY()
