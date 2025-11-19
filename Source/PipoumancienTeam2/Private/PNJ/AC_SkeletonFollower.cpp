@@ -10,6 +10,7 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "CollisionShape.h" 
+#include "Kismet/GameplayStatics.h"
 
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
@@ -330,20 +331,23 @@ void UAC_SkeletonFollower::OnParentOverlap(AActor* OverlappedActor, AActor* Othe
 {
     if (!OtherActor) return;
 
-    const bool bHasVillageTag = OtherActor->ActorHasTag("VillageBorder");
-
-    UPrimitiveComponent* OtherRoot = Cast<UPrimitiveComponent>(OtherActor->GetRootComponent());
-    ECollisionChannel Channel = OtherRoot ? OtherRoot->GetCollisionObjectType() : ECC_OverlapAll_Deprecated;
-
-    const bool bIsVillageChannel = (Channel == ECC_GameTraceChannel4);
-
-    const bool bIsVillageBorder = bHasVillageTag || bIsVillageChannel;
+    // --- Detect VillageBorder (tag OR object channel) ---
+    bool bIsVillageBorder = OtherActor->ActorHasTag("VillageBorder");
 
     if (!bIsVillageBorder)
     {
-        return;
+        if (UPrimitiveComponent* OtherRoot = Cast<UPrimitiveComponent>(OtherActor->GetRootComponent()))
+        {
+            const ECollisionChannel Channel = OtherRoot->GetCollisionObjectType();
+            bIsVillageBorder = (Channel == ECC_GameTraceChannel4);
+        }
     }
 
+    if (!bIsVillageBorder)
+        return;
+
+    UE_LOG(LogTemp, Warning, TEXT("[SkeletonFollower] VillageBorder overlap detected with %s"),
+        *GetNameSafe(OtherActor));
 
     bCanFollowPlayers = false;
     bStartFollowing = false;
@@ -363,11 +367,33 @@ void UAC_SkeletonFollower::OnParentOverlap(AActor* OverlappedActor, AActor* Othe
         bFollowingSpline = false;
     }
 
-    USplineComponent* NearestVillage = FindNearestSplineToOwner(true);
-    if (NearestVillage)
+    USplineComponent* VillageSpline = nullptr;
+
+    if (UWorld* World = GetWorld())
     {
-        SplineToFollow = NearestVillage;
+        if (AActor* ManagerActor = UGameplayStatics::GetActorOfClass(World, AVillagePathManager::StaticClass()))
+        {
+            if (AVillagePathManager* Manager = Cast<AVillagePathManager>(ManagerActor))
+            {
+                VillageSpline = Manager->GetSplineForSkeleton(ParentActor);
+            }
+        }
+    }
+
+    if (!VillageSpline)
+    {
+        VillageSpline = FindNearestSplineToOwner(true);
+    }
+
+    if (VillageSpline)
+    {
+        SplineToFollow = VillageSpline;
         StartFollowingSplineFromClosestPoint();
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("SkeletonFollower: No village spline found/configured for %s."),
+            *GetNameSafe(ParentActor));
     }
 }
 
