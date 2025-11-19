@@ -16,84 +16,105 @@ UCLASS(Blueprintable)
 class PIPOUMANCIENTEAM2_API UMusicWorldSubsystem : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
+
+public:
+	#pragma region Timer Music
+	// Timer we increment while the UI is lerping.
+	float TimerLerpingOffset = 0.f;
 	
-#pragma region SubsystemOverride
+	#pragma endregion
+
+	#pragma region Skeleton&Notes
+	// Get the current note playing.
+	F_Note* GetCurrentWaitingNote() const;
+
+	// Manage the WaitingNoteIndex.
+	int GetCurrentWaitingNoteIndex() const;
+	void SetCurrentWaitingNoteIndex(int NewIndex);
+
+	// Change variable HasMusicianReceivedInput to true if not.
+	void ReceivedMusicianInput();
+	
+	#pragma endregion
+
+	#pragma region Music
+	// Music Speed.
+	UPROPERTY()
+	float MusicGlobalSpeed = 1.f;
+
+	// Tolerance for the player to play the QTE.
+	float TimeTolerance = 0.2f;
+
+	// Check if the UI is lerping offset.
+	bool IsLerpingOffset = true;
+
+	// Store the current cursor value.
+	float CurrentCursorValue = 0.f;
+
+	// When you're not at the right time for the QTE.
+	void LostQTE();
+	
+	#pragma endregion
+
+	#pragma region Replies
+	bool IsAwaitingReply = false;
+	
+	#pragma endregion
+
+	#pragma region Utilities
+	void InitMusic(ASkeletonController* Skeleton);
+
+	#pragma endregion
+	
 protected:
+	#pragma region SubsystemOverride
 	virtual void PostInitialize() override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override {return TStatId();};
-	
-	
-#pragma endregion
-	
-#pragma region Timer
-public:
-	UPROPERTY(EditDefaultsOnly)
-	float Speed = 1.f;
-	
-	float Tempo = 0.f;
 
-	float TimerTest = 0.f;
-	
-	float TimeTolerance = 0.4f;
-
-	bool IsLerpingOffset = true;
+	#pragma endregion
 
 private:
+	#pragma region Countdown
 	bool IsInCountDown = false;
 	
 	float TimerCountDown = 3.f;
 
 	void StartCountDown();
 	
-#pragma endregion
+	#pragma endregion
 
-#pragma region Skeleton&Notes
-	
-public :
-	F_Note* GetWaitingNote() const;
-	
-	void ReceivedMusicianInput();
-
-
-	
-private :
+	#pragma region Skeleton&Notes
 	UPROPERTY()
 	ASkeletonController* CurrentSkeleton = nullptr;
-
+	
 	UPROPERTY()
 	bool HasMusicianReceivedInput = false;
 
+	UPROPERTY()
+	bool IsConductorOnTheRightPitch = false;
+
 	int CurrentWaitingNoteIndex = 0;
-	
-#pragma endregion
-	
-#pragma region Replies
-public :
-	
-	bool IsAwaitingReply = false;
-	
-private :
-	UPROPERTY(EditDefaultsOnly)
-	float PitchTolerance = 0.1f;
-	
-	bool HasAchievedQte() const;
-	
-	int Replies = 0;
 
 	void ResetMusicianReply();
-	
-#pragma endregion
+		
+	#pragma endregion
 
-#pragma region Misc
+	#pragma region Music
+	// Tempo handle all the music rythm.
+	float Tempo = 0.f;
 	
-public :
-	void InitMusic(ASkeletonController* Skeleton);
-	
-	float CurrentCursorValue = 0.f;
-	
-private :
+	void FinishMelody();
+
+	float PitchTolerance = 0.2f;
+
+	bool HasAchievedQte();
+
+
+	#pragma endregion
+
+	#pragma region Utilities
 	bool IsInWorldStateMusic = false;
 
 	UPROPERTY()
@@ -102,7 +123,6 @@ private :
 	UPROPERTY()
 	UGlobalHUDSubsystem* GlobalHUDSubsystem;
 
-	void FinishMelody();
+	#pragma endregion
 
-#pragma endregion
 };

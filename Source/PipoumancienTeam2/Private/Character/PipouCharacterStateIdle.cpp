@@ -2,6 +2,8 @@
 
 
 #include "Character/PipouCharacterStateIdle.h"
+
+#include "Camera/CameraWorldSubsystem.h"
 #include "Character/PipouCharacter.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
@@ -23,6 +25,19 @@ void UPipouCharacterStateIdle::StateTick(float Deltatime)
 {
 	Super::StateTick(Deltatime);
 
+	if (UCameraWorldSubsystem* CamSys = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
+	{
+		FVector ClampedPos;
+		
+		bool bInside = CamSys->ClampPositionInsideQuad(Character->GetActorLocation(), ClampedPos);
+
+		// clamp position if outside
+		if (!bInside)
+		{
+			Character->SetActorLocation(ClampedPos);
+		}
+	}
+	
 	if (Character->GetInputMoveXY().SquaredLength() > Character->DeadZone * Character->DeadZone)
 	{
 		StateMachine->ChangeState(EPipouCharacterStateID::Walk);

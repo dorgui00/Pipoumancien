@@ -2,9 +2,15 @@
 
 #include "Camera/CameraWorldSubsystem.h"
 #include "Camera/CameraComponent.h"
+#include "Character/PipouCharacterStateID.h"
+#include "Character/PipouCharacterStateMachine.h"
+#include "Game/GlobalGameSubsystem.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
+#include "Logging/StructuredLog.h"
 #include "PipoumancienTeam2/Public/Camera/CameraFollowTarget.h"
+#include "PNJ/SkeletonController.h"
+#include "UI/GlobalHUDSubsystem.h"
 
 
 void UCameraWorldSubsystem::PostInitialize()
@@ -358,19 +364,51 @@ void UCameraWorldSubsystem::SetCamera(float DeltaTime, bool IsWorld)
 		if (FMath::IsNearlyEqual(CameraMain->GetComponentLocation().Z,AimedCameraTransform.GetLocation().Z))
 		{
 			IsSettingCamera = false;
+			UE_LOG(LogTemp, Display, TEXT("Setting Camera world"));
 		}
 	}
 	else
 	{
+		UE_LOG(LogTemp, Display, TEXT("DS RELATIVE"));
 		
 		FVector NewPos = FMath::Lerp(CameraMain->GetRelativeLocation(),AimedCameraTransform.GetLocation(),DeltaTime*1.f);
 		FRotator NewRot = FMath::Lerp(CameraMain->GetRelativeRotation(),AimedCameraTransform.Rotator(),DeltaTime*1.f);
 
 		CameraMain->SetRelativeLocationAndRotation(NewPos,NewRot);
 
-		FVector g = CameraMain->GetRelativeLocation() - AimedCameraTransform.GetLocation();
-		if (g.IsNearlyZero())
+		FVector RelativeMainCameraPos = CameraMain->GetRelativeLocation();
+		FVector AimedCameraPos = AimedCameraTransform.GetLocation();
+
+		// Compare Main Camera Pos / Aimed Camera Pos
+		float PosX = RelativeMainCameraPos.X - AimedCameraPos.X;
+		float PosY = RelativeMainCameraPos.Y - AimedCameraPos.Y;
+		float PosZ = RelativeMainCameraPos.Z - AimedCameraPos.Z; // TO EDIT (ONLY ON Z)
+		
+		if (PosX <= 0.5 && PosX >= -0.5
+			&& PosY <= 0.5 && PosY >= -0.5
+			&& PosZ <= 0.5 && PosZ >= -0.5 ) // EDIT tolerance à la mano
+		{
 			IsSettingCamera = false;
+			UE_LOG(LogTemp, Display, TEXT("A FINI Camera relative"));
+
+			// TO EDIT
+			// TO EDIT : SET MUSIC CAMERA  (trop spécifique)
+			// CHANGER LE WORLD STATE A LA FIN
+			// UGlobalGameSubsystem* GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
+			// if ( GlobalGameSubsystem->GetWorldState()== EWorldState::WorldMusic)
+			// {
+			// 	UE_LOG(LogTemp, Display, TEXT("change state in camera : from music to idle"));
+			// 	
+			// 	// Pass to transport
+			// 	for (APipouCharacter* PipouCharacter : GlobalGameSubsystem->PipouCharacters)
+			// 	{
+			// 		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
+			// 	}
+			// 	
+			// 	GlobalGameSubsystem->GetCurrentSkeleton()->SetSkeletonForTransport();
+			// }
+		}
+		
 	}
 
 
