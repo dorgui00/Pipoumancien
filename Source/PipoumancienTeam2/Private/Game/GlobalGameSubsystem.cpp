@@ -94,10 +94,14 @@ void UGlobalGameSubsystem::CheckIfPlayersOverlapSameSkeleton()
 	SetCurrentSkeleton(CurrentSkeletonIn);
 }
 
+EWorldState UGlobalGameSubsystem::GetWorldState() const
+{
+	return WorldState;
+}
 
 void UGlobalGameSubsystem::SetWorldMusicState()
 {
-	WorldState = EWorldState::WorldMusic; // TO EDIT
+	WorldState = EWorldState::WorldMusic; 
 	
 	//change state for players
 	for (auto Character : PipouCharacters) 
@@ -119,9 +123,10 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 	GetWorld()->GetSubsystem<UMusicWorldSubsystem>()->InitMusic(CurrentSkeleton);
 }
 
-EWorldState UGlobalGameSubsystem::GetWorldState() const
+void UGlobalGameSubsystem::SetWorldTransportState()
 {
-	return WorldState;
+	WorldState = EWorldState::WorldTransport; 
 }
+
 
 

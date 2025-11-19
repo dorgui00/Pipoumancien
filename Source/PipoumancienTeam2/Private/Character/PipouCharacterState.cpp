@@ -90,7 +90,8 @@ void UPipouCharacterState::OnCharacterPressedNote(UInputAction* InputAction)
 	if (!GlobalGameSubsystem) return;
 	
 	// if players overlap the same skeleton
-	if (GlobalGameSubsystem->GetCurrentSkeleton())
+	if (GlobalGameSubsystem->GetCurrentSkeleton()
+		&& GlobalGameSubsystem->GetWorldState() != EWorldState::WorldTransport)
 	{
 		// UE_LOG(LogTemp, Display, TEXT("Add note"));
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Add note")), true, FVector2D{2, 2});
@@ -114,7 +115,9 @@ void UPipouCharacterState::OnCharacterTriggeredNote(UInputAction* InputAction)
 	if (!GlobalGameSubsystem) return;
 	
 	// if players overlap the same skeleton
-	if (GlobalGameSubsystem->GetCurrentSkeleton() && !HasPressedNotes)
+	if (GlobalGameSubsystem->GetCurrentSkeleton()
+		&& !HasPressedNotes
+		&& GlobalGameSubsystem->GetWorldState() != EWorldState::WorldTransport)
 	{
 		HasPressedNotes = true;
 

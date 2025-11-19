@@ -375,25 +375,25 @@ void APipouCharacter::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCom
 	// Skeleton Interaction
 	else if (ASkeletonController* SkeletonController = Cast<ASkeletonController>(OtherActor))
 	{
-		if (SkeletonController)
+		UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
+		
+		// can't interact in transport
+		if (GlobalGameSubsystem->GetWorldState()==EWorldState::WorldTransport) return;
+		
+		// set current skeleton for myself
+		OverlapSkeleton = SkeletonController;
+
+		// trying to set current skeleton for everyone
+		GlobalGameSubsystem->CheckIfPlayersOverlapSameSkeleton();
+
+		//not everyone is overlapping the same skel
+		if (!GlobalGameSubsystem->GetCurrentSkeleton()) return;
+
+		//everyone overlap the same skel
+		for (int i = 0; i < 3; ++i)
 		{
-			// set current skeleton for myself
-			OverlapSkeleton = SkeletonController;
-
-			// trying to set current skeleton for everyone
-			UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
-			GlobalGameSubsystem->CheckIfPlayersOverlapSameSkeleton();
-
-			//not everyone is overlapping the same skel
-			if (!GlobalGameSubsystem->GetCurrentSkeleton()) return;
-
-			//everyone overlap the same skel
-			for (int i = 0; i < 3; ++i)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
-				FString::Printf(TEXT("INPUT : %s"), *GlobalGameSubsystem->GetCurrentSkeleton()->MySkeleton->Notes[i].InputAction->GetName()), true, FVector2D(2, 2));
-			}
-			
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
+			FString::Printf(TEXT("INPUT : %s"), *GlobalGameSubsystem->GetCurrentSkeleton()->MySkeleton->Notes[i].InputAction->GetName()), true, FVector2D(2, 2));
 		}
 	}
 }
@@ -423,6 +423,10 @@ void APipouCharacter::OnComponentEndOverlap(UPrimitiveComponent* OverlappedCompo
 	// Skeleton Interaction
 	else if (Cast<ASkeletonController>(OtherActor))
 	{
+		// can't interact in transport
+		UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
+		if (GlobalGameSubsystem->GetWorldState()==EWorldState::WorldTransport) return;
+		
 		// delete current skeleton for myself
 		OverlapSkeleton = nullptr;
 		
