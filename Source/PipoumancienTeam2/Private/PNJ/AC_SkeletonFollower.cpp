@@ -1,7 +1,6 @@
 
 #include "PNJ/AC_SkeletonFollower.h"
 
-#include "Character/PipouCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
 #include "Components/PrimitiveComponent.h"
@@ -10,9 +9,13 @@
 #include "DrawDebugHelpers.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
+#include "CollisionShape.h" 
+
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
-#include "CollisionShape.h" 
+
+#include "Character/PipouCharacter.h"
+#include "Tools/VillagePathManager.h"
 
 
 UAC_SkeletonFollower::UAC_SkeletonFollower()
@@ -51,9 +54,14 @@ void UAC_SkeletonFollower::TickComponent(float DeltaTime, ELevelTick TickType, F
 
 void UAC_SkeletonFollower::CheckPlayerRange()
 {
-    if (bStartFollowing) return;
+    if (!bCanFollowPlayers)
+        return;
 
-    if (!ParentActor) return;
+    if (bStartFollowing)
+        return;
+
+    if (!ParentActor)
+        return;
 
     const FVector ParentLocation = ParentActor->GetActorLocation();
 
@@ -79,6 +87,7 @@ void UAC_SkeletonFollower::CheckPlayerRange()
         StartPathGeneration();
     }
 }
+
 
 
 void UAC_SkeletonFollower::EnsureGeneratedSpline()
@@ -292,45 +301,73 @@ void UAC_SkeletonFollower::TickFollowSpline(float DeltaTime)
 
 
 
-void UAC_SkeletonFollower::OnParentHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
+void UAC_SkeletonFollower::OnParentHit(AActor* SelfActor, AActor* OtherActor,
+    FVector NormalImpulse, const FHitResult& Hit)
 {
-    if (OtherActor && OtherActor->ActorHasTag("VillageBorder"))
+    if (!OtherActor) return;
+
+    bool bIsVillageBorder = OtherActor->ActorHasTag("VillageBorder");
+
+    if (!bIsVillageBorder)
     {
+        if (UPrimitiveComponent* OtherRoot = Cast<UPrimitiveComponent>(OtherActor->GetRootComponent()))
+        {
+            if (OtherRoot->GetCollisionObjectType() == ECC_GameTraceChannel4)
+            {
+                bIsVillageBorder = true;
+            }
+        }
+    }
+
+    if (bIsVillageBorder)
+    {
+        bCanFollowPlayers = false;
         bStartFollowing = false;
     }
 }
 
 void UAC_SkeletonFollower::OnParentOverlap(AActor* OverlappedActor, AActor* OtherActor)
 {
-    if (OtherActor && OtherActor->ActorHasTag("VillageBorder"))
+    if (!OtherActor) return;
+
+    const bool bHasVillageTag = OtherActor->ActorHasTag("VillageBorder");
+
+    UPrimitiveComponent* OtherRoot = Cast<UPrimitiveComponent>(OtherActor->GetRootComponent());
+    ECollisionChannel Channel = OtherRoot ? OtherRoot->GetCollisionObjectType() : ECC_OverlapAll_Deprecated;
+
+    const bool bIsVillageChannel = (Channel == ECC_GameTraceChannel4);
+
+    const bool bIsVillageBorder = bHasVillageTag || bIsVillageChannel;
+
+    if (!bIsVillageBorder)
     {
-        bStartFollowing = false;
+        return;
+    }
 
-        if (UWorld* World = GetWorld())
-        {
-            World->GetTimerManager().ClearTimer(SegmentTimerHandle);
-        }
 
-        if (SplineToFollow)
-        {
-            if (SplineToFollow->GetOwner() == GetOwner())
-            {
-                SplineToFollow->DestroyComponent();
-            }
-            SplineToFollow = nullptr;
-            bFollowingSpline = false;
-        }
+    bCanFollowPlayers = false;
+    bStartFollowing = false;
 
-        USplineComponent* NearestVillage = FindNearestSplineToOwner(true);
-        if (NearestVillage)
+    if (UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(SegmentTimerHandle);
+    }
+
+    if (SplineToFollow)
+    {
+        if (SplineToFollow->GetOwner() == GetOwner())
         {
-            SplineToFollow = NearestVillage;
-            StartFollowingSplineFromClosestPoint();
+            SplineToFollow->DestroyComponent();
         }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("SkeletonFollower: No village spline found nearby."));
-        }
+        SplineToFollow = nullptr;
+        bFollowingSpline = false;
+    }
+
+    USplineComponent* NearestVillage = FindNearestSplineToOwner(true);
+    if (NearestVillage)
+    {
+        SplineToFollow = NearestVillage;
+        StartFollowingSplineFromClosestPoint();
     }
 }
 

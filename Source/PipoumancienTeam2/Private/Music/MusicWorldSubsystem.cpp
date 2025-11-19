@@ -222,6 +222,12 @@ void UMusicWorldSubsystem::FinishMelody()
 
 bool UMusicWorldSubsystem::HasAchievedQte()
 {
+
+	// DISABLED FOR TESTING
+	//REACTIVATED IN BUILD
+
+
+	/*
 	UMusicNote* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
 	USlider* Slider = GlobalHUDSubsystem->WBPResurrectionInstance->PitchSlider;
 
@@ -256,8 +262,13 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 	{
 		return true;
 	}
+	*/
 	
-	return false;
+	UE_LOG(LogTemp, Warning, TEXT("!!!!!!!!!!!!!!!MusicWorldSybststem: HasAchievedQTE returns TRUE, reactivate for build!!!!!!!!!!!!!!!!!"));
+
+	return true;
+
+	//return false;
 }
 
 void UMusicWorldSubsystem::LostQTE()
