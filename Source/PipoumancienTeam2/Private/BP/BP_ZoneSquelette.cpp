@@ -2,7 +2,7 @@
 
 
 #include "BP/BP_ZoneSquelette.h"
-
+#include "TimerManager.h"
 #include "Character/PipouCharacter.h"
 
 
@@ -51,7 +51,11 @@ void ABP_ZoneSquelette::BeginOverlaps(UPrimitiveComponent* OverlappedComp, AActo
 	{
 	//	APipouCharacter* FoundActor = Cast<APipouCharacter>(OtherActor);
 	//	FoundActor -> HUDPlay();
-		WidgetComponent->SetVisibility(true);
+		if (!WidgetComponent->IsVisible())
+		{
+			WidgetComponent->SetVisibility(true);			
+		}
+		
 	}
 }
 
@@ -65,3 +69,4 @@ void ABP_ZoneSquelette::endOverlaps(UPrimitiveComponent* OverlappedComp, AActor*
 		
 	}
 }
+
