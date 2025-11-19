@@ -9,7 +9,16 @@
 class UCameraComponent;
 /**
  * 
- */
+*/
+
+// UENUM()
+enum class ECameraType : uint8{
+	None = 0,
+	MusicCamera = 1,
+	GlobalCamera = 2,
+	Dialogue = 3,
+};
+
 UCLASS()
 class PIPOUMANCIENTEAM2_API UCameraWorldSubsystem : public UTickableWorldSubsystem
 {
@@ -19,14 +28,20 @@ class PIPOUMANCIENTEAM2_API UCameraWorldSubsystem : public UTickableWorldSubsyst
 public :
 	virtual void PostInitialize() override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
+	virtual void OnWorldComponentsUpdated(UWorld& World) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override {return TStatId();};
 #pragma endregion
 
 #pragma region MainCamera
-protected:
+public :
+	void InitCameraSubsystem();
+	
 	UPROPERTY()
 	TObjectPtr<UCameraComponent> CameraMain;
+	
+protected:
+	FTransform InitMainCameraTransform;
 	
 	void TickUpdateCameraZoom(float DeltaTime);
 	
@@ -112,13 +127,18 @@ protected :
 	
 #pragma endregion
 
+	// Lerp cameras
 #pragma region MusicCamera
 public :
-	void CallMusicCamera();
+	void CallCamera(const ECameraType CameraType);
 
 protected :
-	void SetMusicCamera(float DeltaTime);
-	bool isSettingMusicCamera = false;
+	FTransform AimedCameraTransform;
+	
+	bool IsSettingCamera = false;
+	bool IsWorldTransform = false;
+	
+	void SetCamera(float DeltaTime, bool IsWorld);
 	
 #pragma endregion
 };

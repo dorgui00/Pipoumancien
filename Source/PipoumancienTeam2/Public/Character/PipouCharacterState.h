@@ -7,6 +7,7 @@
 #include "PipouCharacterStateID.h"
 #include "PipouCharacterState.generated.h"
 
+class ASkeletonController;
 class UInputAction;
 struct FInputActionValue;
 class APipouCharacter;
@@ -36,6 +37,8 @@ public:
 	virtual void StateEnter(EPipouCharacterStateID PreviousStateID);
 	virtual void StateTick(float Deltatime);
 	virtual void StateExit(EPipouCharacterStateID NextStateID);
+	
+	bool HasPressedNotes = false;
 
 protected:
 	UPROPERTY()
@@ -44,12 +47,27 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UPipouCharacterStateMachine> StateMachine;
 
-	// NE PEUX PAS AVOIR UN UPROPERTY
-	F_Skeleton* Skeleton = nullptr;
-
+	UPROPERTY()
+	ASkeletonController* Skeleton = nullptr;
+	
 	UFUNCTION()
 	virtual void OnCharacterPressedNote(UInputAction* InputAction);
 
 	UFUNCTION()
+	virtual void OnCharacterTriggeredNote(UInputAction* InputAction);
+
+	UFUNCTION()
 	virtual void OnCharacterPitch(FInputActionValue InputActionValue);
+	
+	// World Interaction
+	int WorldNotesToPlay = 3; // check 3 world notes to interact
+	int CurrentWorldNotes = 0;
+	float WorldNotesInterval = 2.f;
+	float WorldNotesTimer = 0; 
+	bool IsTryingToInteractWithWorld = false;
+	
+	void AddNoteForWorldInteraction();
+
+public :
+	void ResetWorldInteraction();
 };

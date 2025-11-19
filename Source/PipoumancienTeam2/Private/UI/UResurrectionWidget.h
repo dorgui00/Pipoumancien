@@ -23,19 +23,26 @@ public:
 
 	UPROPERTY()
 	TMap<float, UUserWidget*> SpawnPointFromInputPitch;
-	TMap<float, UUserWidget*> EndPointFromInputPitch;
 
 	UUserWidget* GetSpawnPointFromInputPitch(float InputPitch);
-	UUserWidget* GetEndPointFromInputPitch(float InputPitch);
 
 	UPROPERTY(meta = (BindWidget))
 	UCanvasPanel* SlotSpawnPoints;
 
-private:
-	// Music
+	UPROPERTY(meta = (BindWidget))
+	UCanvasPanel* NotesBox;
+
+	UPROPERTY(meta= (BindWidget))
+	UCanvasPanel* PartitionBox;
+
+	UPROPERTY(meta = (BindWidget))
+	UCanvasPanel* SliderBox;
+	
 	UPROPERTY(meta = (BindWidget))
 	USlider* PitchSlider;
-	
+
+private:
+	// Music
 	UPROPERTY(meta = (BindWidget))
 	UUserWidget* SpawnPoint_1;
 
@@ -51,20 +58,4 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UUserWidget* SpawnPoint_5;
 
-	UPROPERTY(meta = (BindWidget))
-	UUserWidget* EndPoint_1;
-
-	UPROPERTY(meta = (BindWidget))
-	UUserWidget* EndPoint_2;
-
-	UPROPERTY(meta = (BindWidget))
-	UUserWidget* EndPoint_3;
-
-	UPROPERTY(meta = (BindWidget))
-	UUserWidget* EndPoint_4;
-
-	UPROPERTY(meta = (BindWidget))
-	UUserWidget* EndPoint_5;
-
-		
 };

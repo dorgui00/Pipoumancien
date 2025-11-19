@@ -12,7 +12,10 @@ struct FMultiSliderHandleSorted
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slider")
-	float Distance01 = 0.f;
+	float Distance = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slider")
+	float SpacingFromPrevious = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slider")
 	int32 Lane = 0;

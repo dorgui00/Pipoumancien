@@ -5,11 +5,13 @@
 #include "EnhancedInputSubsystems.h"
 #include "Character/PipouCharacterInputData.h"
 #include "Camera/CameraWorldSubsystem.h"
+#include "Character/PipouCharacterState.h"
 
 #include "Components/SphereComponent.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
 #include "Game/GlobalGameSubsystem.h"
+#include "Interaction/Interact.h"
 #include "PNJ/SkeletonController.h"
 
 APipouCharacter::APipouCharacter()
@@ -30,7 +32,6 @@ APipouCharacter::~APipouCharacter()
 	// }
 }
 
-
 void APipouCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -38,7 +39,6 @@ void APipouCharacter::BeginPlay()
 	InteractionCollider->OnComponentBeginOverlap.AddDynamic(this, &APipouCharacter::OnComponentBeginOverlap);
 	InteractionCollider->OnComponentEndOverlap.AddDynamic(this, &APipouCharacter::OnComponentEndOverlap);
 
-	InitPipouHUD();
 	CreateStateMachine();
 	InitStateMachine();
 	SetCameraView();
@@ -61,17 +61,6 @@ void APipouCharacter::SetCameraView() const
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	if (PlayerController == nullptr) return;
 	PlayerController->SetViewTargetWithBlend(CameraActor);
-}
-
-// UI
-void APipouCharacter::InitPipouHUD()
-{
-	PipouHUD = Cast<APipouHUD>(GetController<APlayerController>()->GetHUD());
-}
-
-APipouHUD* APipouCharacter::GetHUD() const
-{
-	return PipouHUD;
 }
 
 void APipouCharacter::Tick(float DeltaTime)
@@ -97,7 +86,6 @@ EPipouCharacterClass APipouCharacter::GetPipouCharacterClass() const
 {
 	return PipouClass;
 }
-
 
 // State Machine
 void APipouCharacter::CreateStateMachine()
@@ -225,24 +213,28 @@ void APipouCharacter::BindInputMusicActions(UEnhancedInputComponent* EnhancedInp
 	if (InputData->InputNoteA)
 	{
 		EnhancedInputComponent->BindAction(InputData->InputNoteA, ETriggerEvent::Started, this, &APipouCharacter::OnInputNoteAStarted);
+		EnhancedInputComponent->BindAction(InputData->InputNoteA, ETriggerEvent::Triggered, this, &APipouCharacter::OnInputNoteATriggered);
 		EnhancedInputComponent->BindAction(InputData->InputNoteA, ETriggerEvent::Completed, this, &APipouCharacter::OnInputNoteACompleted);
 	}
 
 	if (InputData->InputNoteB)
 	{
 		EnhancedInputComponent->BindAction(InputData->InputNoteB, ETriggerEvent::Started, this, &APipouCharacter::OnInputNoteBStarted);
+		EnhancedInputComponent->BindAction(InputData->InputNoteB, ETriggerEvent::Triggered, this, &APipouCharacter::OnInputNoteBTriggered);
 		EnhancedInputComponent->BindAction(InputData->InputNoteB, ETriggerEvent::Completed, this, &APipouCharacter::OnInputNoteBCompleted);
 	}
 	
 	if (InputData->InputNoteX)
 	{
 		EnhancedInputComponent->BindAction(InputData->InputNoteX, ETriggerEvent::Started, this, &APipouCharacter::OnInputNoteXStarted);
+		EnhancedInputComponent->BindAction(InputData->InputNoteX, ETriggerEvent::Triggered, this, &APipouCharacter::OnInputNoteXTriggered);
 		EnhancedInputComponent->BindAction(InputData->InputNoteX, ETriggerEvent::Completed, this, &APipouCharacter::OnInputNoteXCompleted);
 	}
 
 	if (InputData->InputNoteY)
 	{
 		EnhancedInputComponent->BindAction(InputData->InputNoteY, ETriggerEvent::Started, this, &APipouCharacter::OnInputNoteYStarted);
+		EnhancedInputComponent->BindAction(InputData->InputNoteY, ETriggerEvent::Started, this, &APipouCharacter::OnInputNoteYTriggered);
 		EnhancedInputComponent->BindAction(InputData->InputNoteY, ETriggerEvent::Completed, this, &APipouCharacter::OnInputNoteYCompleted);
 	}
 }
@@ -262,44 +254,76 @@ void APipouCharacter::OnInputNoteAStarted(const FInputActionValue& InputActionVa
 {
 	InputNoteA = true;
 	InputPressedNoteEvent.Broadcast(InputData->InputNoteA);
+
+	// play son A
+}
+
+void APipouCharacter::OnInputNoteATriggered(const FInputActionValue& InputActionValue)
+{
+	InputTriggeredNoteEvent.Broadcast(InputData->InputNoteA);
 }
 
 void APipouCharacter::OnInputNoteACompleted(const FInputActionValue& InputActionValue)
 {
 	InputNoteA = false;
+	StateMachine->GetCurrentState()->HasPressedNotes = false;
 }
 
 void APipouCharacter::OnInputNoteBStarted(const FInputActionValue& InputActionValue)
 {
 	InputNoteB = true;
 	InputPressedNoteEvent.Broadcast(InputData->InputNoteB);
+
+	// play son B
+}
+
+void APipouCharacter::OnInputNoteBTriggered(const FInputActionValue& InputActionValue)
+{
+	InputTriggeredNoteEvent.Broadcast(InputData->InputNoteB);
 }
 
 void APipouCharacter::OnInputNoteBCompleted(const FInputActionValue& InputActionValue)
 {
 	InputNoteB = false;
+	StateMachine->GetCurrentState()->HasPressedNotes = false;
 }
 
 void APipouCharacter::OnInputNoteXStarted(const FInputActionValue& InputActionValue)
 {
 	InputNoteX = true;
 	InputPressedNoteEvent.Broadcast(InputData->InputNoteX);
+
+	// play son x
+}
+
+void APipouCharacter::OnInputNoteXTriggered(const FInputActionValue& InputActionValue)
+{
+	InputTriggeredNoteEvent.Broadcast(InputData->InputNoteX);
 }
 
 void APipouCharacter::OnInputNoteXCompleted(const FInputActionValue& InputActionValue)
 {
 	InputNoteX = false;
+	StateMachine->GetCurrentState()->HasPressedNotes = false;
 }
 
 void APipouCharacter::OnInputNoteYStarted(const FInputActionValue& InputActionValue)
 {
 	InputNoteY = true;
 	InputPressedNoteEvent.Broadcast(InputData->InputNoteY);
+
+	// play son Y
+}
+
+void APipouCharacter::OnInputNoteYTriggered(const FInputActionValue& InputActionValue)
+{
+	InputTriggeredNoteEvent.Broadcast(InputData->InputNoteY);
 }
 
 void APipouCharacter::OnInputNoteYCompleted(const FInputActionValue& InputActionValue)
 {
 	InputNoteY = false;
+	StateMachine->GetCurrentState()->HasPressedNotes = false;
 }
 
 void APipouCharacter::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -307,22 +331,42 @@ void APipouCharacter::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCom
 {
 	
 	UE_LOG(LogTemp, Display, TEXT("Begin Overlap"));
-	
-	ASkeletonController* SkeletonController = Cast<ASkeletonController>(OtherActor);
 
-	if (SkeletonController)
+	// World Interaction
+	//if interactable
+	if (OtherActor->Implements<UInteract>())
 	{
-		UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
-		GlobalGameSubsystem->SetCurrentSkeleton(SkeletonController->MySkeleton);
-
-		for (int i = 0; i < 3; ++i)
+		if (IInteract* InInteractor = Cast<IInteract>(OtherActor))
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
-			FString::Printf(TEXT("INPUT : %s"), *GlobalGameSubsystem->GetCurrentSkeleton()->Notes[i].InputAction->GetName()), true, FVector2D(2, 2));
+				Interactor.SetInterface(InInteractor); // update current interactor
+				Interactor.SetObject(OtherActor);
+
+				//IInteract::Execute_Interact(Interactor.GetObject()); 
 		}
-		
-		
-		UE_LOG(LogTemp, Display, TEXT("Begin Overlap Skeleton"));
+	}
+	// Skeleton Interaction
+	else if (ASkeletonController* SkeletonController = Cast<ASkeletonController>(OtherActor))
+	{
+		if (SkeletonController)
+		{
+			// set current skeleton for myself
+			OverlapSkeleton = SkeletonController;
+
+			// trying to set current skeleton for everyone
+			UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
+			GlobalGameSubsystem->CheckIfPlayersOverlapSameSkeleton();
+
+			//not everyone is overlapping the same skel
+			if (!GlobalGameSubsystem->GetCurrentSkeleton()) return;
+
+			//everyone overlap the same skel
+			for (int i = 0; i < 3; ++i)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
+				FString::Printf(TEXT("INPUT : %s"), *GlobalGameSubsystem->GetCurrentSkeleton()->MySkeleton->Notes[i].InputAction->GetName()), true, FVector2D(2, 2));
+			}
+			
+		}
 	}
 }
 
@@ -331,8 +375,30 @@ void APipouCharacter::OnComponentEndOverlap(UPrimitiveComponent* OverlappedCompo
 {
 	UE_LOG(LogTemp, Display, TEXT("End Overlap"));
 
-	if (ASkeletonController* SkeletonController = Cast<ASkeletonController>(OtherActor))
+	// World Interaction
+	//if interactable
+	if (OtherActor->Implements<UInteract>())
 	{
+		if (IInteract* InInteractor = Cast<IInteract>(OtherActor))
+		{
+			if (InInteractor==Interactor.GetInterface())
+			{
+				Interactor.SetInterface(nullptr); // set current interactor to null
+				Interactor.SetObject(nullptr);
+
+				// reset world notes array TO EDIT ?
+				// another way to access ResetWorldInteraction() function from CharacterState?
+				StateMachine->GetCurrentState()->ResetWorldInteraction(); // CancelWorldInteraction
+			}
+		}
+	}
+	// Skeleton Interaction
+	else if (Cast<ASkeletonController>(OtherActor))
+	{
+		// delete current skeleton for myself
+		OverlapSkeleton = nullptr;
+		
+		// delete current skeleton for everyone
 		GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>()->SetCurrentSkeleton(nullptr);
 		UE_LOG(LogTemp, Display, TEXT("End Overlap Skeleton"));
 	}

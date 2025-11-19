@@ -9,6 +9,7 @@
 #include "SkeletonController.generated.h"
 
 class UUIDialoge;
+class UGlobalDataTableSubsystem;
 class UDataTableGameInstanceSubsystem;
 class ADB_Manager;
 struct F_Skeleton;
@@ -49,9 +50,9 @@ protected:
 	void BeginOverlaps(UPrimitiveComponent* OverlappedComp,AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,int32 OtherBodyIndex,bool bFromSweep,const FHitResult& SweepResult);
 	
-	UFUNCTION()
-	void endOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-		UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
+	// UFUNCTION()
+	// void EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	// 	UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
 
 	int ValutFrase = 0;
 
@@ -61,5 +62,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	F_Skeleton* MySkeleton;
+
+	void SetSkeletonForTransport();
 	
 };
