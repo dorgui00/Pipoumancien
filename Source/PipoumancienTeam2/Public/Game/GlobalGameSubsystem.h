@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Subsystems/GameInstanceSubsystem.h"
 #include "Character/PipouCharacter.h"
 #include "GlobalGameSubsystem.generated.h"
 
@@ -14,13 +13,13 @@ class UInputAction;
 struct F_Skeleton;
 
 // UENUM()
-// enum class EWorldState : uint8{
-// 	None = 0,
-// 	WorldFree = 1,
-// 	WorldMusic = 2,
-// 	WorldTransport = 3,
-// 	Menus = 4,
-// };
+enum class EWorldState : uint8{
+	None = 0,
+	WorldFree = 1,
+	WorldMusic = 2,
+	WorldTransport = 3,
+	Menus = 4,
+};
 
 UCLASS()
 class PIPOUMANCIENTEAM2_API UGlobalGameSubsystem : public UGameInstanceSubsystem //, public FTickableGameObject
@@ -28,6 +27,9 @@ class PIPOUMANCIENTEAM2_API UGlobalGameSubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 
 public :
+	// Override
+	//virtual void Tick(float DeltaTime) override;
+	
 	// Characters
 	UPROPERTY()
 	TArray<APipouCharacter*> PipouCharacters;
@@ -35,38 +37,35 @@ public :
 	void SetCharacters(APipouCharacter* Character);
 
 	// Current Skeleton
-	F_Skeleton* GetCurrentSkeleton() const;
-	void SetCurrentSkeleton(F_Skeleton* Skeleton);
+	ASkeletonController* GetCurrentSkeleton() const;
+	void SetCurrentSkeleton(ASkeletonController* Skeleton); // TO EDIT ? Switch to private ?
 
 	// Music
-	int NbNotesToCheck = 3;
+	// Skeleton Interaction
+	int SkeletonNotesToCheck = 3; // check 3 skeleton notes to trigger main music meca
 	
 	UPROPERTY()
 	TArray<UInputAction*> InputPressed;
-	
-	void AddNote(UInputAction* InputAction); // add input
+
+	void AddNoteForSkeletonInteraction(UInputAction* InputAction); // add input
 	bool HasValidFirstNotes();
 	void ResetInputsArray();
 
-	// UI
-	UPROPERTY()
-	APipouHUD* PipouHUD;
+	void CheckIfPlayersOverlapSameSkeleton();
 
-	UPROPERTY()
-	USlot* NotePanel;
-	
-	void RemoveResurrectionUI(); // TO EDIT
+	//DEBUG
+	void SetWorldMusicState();
+	EWorldState GetWorldState() const;
 	
 private :
 
 	// World State
-	//EWorldState WorldState = EWorldState::WorldFree; // TO EDIT
+	EWorldState WorldState = EWorldState::WorldFree; // TO EDIT
 
-	void SetWorldMusicState();
+	//DEBUG
+	//void SetWorldMusicState();
 	
 	// Skeleton
-	F_Skeleton* CurrentSkeleton = nullptr;
-
-	// UI
-	void DisplayResurrectionUI();
+	UPROPERTY()
+	ASkeletonController* CurrentSkeleton = nullptr;
 };

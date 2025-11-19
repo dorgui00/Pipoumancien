@@ -140,7 +140,7 @@ void UMultiHandleSlider::GetSortedHandles(TArray<FMultiSliderHandleSorted>& OutS
 		for (int32 i = 0; i < Count; ++i)
 		{
 			FMultiSliderHandleSorted H;
-			H.Distance01 = Lane.Values01[i];
+			H.Distance = Lane.Values01[i];
 			H.Lane = LaneIdx;
 			H.InputKey = (i < Lane.Keys.Num()) ? Lane.Keys[i] : NAME_None;
 			OutSorted.Add(H);
@@ -149,10 +149,18 @@ void UMultiHandleSlider::GetSortedHandles(TArray<FMultiSliderHandleSorted>& OutS
 
 	OutSorted.Sort([](const FMultiSliderHandleSorted& A, const FMultiSliderHandleSorted& B)
 		{
-			if (A.Distance01 != B.Distance01) return A.Distance01 < B.Distance01;
+			if (A.Distance != B.Distance) return A.Distance < B.Distance;
 			if (A.Lane != B.Lane)             return A.Lane < B.Lane;
 			return A.InputKey.LexicalLess(B.InputKey);
 		});
+
+	float PrevDistance = 0.f;
+	for (int32 i = 0; i < OutSorted.Num(); ++i)
+	{
+		FMultiSliderHandleSorted& H = OutSorted[i];
+		H.SpacingFromPrevious = H.Distance - PrevDistance;
+		PrevDistance = H.Distance;
+	}
 }
 
 void UMultiHandleSlider::Slate_OnValuesChanged(const TArray<float>& NewLane0)
@@ -297,7 +305,7 @@ TArray<FMultiSliderHandleSorted> UMultiHandleSlider::GetAllHandlesSorted() const
 		for (int32 i = 0; i < Count; ++i)
 		{
 			FMultiSliderHandleSorted H;
-			H.Distance01 = Lane.Values01[i];
+			H.Distance = Lane.Values01[i];
 			H.Lane = LaneIdx;
 			H.InputKey = (i < Lane.Keys.Num()) ? Lane.Keys[i] : NAME_None;
 			Out.Add(H);
@@ -306,10 +314,19 @@ TArray<FMultiSliderHandleSorted> UMultiHandleSlider::GetAllHandlesSorted() const
 
 	Out.Sort([](const FMultiSliderHandleSorted& A, const FMultiSliderHandleSorted& B)
 		{
-			if (A.Distance01 != B.Distance01) return A.Distance01 < B.Distance01;
+			if (A.Distance != B.Distance) return A.Distance < B.Distance;
 			if (A.Lane != B.Lane)             return A.Lane < B.Lane;
 			return A.InputKey.LexicalLess(B.InputKey);
 		});
+
+	float PrevDistance = 0.f;
+	for (int32 i = 0; i < Out.Num(); ++i)
+	{
+		FMultiSliderHandleSorted& H = Out[i];
+		H.SpacingFromPrevious = H.Distance - PrevDistance;
+		PrevDistance = H.Distance;
+	}
+
 	return Out;
 }
 

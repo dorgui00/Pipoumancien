@@ -174,7 +174,7 @@ void UMusicDT_BPLibrary::BuildNotesFromHandles_Lane01Map(
 	{
 		F_Note Note;
 
-		Note.Frequency = SnapToStep(H.Distance01, SnapStep);
+		Note.Frequency = SnapToStep(H.Distance, SnapStep);
 		Note.Pitch = LaneToValue(H.Lane);
 
 		if (UInputAction* const* FoundIA = ActionByKey.Find(H.InputKey))

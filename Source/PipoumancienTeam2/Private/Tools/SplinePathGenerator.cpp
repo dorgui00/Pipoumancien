@@ -5,6 +5,8 @@
 #include "Engine/World.h"
 #include "Engine/Texture2D.h"
 #include "Engine/TargetPoint.h"
+#include "Kismet/GameplayStatics.h"
+#include "Tools/PathManager.h"
 
 ASplinePathGenerator::ASplinePathGenerator()
 {
@@ -15,7 +17,7 @@ ASplinePathGenerator::ASplinePathGenerator()
     StartPointClass = ATargetPoint::StaticClass();
 
 #if WITH_EDITORONLY_DATA
-    bIsEditorOnlyActor = true;
+
     UBillboardComponent* Sprite = CreateDefaultSubobject<UBillboardComponent>(TEXT("EditorIcon"));
     Sprite->SetupAttachment(RootComponent);
     Sprite->SetRelativeLocation(FVector::ZeroVector);
@@ -27,6 +29,19 @@ ASplinePathGenerator::ASplinePathGenerator()
         Sprite->SetSprite(SpriteTexture.Object);
     }
 #endif
+}
+
+void ASplinePathGenerator::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (UWorld* World = GetWorld())
+    {
+        if (!UGameplayStatics::GetActorOfClass(World, APathManager::StaticClass()))
+        {
+            World->SpawnActor<APathManager>(APathManager::StaticClass(), FTransform());
+        }
+    }
 }
 
 #if WITH_EDITOR
@@ -179,6 +194,8 @@ void ASplinePathGenerator::UpdateDebugVisuals()
     {
         if (!Spline) continue;
 
+        FlushPersistentDebugLines(GetWorld());
+
         const int32 NumPoints = Spline->GetNumberOfSplinePoints();
         if (NumPoints < 2)
             continue;
@@ -193,8 +210,8 @@ void ASplinePathGenerator::UpdateDebugVisuals()
                 Start,
                 End,
                 FLinearColor::MakeRandomColor().ToFColor(true),
-                false,
-                10.f,
+                true,
+                -1.f,
                 0,
                 3.0f
             );

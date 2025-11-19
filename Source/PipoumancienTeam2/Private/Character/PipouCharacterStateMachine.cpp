@@ -55,6 +55,12 @@ UPipouCharacterState* UPipouCharacterStateMachine::GetState(EPipouCharacterState
 	return nullptr;
 }
 
+// TO SUPP ?
+UPipouCharacterState* UPipouCharacterStateMachine::GetCurrentState()
+{
+	return CurrentState;
+}
+
 void UPipouCharacterStateMachine::ChangeState(EPipouCharacterStateID NextStateID)
 {
 	UPipouCharacterState* NextState = GetState(NextStateID);

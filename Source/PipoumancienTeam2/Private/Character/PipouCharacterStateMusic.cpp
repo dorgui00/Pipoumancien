@@ -9,6 +9,8 @@
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Music/MusicWorldSubsystem.h"
+#include "Settings/SubsystemSettings.h"
+#include "UI/GlobalHUDSubsystem.h"
 #include "UI/UResurrectionWidget.h"
 
 EPipouCharacterStateID UPipouCharacterStateMusic::GetStateID()
@@ -23,11 +25,13 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 	InitRole();
 	InitSkeletons();
 	InitInputPitch();
+	InitSliderPitchSpeed();
 	SetMusicManager();
 
 	// UE_LOG(LogTemp, Display, TEXT("Entre dans le state music"));
 
 	Character->InputPressedNoteEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
+	Character->InputTriggeredNoteEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputPitchEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);
 }
 
@@ -41,6 +45,7 @@ void UPipouCharacterStateMusic::StateExit(EPipouCharacterStateID NextStateID)
 	Super::StateExit(NextStateID);
 
 	Character->InputPressedNoteEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
+	Character->InputTriggeredNoteEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputPitchEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);
 }
 
@@ -72,11 +77,18 @@ void UPipouCharacterStateMusic::InitInputPitch()
 	InputPitch = Character->InputData->InputPitch;
 }
 
+void UPipouCharacterStateMusic::InitSliderPitchSpeed()
+{
+	const TObjectPtr<USubsystemSettings> SubsystemSettings;
+	if (!SubsystemSettings) return;
+	
+	SliderPitchSpeed = SubsystemSettings->SliderPitchSpeed;
+}
+
 void UPipouCharacterStateMusic::SetMusicManager()
 {
 	MusicWorldSubsystem = GetWorld()->GetSubsystem<UMusicWorldSubsystem>();
 }
-
 
 // Event Delegates
 void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionValue)
@@ -85,22 +97,13 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 	{
 		if (InputActionValue.Get<float>() >= -0.1f && InputActionValue.Get<float>() <= 0.1f) return;
 		
-		MusicWorldSubsystem->CurrentCursorValue = FMath::Clamp(MusicWorldSubsystem->CurrentCursorValue + InputActionValue.Get<float>() * 0.1f,
+		MusicWorldSubsystem->CurrentCursorValue = FMath::Clamp(MusicWorldSubsystem->CurrentCursorValue + InputActionValue.Get<float>() * SliderPitchSpeed,
 			-1.f, 1.0f);
 
-		if (Character->GetHUD() != nullptr)
-		{
-			Character->GetHUD()->WBPResurrectionInstance->SetSliderPitch(MusicWorldSubsystem->CurrentCursorValue);
-		}
-		
-		// UE_LOG(LogTemp, Display, TEXT("CurrentCursorValue: %f"), MusicManager->CurrentCursorValue);
-		//
-		// if (MusicManager->IsAwaitingReply &&
-		// 	(MusicManager->GetWaitingNote()->Pitch >= MusicManager->CurrentCursorValue - PitchTolerance ||
-		// 	MusicManager->GetWaitingNote()->Pitch <= MusicManager->CurrentCursorValue + PitchTolerance))
-		// {
-		// 	MusicManager->ReceiveInput();
-		// }
+		UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
+		if (!HUDSubsystem) return;
+
+		HUDSubsystem->WBPResurrectionInstance->SetSliderPitch(MusicWorldSubsystem->CurrentCursorValue);
 	}
 }
 
@@ -108,9 +111,13 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 {
 	if (CurrentRole == EPipouCharacterRoles::Musician)
 	{
-		if (MusicWorldSubsystem->IsAwaitingReply && MusicWorldSubsystem->GetWaitingNote()->InputAction == InputAction)
+		if (MusicWorldSubsystem->IsAwaitingReply && MusicWorldSubsystem->GetCurrentWaitingNote()->InputAction == InputAction)
 		{
 			MusicWorldSubsystem->ReceivedMusicianInput();
+		}
+		else if (!MusicWorldSubsystem->IsAwaitingReply && !MusicWorldSubsystem->IsInCountDown)
+		{
+			 MusicWorldSubsystem->LostQTE();
 		}
 	}
 }

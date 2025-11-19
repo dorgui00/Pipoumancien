@@ -3,8 +3,8 @@
 
 
 #include "Character/PipouCharacterStateWalk.h"
-
-#include "Camera/CameraWorldSubsystem.h" // ADDED
+#include "Camera/CameraWorldSubsystem.h"
+#include "Camera/CameraComponent.h"
 #include "Character/PipouCharacter.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
@@ -19,20 +19,24 @@ void UPipouCharacterStateWalk::StateEnter(EPipouCharacterStateID PreviousStateID
 {
 	Super::StateEnter(PreviousStateID);
 	Character->GetMesh()->PlayAnimation(WalkAnim, true);
-
-	Character->GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
-	
-	// GEngine->AddOnScreenDebugMessage(
-	// 	-1,
-	// 	3.f,
-	// 	FColor::Red,
-	// 	TEXT("Enter StateWalk")
-	// );
 }
 
 void UPipouCharacterStateWalk::StateTick(float Deltatime)
 {
 	Super::StateTick(Deltatime);
+	
+	if (UCameraWorldSubsystem* CamSys = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
+	{
+		FVector ClampedPos;
+		
+		bool bInside = CamSys->ClampPositionInsideQuad(Character->GetActorLocation(), ClampedPos);
+	
+		// clamp position if outside
+		if (!bInside)
+		{
+			Character->SetActorLocation(ClampedPos);
+		}
+	}
 
 	if (Character->GetInputMoveXY().SquaredLength() <= Character->DeadZone * Character->DeadZone)
 	{
@@ -40,23 +44,43 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 	}
 	else
 	{
-		FVector MoveDir = Character->CameraActor->GetActorForwardVector() * FMath::Sign(Character->GetInputMoveXY().Y);
-		MoveDir += Character->CameraActor->GetActorRightVector() * FMath::Sign(Character->GetInputMoveXY().X);
+		UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
+		if (!CameraWorldSubsystem) return;
+		
+		FVector MoveDir = CameraWorldSubsystem->CameraMain->GetForwardVector() * FMath::Sign(Character->GetInputMoveXY().Y);
+		MoveDir += CameraWorldSubsystem->CameraMain->GetRightVector() * FMath::Sign(Character->GetInputMoveXY().X);
 		MoveDir.Normalize();
 		Character->SetOrientXY(FVector2D(MoveDir.X, MoveDir.Y));
-		Character->AddMovementInput(MoveDir, 1);
+		FVector NextPos = Character->GetActorLocation() +  MoveDir * MoveSpeed;
 		
-		//ADDED
+		// Camera 
 		if (UCameraWorldSubsystem* CamSys = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
 		{
 			FVector ClampedPos;
-			bool bInside = CamSys->ClampPositionInsideQuad(Character->GetActorLocation(), ClampedPos);
-
+			bool bInside = CamSys->ClampPositionInsideQuad(NextPos, ClampedPos);
+			
 			// clamp position if outside
 			if (!bInside)
 			{
 				Character->SetActorLocation(ClampedPos);
 			}
+			else
+			{
+				Character->SetActorLocation(NextPos);
+			}
+		}
+	}
+
+	// Waiting for world interaction or not
+	if (IsTryingToInteractWithWorld)
+	{
+		WorldNotesTimer += Deltatime;
+		
+		//time ended
+		if (WorldNotesTimer >= WorldNotesInterval)
+		{
+			WorldNotesTimer = 0.f;
+			IsTryingToInteractWithWorld = false;
 		}
 	}
 
@@ -65,11 +89,4 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 void UPipouCharacterStateWalk::StateExit(EPipouCharacterStateID NextStateID)
 {
 	Super::StateExit(NextStateID);
-
-	// GEngine->AddOnScreenDebugMessage(
-	// 	-1,
-	// 	3.f,
-	// 	FColor::Red,
-	// 	TEXT("Exit StateWalk")
-	// );
 }

@@ -72,7 +72,7 @@ int32 SMultiHandleSlider::OnPaint(
 	}
 
 	const FLinearColor TickColor = FLinearColor(0.6f, 0.6f, 0.6f, 1.f);
-	const float TickStep = 0.05f;
+	const float TickStep = 1.f / 30.f;
 
 	const float TrackLen = (Orientation == Orient_Horizontal)
 		? (Size.X - 2.f * HandleRadius)

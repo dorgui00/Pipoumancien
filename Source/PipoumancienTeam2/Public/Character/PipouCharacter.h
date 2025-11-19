@@ -9,13 +9,14 @@
 #include "UI/PipouHUD.h"
 #include "PipouCharacter.generated.h"
 
+class ASkeletonController;
+class IInteract;
 class USphereComponent;
 struct FInputActionValue;
 class UInputMappingContext;
 class UAnimMontage;
 class UPipouCharacterInputData;
 class UPipouCharacterStateMachine;
-class ICameraFollowTarget;
 
 UENUM()
 enum class EPipouCharacterClass : uint8
@@ -25,6 +26,7 @@ enum class EPipouCharacterClass : uint8
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInputPressedNoteEvent, UInputAction*,  InputAction);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInputTriggeredNoteEvent, UInputAction*,  InputAction);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInputPitchEvent, FInputActionValue, InputActionValue);
 
 UCLASS()
@@ -46,9 +48,6 @@ public:
 
 	EPipouCharacterClass GetPipouCharacterClass() const;
 
-	// UI
-	APipouHUD* GetHUD() const;
-	
 	// State Machine
 	void CreateStateMachine();
 	void InitStateMachine();
@@ -87,6 +86,9 @@ public:
 
 	UPROPERTY()
 	FInputPressedNoteEvent InputPressedNoteEvent;
+
+	UPROPERTY()
+	FInputTriggeredNoteEvent InputTriggeredNoteEvent;
 
 	UPROPERTY()
 	FInputPitchEvent InputPitchEvent;
@@ -129,16 +131,18 @@ protected:
 
 	UPROPERTY()
 	float InputPitch = 0;
-
-	UPROPERTY()
-	APipouHUD* PipouHUD;
-
-	void InitPipouHUD();
 	
 public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
+	// Interact 
+	UPROPERTY()
+	TScriptInterface<IInteract> Interactor ; // Is Overlaping this Interactable Actor
+
+	// CurrentSkeletonOverlap
+	ASkeletonController* OverlapSkeleton;
 
 private:
 	// Move
@@ -149,12 +153,16 @@ private:
 	// Music
 	void OnInputPitch(const FInputActionValue& InputActionValue);
 	void OnInputNoteAStarted(const FInputActionValue& InputActionValue);
+	void OnInputNoteATriggered(const FInputActionValue& InputActionValue);
 	void OnInputNoteACompleted(const FInputActionValue& InputActionValue);
 	void OnInputNoteBStarted(const FInputActionValue& InputActionValue);
+	void OnInputNoteBTriggered(const FInputActionValue& InputActionValue);
 	void OnInputNoteBCompleted(const FInputActionValue& InputActionValue);
 	void OnInputNoteXStarted(const FInputActionValue& InputActionValue);
+	void OnInputNoteXTriggered(const FInputActionValue& InputActionValue);
 	void OnInputNoteXCompleted(const FInputActionValue& InputActionValue);
 	void OnInputNoteYStarted(const FInputActionValue& InputActionValue);
+	void OnInputNoteYTriggered(const FInputActionValue& InputActionValue);
 	void OnInputNoteYCompleted(const FInputActionValue& InputActionValue);
 
 	UFUNCTION()

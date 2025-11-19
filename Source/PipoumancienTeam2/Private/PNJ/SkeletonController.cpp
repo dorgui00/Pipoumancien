@@ -6,7 +6,6 @@
 #include "Character/PipouCharacter.h"
 #include "Data/GlobalDataTableSubsystem.h"
 #include "PNJ/AC_SkeletonFollower.h"
-#include "Ui/UIDialoge.h"
 
 
 // Sets default values
@@ -49,27 +48,24 @@ void ASkeletonController::BeginOverlaps(UPrimitiveComponent* OverlappedComp, AAc
 {
 	if (OtherActor->IsA(APipouCharacter::StaticClass()))
 	{
-		 if (isDialoge)
-		 {
-		 	isDialoge = false;
-		 	PlayerWidget = CreateWidget<UUIDialoge>(GetWorld(), PlayerWidgetClass);
-		 	PlayerWidget->SetDialogue(MySkeleton,ValutFrase);
-		 	if (ValutFrase == 0)
-		 	{
-		 		ValutFrase = 1;
-			}
-		 }
+		// if (isDialoge)
+		// {
+		// 	isDialoge = false;
+		// 	PlayerWidget = CreateWidget<UUIDialoge>(GetWorld(), PlayerWidgetClass);
+		// 	PlayerWidget->SetDialogue(MySkeleton,ValutFrase);
+		// 	if (ValutFrase == 0)
+		// 	{
+		// 		ValutFrase = 1;
+		// 	}
+		// }
 	}
 }
 
-void ASkeletonController::EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (OtherActor->IsA(APipouCharacter::StaticClass()))
-	{
-		isDialoge = true;
-	}
-}
+// void ASkeletonController::EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+// {
+// 	
+// }
+
 
 
 void ASkeletonController::SetSkeletonForTransport()

@@ -5,6 +5,7 @@
 
 #include "LocalMultiplayerSettings.h"
 #include "LocalMultiplayerSubsystem.h"
+#include "Camera/CameraWorldSubsystem.h"
 #include "Character/PipouCharacter.h"
 #include "Editor/MapSettings.h"
 #include "Editor/PipouCharacterSettings.h"
@@ -22,6 +23,11 @@ void APipouGameMode::BeginPlay()
 	FindPlayerStartActorsInScene(PlayerStartsPoint);
 	GetCameraByTag("CameraMain");
 	SpawnCharacters(PlayerStartsPoint);
+
+	if (UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
+	{
+		CameraWorldSubsystem->InitCameraSubsystem();
+	}
 }
 
 UPipouCharacterInputData* APipouGameMode::LoadInputDataFromConfig()
