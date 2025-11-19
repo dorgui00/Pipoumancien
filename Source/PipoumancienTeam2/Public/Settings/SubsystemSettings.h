@@ -25,9 +25,6 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
 	float RatioDistance = 100.f;
 
-	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
-	float SliderPitchSpeed = 0.05f;
-	
 	#pragma endregion
 
 	#pragma region MusicSubsystem
@@ -39,6 +36,12 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
 	float PitchTolerance = 0.2f;
+
+	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
+	float MaxSpeedPitch = 0.1f;
+
+	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
+	float AccelerationPitchSpeed = 0.01f;
 	
 	#pragma endregion
 

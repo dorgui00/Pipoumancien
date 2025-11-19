@@ -55,7 +55,6 @@ UPipouCharacterState* UPipouCharacterStateMachine::GetState(EPipouCharacterState
 	return nullptr;
 }
 
-// TO SUPP ?
 UPipouCharacterState* UPipouCharacterStateMachine::GetCurrentState()
 {
 	return CurrentState;

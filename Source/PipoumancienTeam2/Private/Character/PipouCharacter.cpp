@@ -3,17 +3,20 @@
 #include "Character/PipouCharacterStateMachine.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Camera/CameraComponent.h"
 #include "Character/PipouCharacterInputData.h"
 #include "Camera/CameraWorldSubsystem.h"
 #include "Character/PipouCharacterState.h"
-
+#include "Character/PipouCharacterStateMusic.h"
 #include "Components/SphereComponent.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Interaction/Interact.h"
+#include "Kismet/GameplayStatics.h"
 #include "PNJ/SkeletonController.h"
 
+#pragma region Default Constructors
 APipouCharacter::APipouCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -32,6 +35,9 @@ APipouCharacter::~APipouCharacter()
 	// }
 }
 
+#pragma endregion
+
+#pragma region Default Functions
 void APipouCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -56,77 +62,23 @@ void APipouCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	InteractionCollider->OnComponentEndOverlap.RemoveDynamic(this, &APipouCharacter::OnComponentEndOverlap);
 }
 
-void APipouCharacter::SetCameraView() const
-{
-	APlayerController* PlayerController = Cast<APlayerController>(GetController());
-	if (PlayerController == nullptr) return;
-	PlayerController->SetViewTargetWithBlend(CameraActor);
-}
-
 void APipouCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	TickStateMachine(DeltaTime);
 }
 
-void APipouCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+#pragma endregion
+
+#pragma region Camera
+void APipouCharacter::SetCameraView() const
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	SetupMappingContextIntoController();
-
-	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
-	if (EnhancedInputComponent == nullptr) return;
-
-	BindInputMoveAndActions(EnhancedInputComponent);
-	BindInputMusicActions(EnhancedInputComponent);
-}
-
-// Pipou Character State
-EPipouCharacterClass APipouCharacter::GetPipouCharacterClass() const
-{
-	return PipouClass;
-}
-
-// State Machine
-void APipouCharacter::CreateStateMachine()
-{
-	StateMachine = NewObject<UPipouCharacterStateMachine>(this);
-}
-
-void APipouCharacter::InitStateMachine()
-{
-	if (StateMachine == nullptr) return;
-	StateMachine->Init(this);
-}
-
-void APipouCharacter::TickStateMachine(float DeltaTime)
-{
-	if (StateMachine == nullptr) return;
-	StateMachine->Tick(DeltaTime);
-	RotateMeshUsingOrientXY(DeltaTime);
-}
-
-void APipouCharacter::SetupMappingContextIntoController() const
-{
-	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	if (PlayerController == nullptr) return;
-
-	ULocalPlayer* Player = PlayerController->GetLocalPlayer();
-	if (Player == nullptr) return;
-
-	UEnhancedInputLocalPlayerSubsystem* InputSystem = Player->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
-	if (InputSystem == nullptr) return;
-
-	InputSystem->AddMappingContext(InputMappingContext, 0);
+	// TO EDIT use only the camera component not the actor.
+	PlayerController->SetViewTargetWithBlend(CameraMain->GetOwner());
 }
 
-// Move
-FVector2D APipouCharacter::GetInputMoveXY() const
-{
-	return InputMoveXY;
-}
-
-// Camera
 bool APipouCharacter::IsFollowable()
 {
 	return true;
@@ -137,8 +89,27 @@ FVector APipouCharacter::GetFollowPosition()
 	return GetActorLocation();
 }
 
+#pragma endregion
 
-// Orient
+#pragma region Movements&Inputs
+void APipouCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	// Not Needed since the local multiplayer system.
+	// SetupMappingContextIntoController();
+
+	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+	if (EnhancedInputComponent == nullptr) return;
+
+	BindInputMoveAndActions(EnhancedInputComponent);
+	BindInputMusicActions(EnhancedInputComponent);
+}
+
+FVector2D APipouCharacter::GetInputMoveXY() const
+{
+	return InputMoveXY;
+}
+
 void APipouCharacter::RotateMeshUsingOrientXY(float DeltaTime) const
 {
 	if (OrientXY.IsNearlyZero())
@@ -163,7 +134,72 @@ void APipouCharacter::SetOrientXY(FVector2D NewOrientXY)
 	OrientXY = NewOrientXY;
 }
 
-// Music
+// Not Needed since the local multiplayer system.
+// void APipouCharacter::SetupMappingContextIntoController() const
+// {
+// 	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+// 	if (PlayerController == nullptr) return;
+//
+// 	ULocalPlayer* Player = PlayerController->GetLocalPlayer();
+// 	if (Player == nullptr) return;
+//
+// 	UEnhancedInputLocalPlayerSubsystem* InputSystem = Player->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+// 	if (InputSystem == nullptr) return;
+//
+// 	InputSystem->AddMappingContext(InputMappingContext, 0);
+// }
+
+void APipouCharacter::BindInputMoveAndActions(UEnhancedInputComponent* EnhancedInputComponent)
+{
+	if (InputData == nullptr) return;
+
+	if (InputData->InputActionMoveXY)
+	{
+		EnhancedInputComponent->BindAction(InputData->InputActionMoveXY, ETriggerEvent::Started, this, &APipouCharacter::OnInputMoveXY);
+		EnhancedInputComponent->BindAction(InputData->InputActionMoveXY, ETriggerEvent::Triggered, this, &APipouCharacter::OnInputMoveXY);
+		EnhancedInputComponent->BindAction(InputData->InputActionMoveXY, ETriggerEvent::Completed, this, &APipouCharacter::OnInputMoveXY);
+	}
+}
+
+void APipouCharacter::OnInputMoveXY(const FInputActionValue& InputActionValue)
+{
+	InputMoveXY = InputActionValue.Get<FVector2D>();
+}
+
+#pragma endregion
+
+#pragma region Pipou Class
+// Pipou Character State
+EPipouCharacterClass APipouCharacter::GetPipouCharacterClass() const
+{
+	return PipouClass;
+}
+
+#pragma endregion
+
+#pragma region Character StateMachine
+// State Machine
+void APipouCharacter::CreateStateMachine()
+{
+	StateMachine = NewObject<UPipouCharacterStateMachine>(this);
+}
+
+void APipouCharacter::InitStateMachine()
+{
+	if (StateMachine == nullptr) return;
+	StateMachine->Init(this);
+}
+
+void APipouCharacter::TickStateMachine(float DeltaTime)
+{
+	if (StateMachine == nullptr) return;
+	StateMachine->Tick(DeltaTime);
+	RotateMeshUsingOrientXY(DeltaTime);
+}
+
+#pragma endregion
+
+#pragma region Music
 float APipouCharacter::GetInputPitch() const
 {
 	return InputPitch;
@@ -189,25 +225,13 @@ bool APipouCharacter::GetInputNoteY() const
 	return InputNoteY; 
 }
 
-void APipouCharacter::BindInputMoveAndActions(UEnhancedInputComponent* EnhancedInputComponent)
-{
-	if (InputData == nullptr) return;
-
-	if (InputData->InputActionMoveXY)
-	{
-		EnhancedInputComponent->BindAction(InputData->InputActionMoveXY, ETriggerEvent::Started, this, &APipouCharacter::OnInputMoveXY);
-		EnhancedInputComponent->BindAction(InputData->InputActionMoveXY, ETriggerEvent::Triggered, this, &APipouCharacter::OnInputMoveXY);
-		EnhancedInputComponent->BindAction(InputData->InputActionMoveXY, ETriggerEvent::Completed, this, &APipouCharacter::OnInputMoveXY);
-	}
-}
-
 void APipouCharacter::BindInputMusicActions(UEnhancedInputComponent* EnhancedInputComponent)
 {
 	if (InputData->InputPitch)
 	{
 		EnhancedInputComponent->BindAction(InputData->InputPitch, ETriggerEvent::Started, this, &APipouCharacter::OnInputPitch);
 		EnhancedInputComponent->BindAction(InputData->InputPitch, ETriggerEvent::Triggered, this, &APipouCharacter::OnInputPitch);
-		EnhancedInputComponent->BindAction(InputData->InputPitch, ETriggerEvent::Completed, this, &APipouCharacter::OnInputPitch);
+		EnhancedInputComponent->BindAction(InputData->InputPitch, ETriggerEvent::Completed, this, &APipouCharacter::OnInputPitchCompleted);
 	}
 
 	if (InputData->InputNoteA)
@@ -239,15 +263,16 @@ void APipouCharacter::BindInputMusicActions(UEnhancedInputComponent* EnhancedInp
 	}
 }
 
-void APipouCharacter::OnInputMoveXY(const FInputActionValue& InputActionValue)
-{
-	InputMoveXY = InputActionValue.Get<FVector2D>();
-}
 
 void APipouCharacter::OnInputPitch(const FInputActionValue& InputActionValue)
 {
 	InputPitch = InputActionValue.Get<float>();
 	InputPitchEvent.Broadcast(InputActionValue);
+}
+
+void APipouCharacter::OnInputPitchCompleted(const FInputActionValue& InputActionValue)
+{
+	InputPitchCompleted.Broadcast();
 }
 
 void APipouCharacter::OnInputNoteAStarted(const FInputActionValue& InputActionValue)
@@ -326,6 +351,9 @@ void APipouCharacter::OnInputNoteYCompleted(const FInputActionValue& InputAction
 	StateMachine->GetCurrentState()->HasPressedNotes = false;
 }
 
+#pragma endregion
+
+#pragma region Skeletons Interaction
 void APipouCharacter::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -403,6 +431,8 @@ void APipouCharacter::OnComponentEndOverlap(UPrimitiveComponent* OverlappedCompo
 		UE_LOG(LogTemp, Display, TEXT("End Overlap Skeleton"));
 	}
 }
+
+#pragma endregion
 
 
 

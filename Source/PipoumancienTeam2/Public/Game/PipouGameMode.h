@@ -7,6 +7,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "PipouGameMode.generated.h"
 
+class UCameraComponent;
 class UInputMappingContext;
 class UPipouCharacterInputData;
 class APipouCharacter;
@@ -21,7 +22,7 @@ public:
 	virtual void BeginPlay() override;
 
 	UPROPERTY()
-	TObjectPtr<AActor> CameraActor;
+	TObjectPtr<UCameraComponent> CameraMain;
 	
 protected:
 	UPROPERTY()
@@ -35,7 +36,7 @@ private:
 	void SpawnCharacters(const TArray<APlayerStart*>& SpawnPoints);
 	TSubclassOf<APipouCharacter> GetPipouCharacterFromInputType(EAutoReceiveInput::Type InputType) const;
 
-	void GetCameraByTag(const FName& CameraTag);
+	void GetCamera();
 
 	void CreateAndInitPlayers();
 
