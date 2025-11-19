@@ -2,9 +2,11 @@
 
 
 #include "PNJ/SkeletonController.h"
+
 #include "Character/PipouCharacter.h"
-#include "Data/DataTableGameInstanceSubsystem.h"
-#include "UI/UIDialoge.h"
+#include "Data/GlobalDataTableSubsystem.h"
+#include "PNJ/AC_SkeletonFollower.h"
+#include "Ui/UIDialoge.h"
 
 
 // Sets default values
@@ -22,7 +24,7 @@ ASkeletonController::ASkeletonController()
 	SphereComponent->SetSphereRadius(500);
 	
 	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ASkeletonController::ASkeletonController::BeginOverlaps);
-	SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ASkeletonController::endOverlaps);
+	//SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ASkeletonController::EndOverlaps);
 
 	//HUD
 	PlayerWidgetClass = nullptr;
@@ -34,7 +36,7 @@ void ASkeletonController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	MySkeleton = GetGameInstance()->GetSubsystem<UDataTableGameInstanceSubsystem>()->GetSkeletonByID(ID);
+	MySkeleton = GetGameInstance()->GetSubsystem<UGlobalDataTableSubsystem>()->GetSkeletonByID(ID);
 }
 
 // Called every frame
@@ -47,31 +49,33 @@ void ASkeletonController::BeginOverlaps(UPrimitiveComponent* OverlappedComp, AAc
 {
 	if (OtherActor->IsA(APipouCharacter::StaticClass()))
 	{
-		if (isDialoge)
-		{
-			isDialoge = false;
-			PlayerWidget = CreateWidget<UUIDialoge>(GetWorld(), PlayerWidgetClass);
-			PlayerWidget->SetDialogue(MySkeleton,ValutFrase);
-			if (ValutFrase == 0)
-			{
-				ValutFrase = 1;
+		 if (isDialoge)
+		 {
+		 	isDialoge = false;
+		 	PlayerWidget = CreateWidget<UUIDialoge>(GetWorld(), PlayerWidgetClass);
+		 	PlayerWidget->SetDialogue(MySkeleton,ValutFrase);
+		 	if (ValutFrase == 0)
+		 	{
+		 		ValutFrase = 1;
 			}
-		}
+		 }
 	}
 }
 
-void ASkeletonController::endOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void ASkeletonController::EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (OtherActor->IsA(APipouCharacter::StaticClass()))
 	{
-		if (PlayerWidget)
-		{
-			isDialoge = true;
-			PlayerWidget->RemoveFromParent();
-			PlayerWidget = nullptr;
-			UE_LOG(LogTemp, Warning, TEXT("HUD Supprimé"));
-		}
+		isDialoge = true;
 	}
 }
 
 
+void ASkeletonController::SetSkeletonForTransport()
+{
+	//ADD FOLLOW
+	AddComponentByClass(UAC_SkeletonFollower::StaticClass(), true, GetTransform(), false);
+
+	// ANIMS
+}
