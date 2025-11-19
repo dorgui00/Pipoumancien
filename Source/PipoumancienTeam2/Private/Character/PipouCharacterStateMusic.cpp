@@ -33,6 +33,7 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 	Character->InputPressedNoteEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputTriggeredNoteEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputPitchEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);
+	Character->InputPitchCompleted.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitchCompleted);
 }
 
 void UPipouCharacterStateMusic::StateTick(float Deltatime)
@@ -82,7 +83,8 @@ void UPipouCharacterStateMusic::InitSliderPitchSpeed()
 	const TObjectPtr<USubsystemSettings> SubsystemSettings;
 	if (!SubsystemSettings) return;
 	
-	SliderPitchSpeed = SubsystemSettings->SliderPitchSpeed;
+	MaxPitchSpeed = SubsystemSettings->MaxSpeedPitch;
+	AccelerationPitchSpeed = SubsystemSettings->AccelerationPitchSpeed;
 }
 
 void UPipouCharacterStateMusic::SetMusicManager()
@@ -96,6 +98,14 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 	if (CurrentRole == EPipouCharacterRoles::Conductor)
 	{
 		if (InputActionValue.Get<float>() >= -0.1f && InputActionValue.Get<float>() <= 0.1f) return;
+
+		// Increase SliderSpped by the acceleration
+		SliderPitchSpeed += AccelerationPitchSpeed;
+
+		if (SliderPitchSpeed >= MaxPitchSpeed)
+		{
+			SliderPitchSpeed = MaxPitchSpeed;
+		}
 		
 		MusicWorldSubsystem->CurrentCursorValue = FMath::Clamp(MusicWorldSubsystem->CurrentCursorValue + InputActionValue.Get<float>() * SliderPitchSpeed,
 			-1.f, 1.0f);
@@ -105,6 +115,11 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 
 		HUDSubsystem->WBPResurrectionInstance->SetSliderPitch(MusicWorldSubsystem->CurrentCursorValue);
 	}
+}
+
+void UPipouCharacterStateMusic::OnCharacterPitchCompleted()
+{
+	SliderPitchSpeed = InitPitchSpeedValue;	
 }
 
 void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction)

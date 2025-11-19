@@ -58,6 +58,9 @@ protected:
 
 	UFUNCTION()
 	virtual void OnCharacterPitch(FInputActionValue InputActionValue);
+
+	UFUNCTION()
+	virtual void OnCharacterPitchCompleted();
 	
 	// World Interaction
 	int WorldNotesToPlay = 3; // check 3 world notes to interact
