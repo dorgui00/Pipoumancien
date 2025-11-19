@@ -94,8 +94,8 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			
 			if (!CurrentSkeleton) return; // Secu check if current skeleton is set
 
-			F_Note* CurrentNote = GetCurrentWaitingNote();
-			UMusicNote* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
+			// F_Note* CurrentNote = GetCurrentWaitingNote();
+			// UMusicNote* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
 
 			// Not yet time for qte => !IsAwaitingReply
 			if (Tempo < ((CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * MusicGlobalSpeed))
@@ -107,7 +107,6 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			// Is Awaiting Reply
 			if (Tempo >= ((CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * MusicGlobalSpeed) && !IsAwaitingReply)
 			{
-				// CurrentNoteSlot->NoteImage->SetColorAndOpacity(FLinearColor::Green);
 				IsAwaitingReply = true;
 				return;
 			}
@@ -132,7 +131,12 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 
 						// Increment the FailNotePossible to give back chance to player.
 						// If it's already at the max then limit the CurrentFailNotePossible at the Max
-						CurrentFailNotePossible = FMath::Clamp(CurrentFailNotePossible++, 0, MaxFailNotePossible);
+						CurrentFailNotePossible++;
+
+						if (CurrentFailNotePossible >= MaxFailNotePossible)
+						{
+							CurrentFailNotePossible = MaxFailNotePossible;
+						}
 						
 						Tempo = TimeTolerance * MusicGlobalSpeed;
 						SetCurrentWaitingNoteIndex(GetCurrentWaitingNoteIndex() + 1);
@@ -244,11 +248,19 @@ void UMusicWorldSubsystem::LostMelody()
 	
 	// Camera
 	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::GlobalCamera);
+
+	// TO EDIT (just to fix build)
+	for (APipouCharacter* PipouCharacter : GlobalGameSubsystem->PipouCharacters)
+	{
+		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
+	}
+	
+	// Camera
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::GlobalCamera);
 }
 
 bool UMusicWorldSubsystem::HasAchievedQte()
 {
-	
 	UMusicNote* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
 	USlider* Slider = GlobalHUDSubsystem->WBPResurrectionInstance->PitchSlider;
 
@@ -263,20 +275,20 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 
 	if (HasMusicianReceivedInput)
 	{
-		GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Green, true);
+		GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Green);
 	}
 	else
 	{
-		GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Red, false);
+		GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Red);
 	}
 
 	if (IsConductorOnTheRightPitch)
 	{
-		GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Green, true);
+		GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Green);
 	}
 	else
 	{
-		GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Red, false);
+		GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Red);
 	}
 	
 	if (HasMusicianReceivedInput && IsConductorOnTheRightPitch)
@@ -310,8 +322,15 @@ void UMusicWorldSubsystem::LostQTE()
 
 	
 	// Go down of one note possible when you failed the qte.
-	CurrentFailNotePossible = FMath::Clamp(CurrentFailNotePossible--, MaxFailNotePossible, 0);
+	CurrentFailNotePossible--;
 
+	// Because we have to go to the next note if we lost the qte we have to give to the tempo the TimeTolerance
+	// It's only if we reach the MaxPossibleFailNote that we lost.
+	Tempo = TimeTolerance * MusicGlobalSpeed;
+
+	// Increment to the next note.
+	SetCurrentWaitingNoteIndex(GetCurrentWaitingNoteIndex() + 1);
+	
 	// If the max note possible to fail has been achieved you go out of the music state without the skeletons.
 	if (CurrentFailNotePossible <= 0)
 	{
