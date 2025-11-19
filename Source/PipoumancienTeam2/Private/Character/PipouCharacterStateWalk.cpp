@@ -3,8 +3,8 @@
 
 
 #include "Character/PipouCharacterStateWalk.h"
-
-#include "Camera/CameraWorldSubsystem.h" // ADDED
+#include "Camera/CameraWorldSubsystem.h"
+#include "Camera/CameraComponent.h"
 #include "Character/PipouCharacter.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
@@ -19,8 +19,6 @@ void UPipouCharacterStateWalk::StateEnter(EPipouCharacterStateID PreviousStateID
 {
 	Super::StateEnter(PreviousStateID);
 	Character->GetMesh()->PlayAnimation(WalkAnim, true);
-
-	Character->GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
 }
 
 void UPipouCharacterStateWalk::StateTick(float Deltatime)
@@ -46,8 +44,11 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 	}
 	else
 	{
-		FVector MoveDir = Character->CameraActor->GetActorForwardVector() * FMath::Sign(Character->GetInputMoveXY().Y);
-		MoveDir += Character->CameraActor->GetActorRightVector() * FMath::Sign(Character->GetInputMoveXY().X);
+		UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
+		if (!CameraWorldSubsystem) return;
+		
+		FVector MoveDir = CameraWorldSubsystem->CameraMain->GetForwardVector() * FMath::Sign(Character->GetInputMoveXY().Y);
+		MoveDir += CameraWorldSubsystem->CameraMain->GetRightVector() * FMath::Sign(Character->GetInputMoveXY().X);
 		MoveDir.Normalize();
 		Character->SetOrientXY(FVector2D(MoveDir.X, MoveDir.Y));
 		FVector NextPos = Character->GetActorLocation() +  MoveDir * MoveSpeed;
@@ -88,5 +89,4 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 void UPipouCharacterStateWalk::StateExit(EPipouCharacterStateID NextStateID)
 {
 	Super::StateExit(NextStateID);
-
 }

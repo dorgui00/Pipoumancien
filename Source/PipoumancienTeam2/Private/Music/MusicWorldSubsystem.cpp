@@ -55,7 +55,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	if (!IsInWorldStateMusic) return;
-	
+
 	if (IsInCountDown)
 	{
 		TimerCountDown -= DeltaTime;
@@ -103,9 +103,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			// Is Awaiting Reply
 			if (Tempo >= ((CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * MusicGlobalSpeed) && !IsAwaitingReply)
 			{
-				// GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Red, FString::Printf(TEXT("INPUT : %s"), *CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].InputAction->GetName()), true, FVector2D(2, 2));
-				// GEngine->AddOnScreenDebugMessage(-1, TimeTolerance * 2, FColor::Blue, FString::Printf(TEXT("PITCH : %f"), CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Pitch), true, FVector2D(2, 2));
-
+				// CurrentNoteSlot->NoteImage->SetColorAndOpacity(FLinearColor::Green);
 				IsAwaitingReply = true;
 				return;
 			}
@@ -127,9 +125,10 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 					else
 					{
 						GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Go Next Note")), true, FVector2D(2, 2));
+						CurrentNoteSlot->NoteImage->SetColorAndOpacity({0.5, 0.5, 0.5, 1.0f});
 						
 						Tempo = TimeTolerance * MusicGlobalSpeed;
-						CurrentWaitingNoteIndex++;
+						SetCurrentWaitingNoteIndex(GetCurrentWaitingNoteIndex() + 1);
 					}
 				}
 				// lost qte time
@@ -236,20 +235,20 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 
 	if (HasMusicianReceivedInput)
 	{
-		GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Green);
+		GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Green, true);
 	}
 	else
 	{
-		GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Red);
+		GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Red, false);
 	}
 
 	if (IsConductorOnTheRightPitch)
 	{
-		GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Green);
+		GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Green, true);
 	}
 	else
 	{
-		GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Red);
+		GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Red, false);
 	}
 	
 	if (HasMusicianReceivedInput && IsConductorOnTheRightPitch)
@@ -268,11 +267,24 @@ void UMusicWorldSubsystem::LostQTE()
 	// Rewind the partition in UI.
 	GlobalHUDSubsystem->RewindPartition(RewindNoteIndex, CurrentSkeleton->MySkeleton->Notes[RewindNoteIndex]);
 
+	// Change back to blue the color of the Slot Note.
+	UMusicNote* RewindNoteSlote1 = GlobalHUDSubsystem->NotesInstanciated[RewindNoteIndex];
+	if (!RewindNoteSlote1) return;
+
+	UMusicNote* RewindNoteSlote2 = GlobalHUDSubsystem->NotesInstanciated[RewindNoteIndex + 1];
+	if (!RewindNoteSlote2) return;
+	
+	RewindNoteSlote1->NoteImage->SetColorAndOpacity(FLinearColor::Blue);
+	RewindNoteSlote2->NoteImage->SetColorAndOpacity(FLinearColor::Blue);
+
 	// Set the CurrentNoteIndex to the NewNote after going to 2 previous notes.
 	SetCurrentWaitingNoteIndex(RewindNoteIndex);
 
 	// Restart countdown.
 	StartCountDown();
+
+	// Set Tempo to the Note you have to play + PreviewTime.
+	Tempo = (CurrentSkeleton->MySkeleton->Notes[GetCurrentWaitingNoteIndex()].Frequency - GlobalHUDSubsystem->PreviewTime) * MusicGlobalSpeed;
 }
 
 void UMusicWorldSubsystem::StartCountDown()

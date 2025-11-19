@@ -7,7 +7,6 @@
 #include "PipouCharacterStateID.h"
 #include "PipouCharacterState.generated.h"
 
-class USubsystemSettings;
 class ASkeletonController;
 class UInputAction;
 struct FInputActionValue;
@@ -50,12 +49,6 @@ protected:
 
 	UPROPERTY()
 	ASkeletonController* Skeleton = nullptr;
-
-	UFUNCTION()
-	virtual void InitSubsytemSettings();
-
-	UPROPERTY()
-	const USubsystemSettings* SubsytemSettings = nullptr;
 	
 	UFUNCTION()
 	virtual void OnCharacterPressedNote(UInputAction* InputAction);

@@ -28,7 +28,7 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 	InitSliderPitchSpeed();
 	SetMusicManager();
 
-	UE_LOG(LogTemp, Error, TEXT("Entre dans le state music"));
+	// UE_LOG(LogTemp, Display, TEXT("Entre dans le state music"));
 
 	Character->InputPressedNoteEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputTriggeredNoteEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
@@ -79,14 +79,16 @@ void UPipouCharacterStateMusic::InitInputPitch()
 
 void UPipouCharacterStateMusic::InitSliderPitchSpeed()
 {
-	//SliderPitchSpeed = SubsytemSettings->SliderPitchSpeed;
+	const TObjectPtr<USubsystemSettings> SubsystemSettings;
+	if (!SubsystemSettings) return;
+	
+	SliderPitchSpeed = SubsystemSettings->SliderPitchSpeed;
 }
 
 void UPipouCharacterStateMusic::SetMusicManager()
 {
 	MusicWorldSubsystem = GetWorld()->GetSubsystem<UMusicWorldSubsystem>();
 }
-
 
 // Event Delegates
 void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionValue)
@@ -113,9 +115,9 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 		{
 			MusicWorldSubsystem->ReceivedMusicianInput();
 		}
-		else
+		else if (!MusicWorldSubsystem->IsAwaitingReply && !MusicWorldSubsystem->IsInCountDown)
 		{
-			MusicWorldSubsystem->LostQTE();
+			 MusicWorldSubsystem->LostQTE();
 		}
 	}
 }

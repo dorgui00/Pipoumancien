@@ -61,6 +61,11 @@ public:
 	
 	#pragma endregion
 
+	#pragma region Countdown
+	bool IsInCountDown = false;
+	
+	#pragma endregion
+
 	#pragma region Utilities
 	void InitMusic(ASkeletonController* Skeleton);
 
@@ -77,8 +82,6 @@ protected:
 
 private:
 	#pragma region Countdown
-	bool IsInCountDown = false;
-	
 	float TimerCountDown = 3.f;
 
 	void StartCountDown();
