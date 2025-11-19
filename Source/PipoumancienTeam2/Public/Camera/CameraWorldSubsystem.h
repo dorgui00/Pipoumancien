@@ -135,16 +135,15 @@ public :
 	// Lerp cameras
 
 	ECameraState CameraState;
+	ECameraState PreviousState;
 
 	void SetMusicCamera();
 
 	void SetGlobalCamera();
 
 protected :
-	FTransform AimedCameraTransform;
 	
 	bool IsSettingCamera = false;
-	bool IsWorldTransform = false;
 
 	FTransform StartComponentTransform;
 	FTransform EndComponentTransform;
@@ -158,13 +157,16 @@ protected :
 	void FinishMusicCameraLerp();
 	void FinishGlobalCameraLerp();
 
-	ECameraState PreviousState;
-
 	void AssignAllCameras();
 	void InitMainCamera();
-	
+
+	UPROPERTY()
 	TObjectPtr<UCameraComponent> GlobalCamera;
+
+	UPROPERTY()
 	TObjectPtr<UCameraComponent> MusicCamera;
+
+	UPROPERTY()
 	TObjectPtr<UCameraComponent> DialogueCamera;
 	
 #pragma endregion

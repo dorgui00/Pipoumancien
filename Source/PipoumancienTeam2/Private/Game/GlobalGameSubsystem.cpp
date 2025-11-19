@@ -125,7 +125,19 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 
 void UGlobalGameSubsystem::SetWorldTransportState()
 {
-	WorldState = EWorldState::WorldTransport; 
+	UE_LOG(LogTemp, Display, TEXT("World State Transport"));
+	
+	// WORLD STATE
+	WorldState = EWorldState::WorldTransport;
+
+	// Pipou IDLE
+	for (APipouCharacter* PipouCharacter : PipouCharacters)
+	{
+		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
+	}
+
+	// Add Follow Component
+	GetCurrentSkeleton()->SetSkeletonForTransport();
 }
 
 

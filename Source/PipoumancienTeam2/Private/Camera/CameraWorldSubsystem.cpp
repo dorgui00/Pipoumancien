@@ -425,7 +425,7 @@ void UCameraWorldSubsystem::SetDialogueCamera(APipouCharacter* Interactor, ASkel
 	// on set relative rot au EndComponentTransform
 	EndComponentTransform.SetRotation(RelativeRot);
 	
-	// Update state
+	// STATE
 	PreviousState = CameraState;
     CameraState = ECameraState::DialogueCamera;
 
@@ -509,6 +509,13 @@ void UCameraWorldSubsystem::FinishMusicCameraLerp()
 
 void UCameraWorldSubsystem::FinishGlobalCameraLerp()
 {
+	// Switch to transport by Game Instance
+	// could switch by previous camera state
+	UGlobalGameSubsystem* GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
+	if (GlobalGameSubsystem->GetWorldState() == EWorldState::WorldMusic)
+	{
+		GlobalGameSubsystem ->SetWorldTransportState();
+	}
 }
 
 
