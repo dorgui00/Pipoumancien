@@ -42,13 +42,15 @@ public :
 	UPROPERTY()
 	TObjectPtr<UCameraComponent> CameraMain;
 
-	void OnPostLoadMap(UWorld* LoadedWorld);
+	void OnWorldInitializedActors(const UWorld::FActorsInitializedParams& Params);
 
 	//broadcasted in gamemode
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCamerasReady);
 
 	UPROPERTY()
 	FOnCamerasReady OnCamerasReady;
+
+	void InitCameraSubsystem();
 	
 protected:
 	FTransform InitMainCameraTransform;

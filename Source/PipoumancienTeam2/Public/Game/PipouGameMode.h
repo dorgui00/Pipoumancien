@@ -19,7 +19,9 @@ class PIPOUMANCIENTEAM2_API APipouGameMode : public AGameModeBase
 	GENERATED_BODY()
 
 public:
+	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	//Cameras
 	UPROPERTY()

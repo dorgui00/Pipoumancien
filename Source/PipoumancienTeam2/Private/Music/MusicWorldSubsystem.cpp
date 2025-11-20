@@ -253,42 +253,44 @@ void UMusicWorldSubsystem::LostMelody()
 
 bool UMusicWorldSubsystem::HasAchievedQte()
 {
-	UMusicNote* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
-	USlider* Slider = GlobalHUDSubsystem->WBPResurrectionInstance->PitchSlider;
+	// UMusicNote* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
+	// USlider* Slider = GlobalHUDSubsystem->WBPResurrectionInstance->PitchSlider;
+	//
+	// if (!Slider || !CurrentNoteSlot || !GetCurrentWaitingNote())
+	// {
+	// 	UE_LOGFMT(LogTemp, Error, "Has not achived QTE because one reference or several references are null ! ");
+	// 	return false;
+	// }
+	//
+	//  IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch >= CurrentCursorValue - PitchTolerance
+	// 	&& GetCurrentWaitingNote()->Pitch <= CurrentCursorValue + PitchTolerance;
+	//
+	// if (HasMusicianReceivedInput)
+	// {
+	// 	GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Green);
+	// }
+	// else
+	// {
+	// 	GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Red);
+	// }
+	//
+	// if (IsConductorOnTheRightPitch)
+	// {
+	// 	GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Green);
+	// }
+	// else
+	// {
+	// 	GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Red);
+	// }
+	//
+	// if (HasMusicianReceivedInput && IsConductorOnTheRightPitch)
+	// {
+	// 	return true;
+	// }
+	//
+	// return false;
 
-	if (!Slider || !CurrentNoteSlot || !GetCurrentWaitingNote())
-	{
-		UE_LOGFMT(LogTemp, Error, "Has not achived QTE because one reference or several references are null ! ");
-		return false;
-	}
-	
-	 IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch >= CurrentCursorValue - PitchTolerance
-		&& GetCurrentWaitingNote()->Pitch <= CurrentCursorValue + PitchTolerance;
-
-	if (HasMusicianReceivedInput)
-	{
-		GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Green);
-	}
-	else
-	{
-		GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Red);
-	}
-
-	if (IsConductorOnTheRightPitch)
-	{
-		GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Green);
-	}
-	else
-	{
-		GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Red);
-	}
-	
-	if (HasMusicianReceivedInput && IsConductorOnTheRightPitch)
-	{
-		return true;
-	}
-	
-	return false;
+	return true;
 }
 
 void UMusicWorldSubsystem::LostQTE()

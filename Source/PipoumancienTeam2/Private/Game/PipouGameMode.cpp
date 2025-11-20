@@ -15,17 +15,41 @@
 
 class AGameManager;
 
+void APipouGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+	Super::InitGame(MapName, Options, ErrorMessage);
+
+	
+	// Init the camera main in the CameraWorldSubsystem.
+	// if (UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
+	// 	CameraWorldSubsystem->OnCamerasReady.AddDynamic(this, &APipouGameMode::OnCamerasReady);
+}
+
 void APipouGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
 	CreateAndInitPlayers();
 	FindPlayerStartActorsInScene(PlayerStartsPoint);
-	
-	
+
 	// Init the camera main in the CameraWorldSubsystem.
 	if (UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
-		CameraWorldSubsystem->OnCamerasReady.AddDynamic(this, &APipouGameMode::OnCamerasReady);
+		CameraWorldSubsystem->InitCameraSubsystem();
+
+	// Init the camera main variable in this script with the one in the CameraWorldSubsystem.
+	GetCamera();
+	
+	SpawnCharacters(PlayerStartsPoint);
+	
+}
+
+void APipouGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+
+	// if (UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
+	// 	CameraWorldSubsystem->OnCamerasReady.RemoveDynamic(this, &APipouGameMode::OnCamerasReady);
+	
+	Super::EndPlay(EndPlayReason);
 }
 
 UPipouCharacterInputData* APipouGameMode::LoadInputDataFromConfig()
