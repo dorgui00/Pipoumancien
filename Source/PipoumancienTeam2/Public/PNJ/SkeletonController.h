@@ -50,9 +50,9 @@ protected:
 	void BeginOverlaps(UPrimitiveComponent* OverlappedComp,AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,int32 OtherBodyIndex,bool bFromSweep,const FHitResult& SweepResult);
 	
-	// UFUNCTION()
-	// void EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	// 	UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
+	UFUNCTION()
+	void EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
 
 	int ValutFrase = 0;
 
