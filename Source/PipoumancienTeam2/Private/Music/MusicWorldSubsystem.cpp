@@ -59,6 +59,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 
 	if (!IsInWorldStateMusic) return;
 
+	UE_LOGFMT(LogTemp, Warning, "{0}", CurrentFailNotePossible);
 
 	if (IsInCountDown)
 	{
@@ -295,26 +296,6 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 
 void UMusicWorldSubsystem::LostQTE()
 {
-	// EDITING MAIN MECHANIC
-	// // Going from 2 previous notes without exceed 0.
-	// int RewindNoteIndex = FMath::Max(0, CurrentWaitingNoteIndex - 2);
-	// // Rewind the partition in UI.
-	// GlobalHUDSubsystem->RewindPartition(RewindNoteIndex, CurrentSkeleton->MySkeleton->Notes[RewindNoteIndex]);
-	// // Change back to blue the color of the Slot Note.
-	// UMusicNote* RewindNoteSlote1 = GlobalHUDSubsystem->NotesInstanciated[RewindNoteIndex];
-	// if (!RewindNoteSlote1) return;
-	// UMusicNote* RewindNoteSlote2 = GlobalHUDSubsystem->NotesInstanciated[RewindNoteIndex + 1];
-	// if (!RewindNoteSlote2) return;
-	// RewindNoteSlote1->NoteImage->SetColorAndOpacity(FLinearColor::Blue);
-	// RewindNoteSlote2->NoteImage->SetColorAndOpacity(FLinearColor::Blue);
-	// // Set the CurrentNoteIndex to the NewNote after going to 2 previous notes.
-	// SetCurrentWaitingNoteIndex(RewindNoteIndex);
-	// // Restart countdown.
-	// StartCountDown();
-	// // Set Tempo to the Note you have to play - PreviewTime.
-	// Tempo = (CurrentSkeleton->MySkeleton->Notes[GetCurrentWaitingNoteIndex()].Frequency - GlobalHUDSubsystem->PreviewTime) * MusicGlobalSpeed;
-
-	
 	// Go down of one note possible when you failed the qte.
 	CurrentFailNotePossible--;
 
@@ -345,6 +326,8 @@ void UMusicWorldSubsystem::StartCountDown()
 	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Start CountDown de 3 sec")), true, FVector2D(2, 2));
 	
 	Tempo = 0.f;
+	IsLerpingOffset = true;
+	TimerLerpingOffset = 0.f;
 	IsInCountDown = true;
 }
 
