@@ -28,7 +28,6 @@ class PIPOUMANCIENTEAM2_API UCameraWorldSubsystem : public UTickableWorldSubsyst
 
 #pragma region SubsystemsOverride
 public :
-	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void PostInitialize() override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Tick(float DeltaTime) override;
@@ -41,15 +40,7 @@ public :
 	
 	UPROPERTY()
 	TObjectPtr<UCameraComponent> CameraMain;
-
-	void OnWorldInitializedActors(const UWorld::FActorsInitializedParams& Params);
-
-	//broadcasted in gamemode
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCamerasReady);
-
-	UPROPERTY()
-	FOnCamerasReady OnCamerasReady;
-
+	
 	void InitCameraSubsystem();
 	
 protected:
