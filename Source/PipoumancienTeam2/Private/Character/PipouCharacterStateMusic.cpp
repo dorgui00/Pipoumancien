@@ -8,6 +8,7 @@
 #include "Data/F_Note.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
+#include "Logging/StructuredLog.h"
 #include "Music/MusicWorldSubsystem.h"
 #include "Settings/SubsystemSettings.h"
 #include "UI/GlobalHUDSubsystem.h"
@@ -46,7 +47,7 @@ void UPipouCharacterStateMusic::StateExit(EPipouCharacterStateID NextStateID)
 	Super::StateExit(NextStateID);
 
 	Character->InputPressedNoteEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
-	Character->InputTriggeredNoteEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
+	Character->InputTriggeredNoteEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterTriggeredNote);
 	Character->InputPitchEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);
 	Character->InputPitchCompleted.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitchCompleted);
 }
@@ -81,7 +82,7 @@ void UPipouCharacterStateMusic::InitInputPitch()
 
 void UPipouCharacterStateMusic::InitSliderPitchSpeed()
 {
-	const TObjectPtr<USubsystemSettings> SubsystemSettings;
+	const USubsystemSettings* SubsystemSettings = GetDefault<USubsystemSettings>();
 	if (!SubsystemSettings) return;
 	
 	MaxPitchSpeed = SubsystemSettings->MaxSpeedPitch;
@@ -107,6 +108,10 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 		{
 			SliderPitchSpeed = MaxPitchSpeed;
 		}
+
+		UE_LOGFMT(LogTemp, Warning, "Current: {0}", SliderPitchSpeed);
+		UE_LOGFMT(LogTemp, Warning, "Max: {0}", MaxPitchSpeed);
+		UE_LOGFMT(LogTemp, Warning, "Accel: {0}", AccelerationPitchSpeed);
 		
 		MusicWorldSubsystem->CurrentCursorValue = FMath::Clamp(MusicWorldSubsystem->CurrentCursorValue + InputActionValue.Get<float>() * SliderPitchSpeed,
 			-1.f, 1.0f);
@@ -120,8 +125,9 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 
 void UPipouCharacterStateMusic::OnCharacterPitchCompleted()
 {
-	SliderPitchSpeed = InitPitchSpeedValue;	
+	SliderPitchSpeed = InitPitchSpeedValue;
 }
+
 
 void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction)
 {
@@ -131,12 +137,20 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 		{
 			MusicWorldSubsystem->ReceivedMusicianInput();
 		}
-		// else if (!MusicWorldSubsystem->IsAwaitingReply && !MusicWorldSubsystem->IsInCountDown)
-		// {
-		// 	MusicWorldSubsystem->LostQTE();
-		// }
+		else if (!MusicWorldSubsystem->IsAwaitingReply && !MusicWorldSubsystem->IsInCountDown && !HasPressedNotes)
+		{
+			HasPressedNotes = true;
+			
+			MusicWorldSubsystem->CurrentFailNotePossible--;
+
+			if (MusicWorldSubsystem->CurrentFailNotePossible <= 0)
+			{
+				MusicWorldSubsystem->LostMelody();
+			}
+		}
 	}
 }
+
 
 
 

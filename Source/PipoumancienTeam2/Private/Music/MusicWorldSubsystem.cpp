@@ -59,14 +59,14 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 
 	if (!IsInWorldStateMusic) return;
 
-	UE_LOGFMT(LogTemp, Warning, "{0}", CurrentFailNotePossible);
+	// UE_LOGFMT(LogTemp, Warning, "{0}", CurrentFailNotePossible);
 
 	if (IsInCountDown)
 	{
 		TimerCountDown -= DeltaTime;
 
 		// Finish Countdown
-		if (TimerCountDown<=0)
+		if (TimerCountDown <= 0)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Finish CountDown")), true, FVector2D(2, 2));
 			
@@ -254,44 +254,42 @@ void UMusicWorldSubsystem::LostMelody()
 
 bool UMusicWorldSubsystem::HasAchievedQte()
 {
-	// UMusicNote* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
-	// USlider* Slider = GlobalHUDSubsystem->WBPResurrectionInstance->PitchSlider;
-	//
-	// if (!Slider || !CurrentNoteSlot || !GetCurrentWaitingNote())
-	// {
-	// 	UE_LOGFMT(LogTemp, Error, "Has not achived QTE because one reference or several references are null ! ");
-	// 	return false;
-	// }
-	//
-	//  IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch >= CurrentCursorValue - PitchTolerance
-	// 	&& GetCurrentWaitingNote()->Pitch <= CurrentCursorValue + PitchTolerance;
-	//
-	// if (HasMusicianReceivedInput)
-	// {
-	// 	GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Green);
-	// }
-	// else
-	// {
-	// 	GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Red);
-	// }
-	//
-	// if (IsConductorOnTheRightPitch)
-	// {
-	// 	GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Green);
-	// }
-	// else
-	// {
-	// 	GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Red);
-	// }
-	//
-	// if (HasMusicianReceivedInput && IsConductorOnTheRightPitch)
-	// {
-	// 	return true;
-	// }
-	//
-	// return false;
-
-	return true;
+	UMusicNote* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
+	USlider* Slider = GlobalHUDSubsystem->WBPResurrectionInstance->PitchSlider;
+	
+	if (!Slider || !CurrentNoteSlot || !GetCurrentWaitingNote())
+	{
+		UE_LOGFMT(LogTemp, Error, "Has not achived QTE because one reference or several references are null ! ");
+		return false;
+	}
+	
+	 IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch >= CurrentCursorValue - PitchTolerance
+		&& GetCurrentWaitingNote()->Pitch <= CurrentCursorValue + PitchTolerance;
+	
+	if (HasMusicianReceivedInput)
+	{
+		GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Green);
+	}
+	else
+	{
+		GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Red);
+	}
+	
+	if (IsConductorOnTheRightPitch)
+	{
+		GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Green);
+	}
+	else
+	{
+		GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Red);
+	}
+	
+	if (HasMusicianReceivedInput && IsConductorOnTheRightPitch)
+	{
+		return true;
+	}
+	
+	return false;
 }
 
 void UMusicWorldSubsystem::LostQTE()
