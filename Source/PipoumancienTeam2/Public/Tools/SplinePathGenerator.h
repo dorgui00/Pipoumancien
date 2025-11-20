@@ -5,6 +5,18 @@
 #include "Components/SplineComponent.h"
 #include "SplinePathGenerator.generated.h"
 
+USTRUCT()
+struct FSavedSplineData
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    TArray<FVector> Points;
+
+    UPROPERTY()
+    bool bClosedLoop = false;
+};
+
 UCLASS()
 class PIPOUMANCIENTEAM2_API ASplinePathGenerator : public AActor
 {
@@ -12,6 +24,9 @@ class PIPOUMANCIENTEAM2_API ASplinePathGenerator : public AActor
 
 public:
     ASplinePathGenerator();
+
+    UPROPERTY(VisibleAnywhere, Category = "Splines")
+    TArray<USplineComponent*> GeneratedSplines;
 
     UPROPERTY(EditAnywhere, Category = "Spline Setup")
     TArray<AActor*> StartPoints;
@@ -30,6 +45,9 @@ public:
     void RegenerateSplines();
 
     UFUNCTION(CallInEditor, Category = "Spline Tools")
+    void RestorePreviousSplines();
+
+    UFUNCTION(CallInEditor, Category = "Spline Tools")
     void ClearSplines();
 
     UFUNCTION(CallInEditor, Category = "Spline Tools")
@@ -44,8 +62,11 @@ public:
 #endif
 
 private:
+
+#if WITH_EDITORONLY_DATA
     UPROPERTY(Transient)
-    TArray<USplineComponent*> GeneratedSplines;
+    TArray<FSavedSplineData> BackupSplines;
+#endif
 
 protected:
     virtual void BeginPlay() override;

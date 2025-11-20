@@ -329,7 +329,10 @@ void UMusicWorldSubsystem::LostQTE()
 	Tempo = TimeTolerance * MusicGlobalSpeed;
 
 	// Increment to the next note.
-	SetCurrentWaitingNoteIndex(GetCurrentWaitingNoteIndex() + 1);
+	if (GetCurrentWaitingNoteIndex() < CurrentSkeleton->MySkeleton->Notes.Num() - 1)
+	{
+		SetCurrentWaitingNoteIndex(GetCurrentWaitingNoteIndex() + 1);
+	}
 	
 	// If the max note possible to fail has been achieved you go out of the music state without the skeletons.
 	if (CurrentFailNotePossible <= 0)

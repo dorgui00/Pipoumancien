@@ -82,6 +82,15 @@ void UGlobalHUDSubsystem::RemoveResurrectionWidget()
 	}
 }
 
+void UGlobalHUDSubsystem::DisplayFinishMelodyFinish()
+{
+	
+}
+
+void UGlobalHUDSubsystem::DisplayFailedMelodyFinish()
+{
+}
+
 void UGlobalHUDSubsystem::SpawnNotesPartition(const ASkeletonController* CurrentSkeleton)
 {
 	if (WBPNoteClass == nullptr) return;
