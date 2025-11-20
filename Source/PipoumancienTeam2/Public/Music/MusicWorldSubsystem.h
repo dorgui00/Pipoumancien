@@ -42,6 +42,12 @@ public:
 	UPROPERTY()
 	float MusicGlobalSpeed = 1.f;
 
+	UPROPERTY()
+	int CurrentFailNotePossible;
+
+	UPROPERTY()
+	int MaxFailNotePossible = 5;
+
 	// Tolerance for the player to play the QTE.
 	float TimeTolerance = 0.2f;
 
@@ -108,7 +114,9 @@ private:
 	// Tempo handle all the music rythm.
 	float Tempo = 0.f;
 	
-	void FinishMelody();
+	void SucceedMelody();
+
+	void LostMelody();
 
 	float PitchTolerance = 0.2f;
 
