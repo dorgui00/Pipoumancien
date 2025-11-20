@@ -12,6 +12,13 @@ class UGlobalGameSubsystem;
 struct F_Note;
 struct F_Skeleton;
 
+enum class MelodyType : uint8
+{
+	NONE,
+	SUCCEED,
+	FAILED
+};
+
 UCLASS(Blueprintable)
 class PIPOUMANCIENTEAM2_API UMusicWorldSubsystem : public UTickableWorldSubsystem
 {
@@ -59,6 +66,8 @@ public:
 
 	// When you're not at the right time for the QTE.
 	void LostQTE();
+
+	MelodyType GetMelodyType() const;
 	
 	#pragma endregion
 
@@ -122,6 +131,7 @@ private:
 
 	bool HasAchievedQte();
 
+	MelodyType MelodyState = MelodyType::NONE;
 
 	#pragma endregion
 

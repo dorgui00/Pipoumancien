@@ -38,6 +38,10 @@ public:
 
 	// Remove the resurrection widget from screen.
 	void RemoveResurrectionWidget();
+	
+	void DisplayFinishMelodyFinish();
+
+	void DisplayFailedMelodyFinish();
 
 	// Note Widget Class.
 	UPROPERTY()
