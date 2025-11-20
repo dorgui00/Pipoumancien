@@ -23,7 +23,6 @@ UAC_SkeletonFollower::UAC_SkeletonFollower()
 {
     PrimaryComponentTick.bCanEverTick = true;
 
-    UE_LOG(LogTemp, Display, TEXT("UAC_SkeletonFollower Added"));
 }
 
 void UAC_SkeletonFollower::BeginPlay()
@@ -320,10 +319,13 @@ void UAC_SkeletonFollower::OnParentHit(AActor* SelfActor, AActor* OtherActor,
         }
     }
 
+    // On enter village
     if (bIsVillageBorder)
-    {
+    {   
         bCanFollowPlayers = false;
         bStartFollowing = false;
+
+        OnEnterVillage.Broadcast();
     }
 }
 
@@ -346,11 +348,14 @@ void UAC_SkeletonFollower::OnParentOverlap(AActor* OverlappedActor, AActor* Othe
     if (!bIsVillageBorder)
         return;
 
+    // On enter village
     UE_LOG(LogTemp, Warning, TEXT("[SkeletonFollower] VillageBorder overlap detected with %s"),
         *GetNameSafe(OtherActor));
 
     bCanFollowPlayers = false;
     bStartFollowing = false;
+
+    OnEnterVillage.Broadcast();
 
     if (UWorld* World = GetWorld())
     {

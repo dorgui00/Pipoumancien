@@ -36,8 +36,6 @@ private:
 	UInputMappingContext* LoadInputMappingContextFromConfig();
 
 	// Cameras
-	UFUNCTION()
-	void OnCamerasReady();
 	void GetCamera();
 
 	// Players

@@ -8,11 +8,22 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "SkeletonController.generated.h"
 
+class UAC_SkeletonFollower;
 class UUIDialoge;
 class UGlobalDataTableSubsystem;
 class UDataTableGameInstanceSubsystem;
 class ADB_Manager;
 struct F_Skeleton;
+
+
+enum class ESkeletonState : uint8{
+	None = 0,
+	Dead = 1,
+	Transport = 2,
+	BackToHome = 3, // follow spline to go back home
+	Dialogue = 3, // reached his home
+};
+
 
 UCLASS()
 class PIPOUMANCIENTEAM2_API ASkeletonController : public AActor
@@ -22,6 +33,29 @@ class PIPOUMANCIENTEAM2_API ASkeletonController : public AActor
 public:
 	// Sets default values for this actor's properties
 	ASkeletonController();
+	virtual ~ASkeletonController() override;
+	
+	// Override
+	virtual void Tick(float DeltaTime) override;
+
+	//Skeleton Controller
+	F_Skeleton* MySkeleton;
+
+	// STATE
+	ESkeletonState GetState() const;
+	
+	// Transport
+	void SetSkeletonForTransport();
+
+	//Village
+	UFUNCTION()
+	void OnEnterVillage();  // in BackToHome state
+	
+	// Dialogue
+	void SetSkeletonForDialogue(); // in dialogue state
+
+	UFUNCTION()
+	void OnReachHome(); 
 
 protected:
 	// Called when the game starts or when spawned
@@ -55,14 +89,13 @@ protected:
 		UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
 
 	int ValutFrase = 0;
-
-
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	F_Skeleton* MySkeleton;
-
-	void SetSkeletonForTransport();
 	
+private :
+	
+	// STATE
+	ESkeletonState MyState = ESkeletonState::Dead;
+
+	// FOLLOW
+	UPROPERTY()
+	TObjectPtr<UAC_SkeletonFollower> FollowComponent ;
 };
