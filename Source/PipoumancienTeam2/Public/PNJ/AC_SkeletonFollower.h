@@ -34,6 +34,9 @@ public:
     UPROPERTY(EditAnywhere, Category = "Follow|Spline")
     bool bOrientToSpline = true;
 
+    UFUNCTION(BlueprintCallable, Category = "Follow")
+    bool IsStartFollowing() const { return bStartFollowing; }
+
     UPROPERTY(EditAnywhere, Category = "PathGen|Circles", meta = (ClampMin = "0"))
     float PlayerCircleRadius = 300.f;
 
