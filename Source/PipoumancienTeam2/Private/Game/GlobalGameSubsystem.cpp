@@ -140,5 +140,19 @@ void UGlobalGameSubsystem::SetWorldTransportState()
 	GetCurrentSkeleton()->SetSkeletonForTransport();
 }
 
+void UGlobalGameSubsystem::SetWorldFreeState()
+{
+	UE_LOG(LogTemp, Display, TEXT("World State Free"));
+	
+	// WORLD STATE
+	WorldState = EWorldState::WorldFree;
+
+	// Pipou IDLE
+	for (APipouCharacter* PipouCharacter : PipouCharacters)
+	{
+		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
+	}
+}
+
 
 

@@ -525,7 +525,10 @@ void UCameraWorldSubsystem::FinishGlobalCameraLerp()
 	UGlobalGameSubsystem* GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
 	if (GlobalGameSubsystem->GetWorldState() == EWorldState::WorldMusic)
 	{
-		GlobalGameSubsystem ->SetWorldTransportState();
+		//if ()
+		//{
+			GlobalGameSubsystem ->SetWorldTransportState();
+		//}
 	}
 }
 
