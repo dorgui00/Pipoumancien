@@ -21,23 +21,32 @@ class PIPOUMANCIENTEAM2_API APipouGameMode : public AGameModeBase
 public:
 	virtual void BeginPlay() override;
 
+	//Cameras
 	UPROPERTY()
 	TObjectPtr<UCameraComponent> CameraMain;
 	
 protected:
+	// players
 	UPROPERTY()
 	TArray<APipouCharacter*> CharactersInMap;
 	
 private:
+	// Inputs
 	UPipouCharacterInputData* LoadInputDataFromConfig();
 	UInputMappingContext* LoadInputMappingContextFromConfig();
+
+	// Cameras
+	UFUNCTION()
+	void OnCamerasReady();
+	void GetCamera();
+
+	// Players
+	UPROPERTY()
+	TArray<APlayerStart*> PlayerStartsPoint;
+	void CreateAndInitPlayers();
 	
 	void FindPlayerStartActorsInScene(TArray<APlayerStart*>& ResultActors);
 	void SpawnCharacters(const TArray<APlayerStart*>& SpawnPoints);
 	TSubclassOf<APipouCharacter> GetPipouCharacterFromInputType(EAutoReceiveInput::Type InputType) const;
-
-	void GetCamera();
-
-	void CreateAndInitPlayers();
 
 };

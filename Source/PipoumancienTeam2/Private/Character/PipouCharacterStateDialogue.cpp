@@ -6,7 +6,7 @@
 
 EPipouCharacterStateID UPipouCharacterStateDialogue::GetStateID()
 {
-	return EPipouCharacterStateID::Idle;
+	return EPipouCharacterStateID::Dialogue;
 }
 
 void UPipouCharacterStateDialogue::StateEnter(EPipouCharacterStateID PreviousStateID)

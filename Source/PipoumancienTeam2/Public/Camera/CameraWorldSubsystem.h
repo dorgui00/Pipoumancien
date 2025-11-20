@@ -28,19 +28,27 @@ class PIPOUMANCIENTEAM2_API UCameraWorldSubsystem : public UTickableWorldSubsyst
 
 #pragma region SubsystemsOverride
 public :
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void PostInitialize() override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
-	virtual void OnWorldComponentsUpdated(UWorld& World) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override {return TStatId();};
+
 #pragma endregion
 
-#pragma region MainCamera
+#pragma region Init
 public :
-	void InitCameraSubsystem();
 	
 	UPROPERTY()
 	TObjectPtr<UCameraComponent> CameraMain;
+
+	void OnPostLoadMap(UWorld* LoadedWorld);
+
+	//broadcasted in gamemode
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCamerasReady);
+
+	UPROPERTY()
+	FOnCamerasReady OnCamerasReady;
 	
 protected:
 	FTransform InitMainCameraTransform;
@@ -162,7 +170,6 @@ protected :
 	void FinishGlobalCameraLerp();
 
 	void AssignAllCameras();
-	void AssignMainCamera();
 	void InitMainCamera();
 
 	UPROPERTY()

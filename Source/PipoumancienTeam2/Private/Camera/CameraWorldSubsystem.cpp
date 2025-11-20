@@ -6,10 +6,20 @@
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Logging/StructuredLog.h"
 #include "Music/MusicWorldSubsystem.h"
 #include "PipoumancienTeam2/Public/Camera/CameraFollowTarget.h"
 #include "PNJ/SkeletonController.h"
 
+
+void UCameraWorldSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+
+	FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(
+	   this,
+	   &UCameraWorldSubsystem::OnPostLoadMap);
+}
 
 void UCameraWorldSubsystem::PostInitialize()
 {
@@ -22,35 +32,39 @@ void UCameraWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	
 }
 
-void UCameraWorldSubsystem::OnWorldComponentsUpdated(UWorld& World)
+
+void UCameraWorldSubsystem::OnPostLoadMap(UWorld* LoadedWorld)
 {
-	Super::OnWorldComponentsUpdated(World);
+	if (LoadedWorld != GetWorld())
+		return;
 	
-}
-
-
-void UCameraWorldSubsystem::InitCameraSubsystem()
-{
-	AssignMainCamera();
 	AssignAllCameras();
-	InitMainCamera(); //pos
 	
-	//bounds
-	// AActor* CameraBoundsActor = FindCameraBoundsActor();
-	// if (CameraBoundsActor != nullptr)
-	// {
-	// 	InitCameraBounds(CameraBoundsActor);
-	// }
+	InitMainCamera(); 
 
-	//zoom
-	//InitCameraZoomParameters();
+	OnCamerasReady.Broadcast(); // to update the pipou gamemode
+	
 }
-
 
 void UCameraWorldSubsystem::AssignAllCameras()
 {
 	// get/set main camera
 	AActor* CameraActor = FindCameraActorByTag(TEXT("CameraMain"));
+	
+	//Find Camera in child components
+	TArray<UActorComponent*> Components =  CameraActor->K2_GetComponentsByClass(UCameraComponent::StaticClass());
+
+	for (UActorComponent* Component : Components)
+	{
+		UE_LOG(LogTemp, Display, TEXT("ti"));
+	}
+	
+	CameraMain = FindCameraComponentByTag(CameraActor, ("CameraMain"));
+	if(!CameraMain)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Main Camera is null"));
+		
+	}
 	
 	// Init Dialogue Camera
 	DialogueCamera = FindCameraComponentByTag(CameraActor, ("DialogueCamera"));
@@ -72,21 +86,8 @@ void UCameraWorldSubsystem::AssignAllCameras()
 	{
 		UE_LOG(LogTemp, Error, TEXT("Global Camera is null"));
 	}
-	
 }
 
-void UCameraWorldSubsystem::AssignMainCamera()
-{
-	// get/set main camera
-	AActor* CameraActor = FindCameraActorByTag(TEXT("CameraMain"));
-	
-	CameraMain = FindCameraComponentByTag(CameraActor, ("CameraMain"));
-	if(!CameraMain)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Main Camera is null"));
-	}
-
-}
 
 void UCameraWorldSubsystem::InitMainCamera()
 {
@@ -115,6 +116,7 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 		TickUpdateCameraPosition(DeltaTime);
 	}
 }
+
 
 void UCameraWorldSubsystem::AddFollowTarget(UObject* FollowTarget)
 {

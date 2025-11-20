@@ -20,18 +20,12 @@ void APipouGameMode::BeginPlay()
 	Super::BeginPlay();
 
 	CreateAndInitPlayers();
-	TArray<APlayerStart*> PlayerStartsPoint;
 	FindPlayerStartActorsInScene(PlayerStartsPoint);
-
+	
+	
 	// Init the camera main in the CameraWorldSubsystem.
 	if (UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
-	{
-		CameraWorldSubsystem->InitCameraSubsystem();
-	}
-
-	// Init the camera main variable in this script with the one in the CameraWorldSubsystem.
-	GetCamera();
-	SpawnCharacters(PlayerStartsPoint);
+		CameraWorldSubsystem->OnCamerasReady.AddDynamic(this, &APipouGameMode::OnCamerasReady);
 }
 
 UPipouCharacterInputData* APipouGameMode::LoadInputDataFromConfig()
@@ -46,6 +40,14 @@ UInputMappingContext* APipouGameMode::LoadInputMappingContextFromConfig()
 	const UPipouCharacterSettings* CharacterSettings = GetDefault<UPipouCharacterSettings>();
 	if (CharacterSettings == nullptr) return nullptr;
 	return CharacterSettings->InputMappingContext.LoadSynchronous();
+}
+
+void APipouGameMode::OnCamerasReady()
+{
+	// Init the camera main variable in this script with the one in the CameraWorldSubsystem.
+	GetCamera();
+	
+	SpawnCharacters(PlayerStartsPoint);
 }
 
 void APipouGameMode::FindPlayerStartActorsInScene(TArray<APlayerStart*>& ResultActors)
