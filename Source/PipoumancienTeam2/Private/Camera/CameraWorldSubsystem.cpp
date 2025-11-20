@@ -3,11 +3,10 @@
 #include "Camera/CameraWorldSubsystem.h"
 
 #include "Camera/CameraComponent.h"
-#include "Character/PipouCharacterStateID.h"
-#include "Character/PipouCharacterStateMachine.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Music/MusicWorldSubsystem.h"
 #include "PipoumancienTeam2/Public/Camera/CameraFollowTarget.h"
 #include "PNJ/SkeletonController.h"
 
@@ -23,10 +22,19 @@ void UCameraWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	
 }
 
+void UCameraWorldSubsystem::OnWorldComponentsUpdated(UWorld& World)
+{
+	Super::OnWorldComponentsUpdated(World);
+
+	
+	AssignAllCameras();
+}
+
 
 void UCameraWorldSubsystem::InitCameraSubsystem()
-{	
-	AssignAllCameras();
+{
+	AssignMainCamera();
+	
 	
 	InitMainCamera(); //pos
 	
@@ -41,17 +49,12 @@ void UCameraWorldSubsystem::InitCameraSubsystem()
 	//InitCameraZoomParameters();
 }
 
+
 void UCameraWorldSubsystem::AssignAllCameras()
 {
 	// get/set main camera
 	AActor* CameraActor = FindCameraActorByTag(TEXT("CameraMain"));
 	
-	CameraMain = FindCameraComponentByTag(CameraActor, ("CameraMain"));
-	if(!CameraMain)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Main Camera is null"));
-	}
-
 	// Init Dialogue Camera
 	DialogueCamera = FindCameraComponentByTag(CameraActor, ("DialogueCamera"));
 	if(!DialogueCamera)
@@ -75,9 +78,23 @@ void UCameraWorldSubsystem::AssignAllCameras()
 	
 }
 
+void UCameraWorldSubsystem::AssignMainCamera()
+{
+	// get/set main camera
+	AActor* CameraActor = FindCameraActorByTag(TEXT("CameraMain"));
+	
+	CameraMain = FindCameraComponentByTag(CameraActor, ("CameraMain"));
+	if(!CameraMain)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Main Camera is null"));
+	}
+
+}
+
 void UCameraWorldSubsystem::InitMainCamera()
 {
 	// // set init camera pos (main cam)
+	if (GlobalCamera)
 	CameraMain->SetRelativeLocation(GlobalCamera->GetRelativeLocation());
 	
 	// camera look at rotation
@@ -525,10 +542,15 @@ void UCameraWorldSubsystem::FinishGlobalCameraLerp()
 	UGlobalGameSubsystem* GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
 	if (GlobalGameSubsystem->GetWorldState() == EWorldState::WorldMusic)
 	{
-		//if ()
-		//{
+		UMusicWorldSubsystem* MusicWorldSubsystem = GetWorld()->GetSubsystem<UMusicWorldSubsystem>();
+		if (MusicWorldSubsystem->GetMelodyType()==EMelodyType::SUCCEED)
+		{
 			GlobalGameSubsystem ->SetWorldTransportState();
-		//}
+		}
+		else if (MusicWorldSubsystem->GetMelodyType()==EMelodyType::FAILED)
+		{
+			GlobalGameSubsystem ->SetWorldFreeState();
+		}
 	}
 }
 

@@ -12,7 +12,7 @@ class UGlobalGameSubsystem;
 struct F_Note;
 struct F_Skeleton;
 
-enum class MelodyType : uint8
+enum class EMelodyType : uint8
 {
 	NONE,
 	SUCCEED,
@@ -67,7 +67,7 @@ public:
 	// When you're not at the right time for the QTE.
 	void LostQTE();
 
-	MelodyType GetMelodyType() const;
+	EMelodyType GetMelodyType() const;
 	
 	#pragma endregion
 
@@ -131,7 +131,7 @@ private:
 
 	bool HasAchievedQte();
 
-	MelodyType MelodyState = MelodyType::NONE;
+	EMelodyType MelodyState = EMelodyType::NONE;
 
 	#pragma endregion
 

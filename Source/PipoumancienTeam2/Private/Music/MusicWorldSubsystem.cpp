@@ -222,15 +222,7 @@ void UMusicWorldSubsystem::SucceedMelody()
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
 	
 	// Camera
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::GlobalCamera);
-
-	// TO EDIT (just to fix build)
-	for (APipouCharacter* PipouCharacter : GlobalGameSubsystem->PipouCharacters)
-	{
-		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
-	}
-				
-	GlobalGameSubsystem->GetCurrentSkeleton()->SetSkeletonForTransport();
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
 }
 
 void UMusicWorldSubsystem::LostMelody()
@@ -247,16 +239,8 @@ void UMusicWorldSubsystem::LostMelody()
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
 	
 	// Camera
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::GlobalCamera);
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
 
-	// TO EDIT (just to fix build)
-	for (APipouCharacter* PipouCharacter : GlobalGameSubsystem->PipouCharacters)
-	{
-		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
-	}
-	
-	// Camera
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::GlobalCamera);
 }
 
 bool UMusicWorldSubsystem::HasAchievedQte()
@@ -339,6 +323,11 @@ void UMusicWorldSubsystem::LostQTE()
 	{
 		LostMelody();
 	}
+}
+
+EMelodyType UMusicWorldSubsystem::GetMelodyType() const
+{
+	return MelodyState;
 }
 
 void UMusicWorldSubsystem::StartCountDown()

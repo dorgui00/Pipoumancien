@@ -21,16 +21,16 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category="Inputs")
 	TSoftObjectPtr<UInputMappingContext> InputMappingContext;
 
-	// Sound Inputs 
-	UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
-	TSoftObjectPtr<USoundCue> UpSound;
-
-	UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
-	TSoftObjectPtr<USoundCue> RightSound;
-
-	UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
-	TSoftObjectPtr<USoundCue> DownSound;
-
-	UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
-	TSoftObjectPtr<USoundCue> LeftSound;
+	// // Sound Inputs 
+	// UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
+	// TSoftObjectPtr<USoundCue> UpSound;
+	//
+	// UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
+	// TSoftObjectPtr<USoundCue> RightSound;
+	//
+	// UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
+	// TSoftObjectPtr<USoundCue> DownSound;
+	//
+	// UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
+	// TSoftObjectPtr<USoundCue> LeftSound;
 };
