@@ -48,6 +48,7 @@ void UPipouCharacterStateMusic::StateExit(EPipouCharacterStateID NextStateID)
 	Character->InputPressedNoteEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputTriggeredNoteEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputPitchEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);
+	Character->InputPitchCompleted.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitchCompleted);
 }
 
 // Music
@@ -111,7 +112,7 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 			-1.f, 1.0f);
 
 		UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
-		if (!HUDSubsystem) return;
+		if (!HUDSubsystem || !HUDSubsystem->WBPResurrectionInstance) return;
 
 		HUDSubsystem->WBPResurrectionInstance->SetSliderPitch(MusicWorldSubsystem->CurrentCursorValue);
 	}
@@ -130,6 +131,10 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 		{
 			MusicWorldSubsystem->ReceivedMusicianInput();
 		}
+		// else if (!MusicWorldSubsystem->IsAwaitingReply && !MusicWorldSubsystem->IsInCountDown)
+		// {
+		// 	MusicWorldSubsystem->LostQTE();
+		// }
 	}
 }
 

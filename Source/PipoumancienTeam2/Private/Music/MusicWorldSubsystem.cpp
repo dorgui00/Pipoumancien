@@ -191,6 +191,8 @@ void UMusicWorldSubsystem::ResetMusicianReply()
 #pragma region Music Mechanic
 void UMusicWorldSubsystem::InitMusic(ASkeletonController* Skeleton)
 {
+	MelodyState = EMelodyType::NONE;
+	
 	// Init Data
 	CurrentSkeleton = Skeleton;
 
@@ -213,6 +215,9 @@ void UMusicWorldSubsystem::SucceedMelody()
 	// DEBUG
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")), true, FVector2D(2, 2));
 
+	// SUCCEED
+	MelodyState = EMelodyType::SUCCEED;
+	
 	// Reset Music
 	IsInWorldStateMusic = false;
 	Tempo = 0.f;
@@ -230,6 +235,9 @@ void UMusicWorldSubsystem::LostMelody()
 	// DEBUG
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie raté")), true, FVector2D(2, 2));
 
+	// FAILED
+	MelodyState = EMelodyType::FAILED;
+	
 	// Reset Music
 	IsInWorldStateMusic = false;
 	Tempo = 0.f;

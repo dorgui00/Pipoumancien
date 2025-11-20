@@ -25,17 +25,14 @@ void UCameraWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 void UCameraWorldSubsystem::OnWorldComponentsUpdated(UWorld& World)
 {
 	Super::OnWorldComponentsUpdated(World);
-
 	
-	AssignAllCameras();
 }
 
 
 void UCameraWorldSubsystem::InitCameraSubsystem()
 {
 	AssignMainCamera();
-	
-	
+	AssignAllCameras();
 	InitMainCamera(); //pos
 	
 	//bounds
