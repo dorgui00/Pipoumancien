@@ -2,6 +2,7 @@
 
 #include "F_Skeleton.generated.h"
 
+class USoundCue;
 struct F_Note;
 
 USTRUCT(BlueprintType)
