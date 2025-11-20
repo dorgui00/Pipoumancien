@@ -32,6 +32,9 @@ public:
 	float MusicGlobalSpeed = 1.f;
 
 	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
+	int MaxFailNotePossible = 5;
+
+	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
 	float TimeTolerance = 0.3f;
 
 	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")

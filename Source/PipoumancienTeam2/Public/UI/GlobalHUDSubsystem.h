@@ -106,7 +106,7 @@ public:
 
 	// My template function to be called for either changing color of a slider handle or one of my note 
 	template<class T>
-	void SetObjectColor(T* CurrentObject, FLinearColor NewColor, bool HasAchievedInput)
+	void SetObjectColor(T* CurrentObject, FLinearColor NewColor)
 	{
 		if (!CurrentObject) return;
 
@@ -138,12 +138,10 @@ public:
 		using TObjectClass = std::remove_pointer_t<T>;
 		TWeakObjectPtr<TObjectClass> WeakObj = CurrentObject;
 
-		bool AchievedInput = HasAchievedInput;
-		
 		// Create a timer with our timer event on our WeakObj.
 		GetWorld()->GetTimerManager().SetTimer(
 			Handle,
-			[WeakObj, AchievedInput]()
+			[WeakObj]()
 			{
 				if (!WeakObj.IsValid()) return;
 
@@ -151,7 +149,7 @@ public:
 				T* Obj = WeakObj.Get();
 
 				// Set a default color: blue.
-				FLinearColor DefaultColor = AchievedInput ? FLinearColor::Gray : FLinearColor::Blue;
+				FLinearColor DefaultColor = FLinearColor::Blue;
 
 				// Check if it's a note or a slider to change the color or the slider handle color depending on the object.
 				if constexpr (std::is_same_v<T, UMusicNote>)
@@ -165,7 +163,7 @@ public:
 					FSliderStyle Style = WeakObj->GetWidgetStyle();
 					FSlateBrush ThumbBrush = Style.NormalThumbImage;
 
-					ThumbBrush.OutlineSettings.Color = FLinearColor::Blue; 
+					ThumbBrush.OutlineSettings.Color = DefaultColor; 
 					Style.SetNormalThumbImage(ThumbBrush);
 
 					WeakObj->SetWidgetStyle(Style);

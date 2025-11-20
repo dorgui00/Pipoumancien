@@ -130,10 +130,6 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 		{
 			MusicWorldSubsystem->ReceivedMusicianInput();
 		}
-		else if (!MusicWorldSubsystem->IsAwaitingReply && !MusicWorldSubsystem->IsInCountDown)
-		{
-			 MusicWorldSubsystem->LostQTE();
-		}
 	}
 }
 
