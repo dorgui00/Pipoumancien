@@ -112,6 +112,7 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 		}
 	}
 
+	// CAMERA
 	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetMusicCamera() ;
 	
 	UGlobalHUDSubsystem* HUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
@@ -153,7 +154,31 @@ void UGlobalGameSubsystem::SetWorldFreeState()
 	{
 		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
 	}
+
+	// CAMERA
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
 	
+}
+
+void UGlobalGameSubsystem::SetWorldDialogueState(APipouCharacter* Interactor, ASkeletonController* Speaker)
+{
+	UE_LOG(LogTemp, Display, TEXT("World State Dialogue"));
+	
+	// WORLD STATE
+	WorldState = EWorldState::WorldDialogue;
+
+	// Pipou IDLE
+	for (APipouCharacter* PipouCharacter : PipouCharacters)
+	{
+		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Dialogue);
+	}
+
+	// CAMERA
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetDialogueCamera(Interactor,Speaker) ;
+
+	// to edit (call in finish camera)
+	//Open dialogue
+	Speaker->OpenDialogue();
 }
 
 

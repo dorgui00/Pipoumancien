@@ -47,7 +47,7 @@ void UPipouCharacterStateMusic::StateExit(EPipouCharacterStateID NextStateID)
 	Super::StateExit(NextStateID);
 
 	Character->InputPressedNoteEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
-	Character->InputTriggeredNoteEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterTriggeredNote);
+	Character->InputTriggeredNoteEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputPitchEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);
 	Character->InputPitchCompleted.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitchCompleted);
 }

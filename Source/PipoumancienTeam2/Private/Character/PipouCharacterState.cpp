@@ -10,6 +10,7 @@
 #include "Interaction/Interact.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
+#include "PNJ/SkeletonController.h"
 
 UPipouCharacterState::UPipouCharacterState()
 {
@@ -91,12 +92,17 @@ void UPipouCharacterState::OnCharacterPressedNote(UInputAction* InputAction)
 	
 	// if players overlap the same skeleton
 	if (GlobalGameSubsystem->GetCurrentSkeleton()
-		&& GlobalGameSubsystem->GetWorldState() != EWorldState::WorldTransport)
+		&& GlobalGameSubsystem->GetWorldState() == EWorldState::WorldFree)
 	{
 		// UE_LOG(LogTemp, Display, TEXT("Add note"));
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Add note")), true, FVector2D{2, 2});
 		
 		GlobalGameSubsystem->AddNoteForSkeletonInteraction(InputAction);
+	}
+	// dialogue
+	else if (Character->OverlapSkeleton && Character->OverlapSkeleton->GetState() == ESkeletonState::Dialogue)
+	{
+		GlobalGameSubsystem->SetWorldDialogueState(Character,Character->OverlapSkeleton);
 	}
 	// else if I have an interactor : World Interaction
 	// else if => can't play one music to trigger skeleton & world at the same time
@@ -105,6 +111,7 @@ void UPipouCharacterState::OnCharacterPressedNote(UInputAction* InputAction)
 	{
 		AddNoteForWorldInteraction();
 	}
+
 }
 
 void UPipouCharacterState::OnCharacterTriggeredNote(UInputAction* InputAction)

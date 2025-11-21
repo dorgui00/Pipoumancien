@@ -55,7 +55,9 @@ public:
 	void SetSkeletonForDialogue(); // in dialogue state
 
 	UFUNCTION()
-	void OnReachHome(); 
+	void OnReachHome();
+
+	void OpenDialogue();
 
 protected:
 	// Called when the game starts or when spawned

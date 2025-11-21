@@ -377,27 +377,32 @@ void APipouCharacter::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCom
 	{
 		UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
 		
-		// can't interact in transport
+		// can't interact in transport 
 		if (GlobalGameSubsystem->GetWorldState()==EWorldState::WorldTransport) return;
 
-		// can't retrigger music of a skeleton alive
-		// OverlapSkeleton is only a dead skeleton
-		if (SkeletonController->GetState() != ESkeletonState::Dead) return;
-		
-		// set current skeleton for myself
-		OverlapSkeleton = SkeletonController;
-
-		// trying to set current skeleton for everyone
-		GlobalGameSubsystem->CheckIfPlayersOverlapSameSkeleton();
-
-		//not everyone is overlapping the same skel
-		if (!GlobalGameSubsystem->GetCurrentSkeleton()) return;
-
-		//everyone overlap the same skel
-		for (int i = 0; i < 3; ++i)
+		// overlap to revive or talk with 
+		if (SkeletonController->GetState() == ESkeletonState::Dead
+			|| SkeletonController->GetState() == ESkeletonState::Dialogue)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
-			FString::Printf(TEXT("INPUT : %s"), *GlobalGameSubsystem->GetCurrentSkeleton()->MySkeleton->Notes[i].InputAction->GetName()), true, FVector2D(2, 2));
+			// set current skeleton for myself
+			OverlapSkeleton = SkeletonController; // dead or dialogue
+		
+			// can't retrigger music of a skeleton alive
+			if (SkeletonController->GetState() == ESkeletonState::Dead)
+			{
+				// trying to set current skeleton for everyone
+				GlobalGameSubsystem->CheckIfPlayersOverlapSameSkeleton();
+
+				//not everyone is overlapping the same skel
+				if (!GlobalGameSubsystem->GetCurrentSkeleton()) return;
+
+				//everyone overlap the same skel
+				for (int i = 0; i < 3; ++i)
+				{
+					GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
+					FString::Printf(TEXT("INPUT : %s"), *GlobalGameSubsystem->GetCurrentSkeleton()->MySkeleton->Notes[i].InputAction->GetName()), true, FVector2D(2, 2));
+				}
+			}
 		}
 	}
 }

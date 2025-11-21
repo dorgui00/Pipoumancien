@@ -18,7 +18,8 @@ enum class EWorldState : uint8{
 	WorldFree = 1,
 	WorldMusic = 2,
 	WorldTransport = 3,
-	Menus = 4,
+	WorldDialogue = 4,
+	Menus = 5,
 };
 
 UCLASS()
@@ -61,6 +62,8 @@ public :
 	void SetWorldTransportState();
 
 	void SetWorldFreeState();
+
+	void SetWorldDialogueState(APipouCharacter* Interactor, ASkeletonController* Speaker);
 	
 private :
 

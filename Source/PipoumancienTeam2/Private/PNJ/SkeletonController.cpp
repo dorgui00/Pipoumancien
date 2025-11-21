@@ -24,7 +24,7 @@ ASkeletonController::ASkeletonController()
 	SphereComponent->SetupAttachment(RootComponent);
 	SphereComponent->SetSphereRadius(500);
 	
-	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ASkeletonController::ASkeletonController::BeginOverlaps);
+	//SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ASkeletonController::ASkeletonController::BeginOverlaps);
 	//SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ASkeletonController::EndOverlaps);
 
 	//HUD
@@ -58,34 +58,19 @@ void ASkeletonController::Tick(float DeltaTime)
 
 void ASkeletonController::BeginOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (MyState != ESkeletonState::Dialogue) return ;
-
-	// STATE VILLAGE
-	if (OtherActor->IsA(APipouCharacter::StaticClass()))
-	{
-		 if (isDialoge)
-		 {
-		 	isDialoge = false;
-			PlayerWidget = CreateWidget<UUIDialoge>(GetWorld(), PlayerWidgetClass);
-			PlayerWidget->SetDialogue(MySkeleton,ValutFrase);
-		 	if (ValutFrase == 0)
-		 	{
-		 		ValutFrase = 1;
-		 	}
-		 }
-	}
+	
 }
 
 void ASkeletonController::EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (MyState != ESkeletonState::Dialogue) return ;
-
-	// STATE VILLAGE
-	if (OtherActor->IsA(APipouCharacter::StaticClass()))
-	{
-		isDialoge = true;
-	}
+	// if (MyState != ESkeletonState::Dialogue) return ;
+	//
+	// // STATE VILLAGE
+	// if (OtherActor->IsA(APipouCharacter::StaticClass()))
+	// {
+	// 	isDialoge = true;
+	// }
 }
 
 // STATE
@@ -132,4 +117,14 @@ void ASkeletonController::SetSkeletonForDialogue()
 void ASkeletonController::OnReachHome()
 {
 	SetSkeletonForDialogue();
+}
+
+void ASkeletonController::OpenDialogue()
+{
+	PlayerWidget = CreateWidget<UUIDialoge>(GetWorld(), PlayerWidgetClass);
+	PlayerWidget->SetDialogue(MySkeleton,ValutFrase);
+	if (ValutFrase == 0)
+	{
+		ValutFrase = 1;	
+	}
 }
