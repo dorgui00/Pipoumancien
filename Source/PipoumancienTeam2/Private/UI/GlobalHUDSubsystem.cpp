@@ -152,7 +152,7 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(const ASkeletonController* Current
 
 	// Set the start point of the lerp and the end point based on slot size and position.
 	MovementStartPoint = NotesBoxSlot->GetPosition().X;
-	MovementEndPoint = MovementStartPoint - NotesBoxSlot->GetSize().X;
+	MovementEndPoint = MovementStartPoint - NotesBoxSlot->GetSize().X - UiOffset;
 }
 
 void UGlobalHUDSubsystem::MovePartition(float DeltaTime)

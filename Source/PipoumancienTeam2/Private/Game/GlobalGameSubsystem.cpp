@@ -140,6 +140,7 @@ void UGlobalGameSubsystem::SetWorldTransportState()
 	GetCurrentSkeleton()->SetSkeletonForTransport();
 }
 
+// called when current skeleton reached village
 void UGlobalGameSubsystem::SetWorldFreeState()
 {
 	UE_LOG(LogTemp, Display, TEXT("World State Free"));
@@ -152,6 +153,7 @@ void UGlobalGameSubsystem::SetWorldFreeState()
 	{
 		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
 	}
+	
 }
 
 

@@ -78,6 +78,20 @@ public:
     UPROPERTY(EditAnywhere, Category = "Follow|Spline")
     bool bYawOnly = true;
 
+    // DELEGATES
+    
+    // On Enter Village
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnterVillage);
+    
+    UPROPERTY()
+    FOnEnterVillage OnEnterVillage;
+    
+    // DON'T FORGET TO BROADCAST
+    // On Reach Home
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnReachHome);
+    
+    UPROPERTY()
+    FOnReachHome OnReachHome;
 
 protected:
     virtual void BeginPlay() override;
