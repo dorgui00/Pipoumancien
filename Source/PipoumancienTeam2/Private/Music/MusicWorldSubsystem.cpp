@@ -14,6 +14,7 @@
 #include "PNJ/SkeletonController.h"
 #include "Settings/SubsystemSettings.h"
 #include "UI/GlobalHUDSubsystem.h"
+#include "UI/PartitionFinish.h"
 #include "UI/UResurrectionWidget.h"
 
 #pragma region MusicWorldSubsystem
@@ -94,9 +95,6 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			Tempo += DeltaTime * MusicGlobalSpeed;
 			
 			if (!CurrentSkeleton) return; // Secu check if current skeleton is set
-
-			// F_Note* CurrentNote = GetCurrentWaitingNote();
-			// UMusicNote* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
 
 			// Not yet time for qte => !IsAwaitingReply
 			if (Tempo < ((CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * MusicGlobalSpeed))
@@ -214,7 +212,7 @@ void UMusicWorldSubsystem::InitMusic(ASkeletonController* Skeleton)
 void UMusicWorldSubsystem::SucceedMelody()
 {
 	// DEBUG
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")), true, FVector2D(2, 2));
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")), true, FVector2D(2, 2));
 
 	// SUCCEED
 	MelodyState = EMelodyType::SUCCEED;
@@ -226,15 +224,31 @@ void UMusicWorldSubsystem::SucceedMelody()
 	
 	// UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
-	
-	// Camera
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
+
+	// Animation of Enter
+	GlobalHUDSubsystem->DisplayPartitionFinish("SUCCEED MELODY");
+
+	/// TO EDIT don't use delay
+	FTimerHandle IsAnimationFinished;
+	GetWorld()->GetTimerManager().ClearTimer(IsAnimationFinished);
+
+	GetWorld()->GetTimerManager().SetTimer(
+		IsAnimationFinished, [this]()
+		{
+			GlobalHUDSubsystem->RemovePartitionFinish();
+
+			// Camera
+			GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
+		},
+		2.f,
+		false
+	);
 }
 
 void UMusicWorldSubsystem::LostMelody()
 {
 	// DEBUG
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie raté")), true, FVector2D(2, 2));
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie raté")), true, FVector2D(2, 2));
 
 	// FAILED
 	MelodyState = EMelodyType::FAILED;
@@ -246,10 +260,25 @@ void UMusicWorldSubsystem::LostMelody()
 	
 	// UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
-	
-	// Camera
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
 
+	// Animation of Exit
+	GlobalHUDSubsystem->DisplayPartitionFinish("FAILED MELODY");
+
+	/// TO EDIT don't use delay
+	FTimerHandle IsAnimationFinished;
+	GetWorld()->GetTimerManager().ClearTimer(IsAnimationFinished);
+
+	GetWorld()->GetTimerManager().SetTimer(
+		IsAnimationFinished, [this]()
+		{
+			GlobalHUDSubsystem->RemovePartitionFinish();
+			
+			// Camera
+			GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
+		},
+		2.f,
+		false
+		);
 }
 
 bool UMusicWorldSubsystem::HasAchievedQte()

@@ -34,7 +34,7 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 	Character->InputPressedNoteEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputTriggeredNoteEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputPitchEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);
-	Character->InputPitchCompleted.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitchCompleted);
+	Character->InputPitchCompleted.BindDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitchCompleted);
 }
 
 void UPipouCharacterStateMusic::StateTick(float Deltatime)
@@ -49,7 +49,7 @@ void UPipouCharacterStateMusic::StateExit(EPipouCharacterStateID NextStateID)
 	Character->InputPressedNoteEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputTriggeredNoteEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputPitchEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);
-	Character->InputPitchCompleted.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitchCompleted);
+	Character->InputPitchCompleted.Unbind();
 }
 
 // Music
@@ -127,7 +127,6 @@ void UPipouCharacterStateMusic::OnCharacterPitchCompleted()
 {
 	SliderPitchSpeed = InitPitchSpeedValue;
 }
-
 
 void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction)
 {

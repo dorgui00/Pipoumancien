@@ -17,6 +17,7 @@
 #include "PNJ/SkeletonController.h"
 #include "Settings/SubsystemSettings.h"
 #include "UI/UMusicNote.h"
+#include "UI/PartitionFinish.h"
 
 #pragma region GameInstanceSubsystem
 void UGlobalHUDSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -82,13 +83,41 @@ void UGlobalHUDSubsystem::RemoveResurrectionWidget()
 	}
 }
 
-void UGlobalHUDSubsystem::DisplayFinishMelodyFinish()
+void UGlobalHUDSubsystem::DisplayPartitionFinish(const FString& TextInThePartition)
 {
+	if (WBPPartitionFinishClass == nullptr) return;
 	
+	APlayerController* PC = Cast<APlayerController>(GlobalGameSubsystem->PipouCharacters[0]->GetController());
+	if (!PC) return;
+
+	WBPPartitionFinishInstance = CreateWidget<UPartitionFinish>(PC, WBPPartitionFinishClass);
+
+	if (WBPPartitionFinishInstance != nullptr)
+	{
+		WBPPartitionFinishInstance->AddToViewport();
+		WBPPartitionFinishInstance->SetWinLostText(TextInThePartition);
+		WBPPartitionFinishInstance->PlayAnimationPartitionFinishStart();
+	}
 }
 
-void UGlobalHUDSubsystem::DisplayFailedMelodyFinish()
+void UGlobalHUDSubsystem::RemovePartitionFinish() const
 {
+	if (WBPPartitionFinishInstance != nullptr)
+	{
+		WBPPartitionFinishInstance->PlayAnimationPartitionFinishExit();
+
+		FTimerHandle CanDestroy;
+		GetWorld()->GetTimerManager().ClearTimer(CanDestroy);
+
+		GetWorld()->GetTimerManager().SetTimer(
+			CanDestroy, [this]()
+			{
+				WBPPartitionFinishInstance->RemoveFromParent();
+			},
+			2.f,
+			false
+		);
+	}
 }
 
 void UGlobalHUDSubsystem::SpawnNotesPartition(const ASkeletonController* CurrentSkeleton)
@@ -211,9 +240,10 @@ void UGlobalHUDSubsystem::Init()
 	InputData = CharacterSettings->InputData.LoadSynchronous();
 	if (!InputData) UE_LOG(LogTemp, Fatal, TEXT("UGlobalHUDSubsystem::InputData is NULL"));
 
-	// Initialize from SubsystemSettings Resurrection Widget class and Note Class.
+	// Initialize from SubsystemSettings Resurrection Widget class, Note Class and PartitionFinishClass.
 	WBPResurrectionClass = SubsystemSettings->WBPResurrectionClass;
 	WBPNoteClass = SubsystemSettings->WBPNoteClass;
+	WBPPartitionFinishClass = SubsystemSettings->WBPPartitionFinishClass;
 
 	// Initialize the association of InputAction to MusicNoteType.
 	MusicNoteFromInputAction =
@@ -226,6 +256,7 @@ void UGlobalHUDSubsystem::Init()
 
 	// Initialize RatioDistance from Subsystem Settings.
 	RatioDistance = SubsystemSettings->RatioDistance;
+	
 }
 
 EMusicNoteType UGlobalHUDSubsystem::GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const
