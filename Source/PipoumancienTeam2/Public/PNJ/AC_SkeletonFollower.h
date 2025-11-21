@@ -104,6 +104,9 @@ protected:
     bool bStartFollowing = false;
     bool bFollowingSpline = false;
 
+    bool bOnVillageSpline = false;
+    bool bHasReachedHome = false;
+
     bool bCanFollowPlayers = true;
 
     float CurrentDistance = 0.f;

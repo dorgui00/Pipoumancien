@@ -112,6 +112,9 @@ void UAC_SkeletonFollower::StartPathGeneration()
 {
     UE_LOG(LogTemp, Warning, TEXT("Starting StartPathGeneration();"));
 
+    bOnVillageSpline = false;
+    bHasReachedHome = false;
+
     EnsureGeneratedSpline();
 
     if (UWorld* World = GetWorld())
@@ -247,55 +250,62 @@ void UAC_SkeletonFollower::TickFollowSpline(float DeltaTime)
     if (!ParentActor || !SplineToFollow) return;
 
     TargetDistance = SplineToFollow->GetSplineLength();
+
+    const float PreviousDistance = CurrentDistance;
+
     CurrentDistance = FMath::Min(CurrentDistance + SplineFollowSpeed * DeltaTime, TargetDistance);
 
     const float Dist = CurrentDistance;
 
-
-    const FVector NewLoc = SplineToFollow->GetLocationAtDistanceAlongSpline(
-        Dist,
-        ESplineCoordinateSpace::World
-    );
+    const FVector NewLoc = SplineToFollow->GetLocationAtDistanceAlongSpline(Dist, ESplineCoordinateSpace::World);
 
     FVector FinalLoc = NewLoc;
 
-    if (bOrientToSpline) {
-
+    if (bOrientToSpline)
+    {
         FRotator NewRot;
 
-        if (bYawOnly) {
-
-            FVector Dir = SplineToFollow->GetDirectionAtDistanceAlongSpline(
-                Dist,
-                ESplineCoordinateSpace::World
-            );
+        if (bYawOnly)
+        {
+            FVector Dir = SplineToFollow->GetDirectionAtDistanceAlongSpline(Dist, ESplineCoordinateSpace::World);
 
             Dir.Z = 0.f;
 
-            if (!Dir.IsNearlyZero()) {
-
+            if (!Dir.IsNearlyZero())
+            {
                 NewRot = Dir.Rotation();
-
-            } else {
-
+            }
+            else
+            {
                 NewRot = ParentActor->GetActorRotation();
                 NewRot.Pitch = 0.f;
                 NewRot.Roll = 0.f;
             }
-
-        } else {
-
-            NewRot = SplineToFollow->GetRotationAtDistanceAlongSpline(
-                Dist,
-                ESplineCoordinateSpace::World
-            );
+        }
+        else
+        {
+            NewRot = SplineToFollow->GetRotationAtDistanceAlongSpline(Dist, ESplineCoordinateSpace::World);
         }
 
         ParentActor->SetActorLocationAndRotation(FinalLoc, NewRot);
-
-    } else {
-
+    }
+    else
+    {
         ParentActor->SetActorLocation(FinalLoc);
+    }
+
+    const bool bReachedEndNow =
+        bOnVillageSpline &&
+        !bHasReachedHome &&
+        PreviousDistance < TargetDistance &&
+        FMath::IsNearlyEqual(CurrentDistance, TargetDistance, .5f);
+
+    if (bReachedEndNow)
+    {
+        bHasReachedHome = true;
+        bFollowingSpline = false;
+
+        OnReachHome.Broadcast();
     }
 }
 
@@ -333,7 +343,6 @@ void UAC_SkeletonFollower::OnParentOverlap(AActor* OverlappedActor, AActor* Othe
 {
     if (!OtherActor) return;
 
-    // --- Detect VillageBorder (tag OR object channel) ---
     bool bIsVillageBorder = OtherActor->ActorHasTag("VillageBorder");
 
     if (!bIsVillageBorder)
@@ -393,6 +402,10 @@ void UAC_SkeletonFollower::OnParentOverlap(AActor* OverlappedActor, AActor* Othe
     if (VillageSpline)
     {
         SplineToFollow = VillageSpline;
+
+        bOnVillageSpline = true;
+        bHasReachedHome = false;
+
         StartFollowingSplineFromClosestPoint();
     }
     else
