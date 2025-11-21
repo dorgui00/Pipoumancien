@@ -7,6 +7,7 @@
 #include "UI/UResurrectionWidget.h"
 #include "SubsystemSettings.generated.h"
 
+class UPartitionFinish;
 class UMusicNote;
 
 UCLASS(Config=Game, DefaultConfig, meta=(DisplayName="Subsystem Settings"))
@@ -22,6 +23,9 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
 	TSubclassOf<UMusicNote> WBPNoteClass;
 
+	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
+	TSubclassOf<UPartitionFinish> WBPPartitionFinishClass;
+	
 	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
 	float RatioDistance = 100.f;
 

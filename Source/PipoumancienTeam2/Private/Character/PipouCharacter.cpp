@@ -272,7 +272,7 @@ void APipouCharacter::OnInputPitch(const FInputActionValue& InputActionValue)
 
 void APipouCharacter::OnInputPitchCompleted(const FInputActionValue& InputActionValue)
 {
-	InputPitchCompleted.Broadcast();
+	InputPitchCompleted.Execute();
 }
 
 void APipouCharacter::OnInputNoteAStarted(const FInputActionValue& InputActionValue)

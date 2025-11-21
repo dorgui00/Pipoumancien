@@ -29,7 +29,7 @@ enum class EPipouCharacterClass : uint8
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInputPressedNoteEvent, UInputAction*,  InputAction);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInputTriggeredNoteEvent, UInputAction*,  InputAction);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInputPitchEvent, FInputActionValue, InputActionValue);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInputPitchCompleted);
+DECLARE_DYNAMIC_DELEGATE(FInputPitchCompleted);
 
 UCLASS()
 class PIPOUMANCIENTEAM2_API APipouCharacter : public ACharacter, public ICameraFollowTarget

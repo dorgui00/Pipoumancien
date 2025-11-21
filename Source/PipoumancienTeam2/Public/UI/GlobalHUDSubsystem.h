@@ -8,6 +8,7 @@
 #include "Components/TextBlock.h"
 #include "GlobalHUDSubsystem.generated.h"
 
+class UPartitionFinish;
 struct F_Note;
 class USlider;
 class UMusicWorldSubsystem;
@@ -38,10 +39,16 @@ public:
 
 	// Remove the resurrection widget from screen.
 	void RemoveResurrectionWidget();
-	
-	void DisplayFinishMelodyFinish();
 
-	void DisplayFailedMelodyFinish();
+	UPROPERTY()
+	TSubclassOf<UPartitionFinish> WBPPartitionFinishClass;
+
+	UPROPERTY()
+	TObjectPtr<UPartitionFinish> WBPPartitionFinishInstance;
+	
+	void DisplayPartitionFinish(const FString& TextInThePartition);
+
+	void RemovePartitionFinish() const;
 
 	// Note Widget Class.
 	UPROPERTY()
