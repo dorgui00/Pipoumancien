@@ -59,13 +59,14 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 
 	if (!IsInWorldStateMusic) return;
 
+	// UE_LOGFMT(LogTemp, Warning, "{0}", CurrentFailNotePossible);
 
 	if (IsInCountDown)
 	{
 		TimerCountDown -= DeltaTime;
 
 		// Finish Countdown
-		if (TimerCountDown<=0)
+		if (TimerCountDown <= 0)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Finish CountDown")), true, FVector2D(2, 2));
 			
@@ -191,6 +192,8 @@ void UMusicWorldSubsystem::ResetMusicianReply()
 #pragma region Music Mechanic
 void UMusicWorldSubsystem::InitMusic(ASkeletonController* Skeleton)
 {
+	MelodyState = EMelodyType::NONE;
+	
 	// Init Data
 	CurrentSkeleton = Skeleton;
 
@@ -213,6 +216,9 @@ void UMusicWorldSubsystem::SucceedMelody()
 	// DEBUG
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")), true, FVector2D(2, 2));
 
+	// SUCCEED
+	MelodyState = EMelodyType::SUCCEED;
+	
 	// Reset Music
 	IsInWorldStateMusic = false;
 	Tempo = 0.f;
@@ -222,15 +228,7 @@ void UMusicWorldSubsystem::SucceedMelody()
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
 	
 	// Camera
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::GlobalCamera);
-
-	// TO EDIT (just to fix build)
-	for (APipouCharacter* PipouCharacter : GlobalGameSubsystem->PipouCharacters)
-	{
-		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
-	}
-				
-	GlobalGameSubsystem->GetCurrentSkeleton()->SetSkeletonForTransport();
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
 }
 
 void UMusicWorldSubsystem::LostMelody()
@@ -238,6 +236,9 @@ void UMusicWorldSubsystem::LostMelody()
 	// DEBUG
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie raté")), true, FVector2D(2, 2));
 
+	// FAILED
+	MelodyState = EMelodyType::FAILED;
+	
 	// Reset Music
 	IsInWorldStateMusic = false;
 	Tempo = 0.f;
@@ -247,23 +248,15 @@ void UMusicWorldSubsystem::LostMelody()
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
 	
 	// Camera
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::GlobalCamera);
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
 
-	// TO EDIT (just to fix build)
-	for (APipouCharacter* PipouCharacter : GlobalGameSubsystem->PipouCharacters)
-	{
-		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
-	}
-	
-	// Camera
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::GlobalCamera);
 }
 
 bool UMusicWorldSubsystem::HasAchievedQte()
 {
 	UMusicNote* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
 	USlider* Slider = GlobalHUDSubsystem->WBPResurrectionInstance->PitchSlider;
-
+	
 	if (!Slider || !CurrentNoteSlot || !GetCurrentWaitingNote())
 	{
 		UE_LOGFMT(LogTemp, Error, "Has not achived QTE because one reference or several references are null ! ");
@@ -272,7 +265,7 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 	
 	 IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch >= CurrentCursorValue - PitchTolerance
 		&& GetCurrentWaitingNote()->Pitch <= CurrentCursorValue + PitchTolerance;
-
+	
 	if (HasMusicianReceivedInput)
 	{
 		GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Green);
@@ -281,7 +274,7 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 	{
 		GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Red);
 	}
-
+	
 	if (IsConductorOnTheRightPitch)
 	{
 		GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Green);
@@ -301,26 +294,6 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 
 void UMusicWorldSubsystem::LostQTE()
 {
-	// EDITING MAIN MECHANIC
-	// // Going from 2 previous notes without exceed 0.
-	// int RewindNoteIndex = FMath::Max(0, CurrentWaitingNoteIndex - 2);
-	// // Rewind the partition in UI.
-	// GlobalHUDSubsystem->RewindPartition(RewindNoteIndex, CurrentSkeleton->MySkeleton->Notes[RewindNoteIndex]);
-	// // Change back to blue the color of the Slot Note.
-	// UMusicNote* RewindNoteSlote1 = GlobalHUDSubsystem->NotesInstanciated[RewindNoteIndex];
-	// if (!RewindNoteSlote1) return;
-	// UMusicNote* RewindNoteSlote2 = GlobalHUDSubsystem->NotesInstanciated[RewindNoteIndex + 1];
-	// if (!RewindNoteSlote2) return;
-	// RewindNoteSlote1->NoteImage->SetColorAndOpacity(FLinearColor::Blue);
-	// RewindNoteSlote2->NoteImage->SetColorAndOpacity(FLinearColor::Blue);
-	// // Set the CurrentNoteIndex to the NewNote after going to 2 previous notes.
-	// SetCurrentWaitingNoteIndex(RewindNoteIndex);
-	// // Restart countdown.
-	// StartCountDown();
-	// // Set Tempo to the Note you have to play - PreviewTime.
-	// Tempo = (CurrentSkeleton->MySkeleton->Notes[GetCurrentWaitingNoteIndex()].Frequency - GlobalHUDSubsystem->PreviewTime) * MusicGlobalSpeed;
-
-	
 	// Go down of one note possible when you failed the qte.
 	CurrentFailNotePossible--;
 
@@ -341,11 +314,18 @@ void UMusicWorldSubsystem::LostQTE()
 	}
 }
 
+EMelodyType UMusicWorldSubsystem::GetMelodyType() const
+{
+	return MelodyState;
+}
+
 void UMusicWorldSubsystem::StartCountDown()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Start CountDown de 3 sec")), true, FVector2D(2, 2));
 	
 	Tempo = 0.f;
+	IsLerpingOffset = true;
+	TimerLerpingOffset = 0.f;
 	IsInCountDown = true;
 }
 

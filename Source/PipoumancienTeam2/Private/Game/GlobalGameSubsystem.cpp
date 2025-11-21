@@ -112,7 +112,7 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 		}
 	}
 
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::MusicCamera); // SetCameraMusic()
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetMusicCamera() ;
 	
 	UGlobalHUDSubsystem* HUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
 	if (!HUDSubsystem) return;
@@ -125,7 +125,35 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 
 void UGlobalGameSubsystem::SetWorldTransportState()
 {
-	WorldState = EWorldState::WorldTransport; 
+	UE_LOG(LogTemp, Display, TEXT("World State Transport"));
+	
+	// WORLD STATE
+	WorldState = EWorldState::WorldTransport;
+
+	// Pipou IDLE
+	for (APipouCharacter* PipouCharacter : PipouCharacters)
+	{
+		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
+	}
+
+	// Add Follow Component
+	GetCurrentSkeleton()->SetSkeletonForTransport();
+}
+
+// called when current skeleton reached village
+void UGlobalGameSubsystem::SetWorldFreeState()
+{
+	UE_LOG(LogTemp, Display, TEXT("World State Free"));
+	
+	// WORLD STATE
+	WorldState = EWorldState::WorldFree;
+
+	// Pipou IDLE
+	for (APipouCharacter* PipouCharacter : PipouCharacters)
+	{
+		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
+	}
+	
 }
 
 

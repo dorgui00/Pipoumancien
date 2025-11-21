@@ -38,16 +38,16 @@ public:
 	UInputAction* InputPitch;
 
 	UPROPERTY()
-	float InitPitchSpeedValue = 0.05f;
+	float InitPitchSpeedValue = 0.02f;
 	
 	UPROPERTY()
-	float SliderPitchSpeed = 0.05f;
+	float SliderPitchSpeed = 0.02f;
 
 	UPROPERTY()
-	float AccelerationPitchSpeed = 0.01f;
+	float AccelerationPitchSpeed = 0.02f;
 
 	UPROPERTY()
-	float MaxPitchSpeed = 0.1f;
+	float MaxPitchSpeed = 0.5f;
 	
 	UPROPERTY()
 	UMusicWorldSubsystem* MusicWorldSubsystem;
@@ -55,5 +55,4 @@ public:
 	virtual void OnCharacterPressedNote(UInputAction* InputAction) override;
 	virtual void OnCharacterPitch(FInputActionValue InputActionValue) override;
 	virtual void OnCharacterPitchCompleted() override;
-	
 };

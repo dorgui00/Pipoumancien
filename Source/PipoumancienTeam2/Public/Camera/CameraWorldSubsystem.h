@@ -6,17 +6,19 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "CameraWorldSubsystem.generated.h"
 
+class APipouCharacter;
+class ASkeletonController;
 class UCameraComponent;
 /**
  * 
 */
 
 // UENUM()
-enum class ECameraType : uint8{
+enum class ECameraState : uint8{
 	None = 0,
 	MusicCamera = 1,
 	GlobalCamera = 2,
-	Dialogue = 3,
+	DialogueCamera = 3,
 };
 
 UCLASS()
@@ -28,17 +30,18 @@ class PIPOUMANCIENTEAM2_API UCameraWorldSubsystem : public UTickableWorldSubsyst
 public :
 	virtual void PostInitialize() override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
-	virtual void OnWorldComponentsUpdated(UWorld& World) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override {return TStatId();};
+
 #pragma endregion
 
-#pragma region MainCamera
+#pragma region Init
 public :
-	void InitCameraSubsystem();
 	
 	UPROPERTY()
 	TObjectPtr<UCameraComponent> CameraMain;
+	
+	void InitCameraSubsystem();
 	
 protected:
 	FTransform InitMainCameraTransform;
@@ -75,7 +78,8 @@ protected :
 	
 #pragma region Misc
 protected:
-	UCameraComponent* FindCameraByTag(const FName& Tag) const;
+	AActor* FindCameraActorByTag(const FName& Tag) const;
+	UCameraComponent* FindCameraComponentByTag(const AActor* Owner, const FName& Tag) const;
 
 private :
 	void InitCameraRotationToPivot();
@@ -127,18 +131,61 @@ protected :
 	
 #pragma endregion
 
-	// Lerp cameras
+	
 #pragma region MusicCamera
 public :
-	void CallCamera(const ECameraType CameraType);
+	// Lerp cameras
+
+	ECameraState CameraState;
+	ECameraState PreviousState;
+
+	void SetMusicCamera();
+
+	void SetGlobalCamera();
 
 protected :
-	FTransform AimedCameraTransform;
 	
 	bool IsSettingCamera = false;
-	bool IsWorldTransform = false;
+
+	FTransform StartComponentTransform;
+	FTransform EndComponentTransform;
+
+	FTransform StartActorTransform;
+	FTransform EndActorTransform;
+
+	bool CanLerpActor = false;
+	bool CanLerpComponent = false;
 	
-	void SetCamera(float DeltaTime, bool IsWorld);
+	void FinishCameraLerp();
+
+	void FinishDialogueCameraLerp();
+	void FinishMusicCameraLerp();
+	void FinishGlobalCameraLerp();
+
+	void AssignAllCameras();
+	void InitMainCamera();
+
+	UPROPERTY()
+	TObjectPtr<UCameraComponent> GlobalCamera;
+
+	UPROPERTY()
+	TObjectPtr<UCameraComponent> MusicCamera;
+
+	UPROPERTY()
+	TObjectPtr<UCameraComponent> DialogueCamera;
 	
 #pragma endregion
+
+#pragma region Dialogue Camera
+public :
+	void SetDialogueCamera(APipouCharacter* Interactor, ASkeletonController* Speaker);
+	
+	
+	void LerpCamera(float DeltaTime);
+	void LerpCameraComponent(float DeltaTime);
+	void LerpCameraActor(float DeltaTime);
+
+	float LerpTimer = 0;
+	
+# pragma endregion
 };

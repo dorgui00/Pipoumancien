@@ -59,6 +59,8 @@ public :
 	void SetWorldMusicState();
 
 	void SetWorldTransportState();
+
+	void SetWorldFreeState();
 	
 private :
 
