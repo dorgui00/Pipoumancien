@@ -11,12 +11,6 @@
 #include "PNJ/SkeletonController.h"
 
 
-void UCameraWorldSubsystem::Initialize(FSubsystemCollectionBase& Collection)
-{
-	Super::Initialize(Collection);
-
-}
-
 void UCameraWorldSubsystem::PostInitialize()
 {
 	Super::PostInitialize();
@@ -26,19 +20,16 @@ void UCameraWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
 	
-	
 }
 
 
 
 void UCameraWorldSubsystem::InitCameraSubsystem()
 {
-	
 	AssignAllCameras();
 	
 	InitMainCamera(); 
 
-	OnCamerasReady.Broadcast(); // to update the pipou gamemode
 }
 
 

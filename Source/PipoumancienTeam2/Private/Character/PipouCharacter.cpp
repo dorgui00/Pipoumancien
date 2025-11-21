@@ -379,6 +379,10 @@ void APipouCharacter::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCom
 		
 		// can't interact in transport
 		if (GlobalGameSubsystem->GetWorldState()==EWorldState::WorldTransport) return;
+
+		// can't retrigger music of a skeleton alive
+		// OverlapSkeleton is only a dead skeleton
+		if (SkeletonController->GetState() != ESkeletonState::Dead) return;
 		
 		// set current skeleton for myself
 		OverlapSkeleton = SkeletonController;
