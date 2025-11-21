@@ -41,7 +41,7 @@ public:
     float PlayerCircleRadius = 300.f;
 
     UPROPERTY(EditAnywhere, Category = "PathGen|Timing", meta = (ClampMin = "0.01"))
-    float SegmentDelay = 2.5f;
+    float SegmentDelay = 1.5f;
 
     UPROPERTY(EditAnywhere, Category = "PathGen|Debug")
     bool bDrawDebug = true;
@@ -111,6 +111,27 @@ protected:
 
     float CurrentDistance = 0.f;
     float TargetDistance = 0.f;
+
+    UPROPERTY(EditAnywhere, Category = "Follow|Players", meta = (ClampMin = "0"))
+    float PlayerMovingSpeedThreshold = .5f;
+
+    UPROPERTY(EditAnywhere, Category = "Follow|Players", meta = (ClampMin = "0"))
+    float PlayerMovingDistanceThreshold = .5f;
+
+    UPROPERTY(Transient)
+    TArray<FVector> PreviousPlayerLocations;
+
+    UPROPERTY(Transient)
+    bool bHasPreviousPlayerLocations = false;
+
+    UPROPERTY(Transient)
+    bool bAnyPlayerMoving = false;
+
+    UFUNCTION(BlueprintCallable, Category = "Follow|Players")
+    bool IsAnyPlayerMoving() const { return bAnyPlayerMoving; }
+
+    void UpdatePlayerMovement(float DeltaTime);
+
 
     UFUNCTION()
     void OnParentHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit);
