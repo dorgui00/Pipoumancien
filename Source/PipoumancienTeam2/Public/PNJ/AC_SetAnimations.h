@@ -21,9 +21,12 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
+		FActorComponentTickFunction* ThisTickFunction) override;
+
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
-	USkeletalMeshComponent* TargetMesh;
+	UPROPERTY(EditAnywhere, Category = "Animations")
+	FComponentReference TargetMeshRef;
 
 	UPROPERTY(EditAnywhere, Category = "Animations")
 	UAnimSequence* IdleAnim;
@@ -37,12 +40,16 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Animations")
 	float WalkSpeedThreshold = 5.f;
 
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
 private:
 
 	UPROPERTY()
 	UAC_SkeletonFollower* SkeletonFollower = nullptr;
+
+	UPROPERTY()
+	USkeletalMeshComponent* TargetMesh = nullptr;
+
+	FVector LastLocation = FVector::ZeroVector;
+	bool bHasLastLocation = false;
 
 	bool bWasMoving = false;
 	bool bWasFollowing = false;

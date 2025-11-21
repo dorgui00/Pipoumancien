@@ -13,25 +13,48 @@ UAC_SetAnimations::UAC_SetAnimations()
 
 void UAC_SetAnimations::BeginPlay()
 {
-	Super::BeginPlay();
+    Super::BeginPlay();
 
-	if (TargetMesh && IdleAnim)
-	{
-		TargetMesh->PlayAnimation(IdleAnim, true);
-	}
+    AActor* Owner = GetOwner();
+    if (!Owner) return;
+
+    TargetMesh = Cast<USkeletalMeshComponent>(TargetMeshRef.GetComponent(Owner));
+
+    if (!TargetMesh)
+    {
+        return;
+    }
+
+    SkeletonFollower = Owner->FindComponentByClass<UAC_SkeletonFollower>();
+
+    LastLocation = Owner->GetActorLocation();
+    bHasLastLocation = true;
+
+    if (IdleAnim)
+    {
+        TargetMesh->PlayAnimation(IdleAnim, true);
+    }
 }
 
-void UAC_SetAnimations::TickComponent(
-    float DeltaTime,
-    ELevelTick TickType,
-    FActorComponentTickFunction* ThisTickFunction)
+
+void UAC_SetAnimations::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
     AActor* Owner = GetOwner();
     if (!Owner || !TargetMesh) return;
 
-    const float Speed = Owner->GetVelocity().Size();
+    float Speed = 0.f;
+    const FVector CurrentLocation = Owner->GetActorLocation();
+
+    if (bHasLastLocation && DeltaTime > KINDA_SMALL_NUMBER)
+    {
+        const float DistanceMoved = FVector::Dist(CurrentLocation, LastLocation);
+        Speed = DistanceMoved / DeltaTime;
+    }
+    LastLocation = CurrentLocation;
+    bHasLastLocation = true;
+
     const bool bIsMoving = Speed > WalkSpeedThreshold;
 
     const bool bIsFollowing =

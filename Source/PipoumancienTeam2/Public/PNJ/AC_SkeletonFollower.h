@@ -20,7 +20,7 @@ public:
     TArray<AActor*> PipouPlayers;
     AActor* ParentActor = nullptr;
 
-    const float FollowRange = 600.f;
+    const float FollowRange = 500.f;
 
     UPROPERTY(EditAnywhere, Category = "Follow|Players", meta = (ClampMin = "0"))
     float MoveSpeed = 10.f;
@@ -72,7 +72,7 @@ public:
     float GroundTraceDown = 1200.f;
 
     UPROPERTY(EditAnywhere, Category = "Follow|Ground")
-    float GroundOffset = 50.f;
+    float GroundOffset = 0.f;
 
 
     UPROPERTY(EditAnywhere, Category = "Follow|Spline")
