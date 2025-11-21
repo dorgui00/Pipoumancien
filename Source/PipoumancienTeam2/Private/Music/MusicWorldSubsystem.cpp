@@ -59,14 +59,14 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 
 	if (!IsInWorldStateMusic) return;
 
-	UE_LOGFMT(LogTemp, Warning, "{0}", CurrentFailNotePossible);
+	// UE_LOGFMT(LogTemp, Warning, "{0}", CurrentFailNotePossible);
 
 	if (IsInCountDown)
 	{
 		TimerCountDown -= DeltaTime;
 
 		// Finish Countdown
-		if (TimerCountDown<=0)
+		if (TimerCountDown <= 0)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Finish CountDown")), true, FVector2D(2, 2));
 			

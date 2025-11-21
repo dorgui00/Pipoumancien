@@ -67,6 +67,8 @@ public:
 	// When you're not at the right time for the QTE.
 	void LostQTE();
 
+	void LostMelody();
+
 	EMelodyType GetMelodyType() const;
 	
 	#pragma endregion
@@ -124,8 +126,6 @@ private:
 	float Tempo = 0.f;
 	
 	void SucceedMelody();
-
-	void LostMelody();
 
 	float PitchTolerance = 0.2f;
 
