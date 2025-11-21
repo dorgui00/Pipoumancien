@@ -23,6 +23,8 @@ public:
 	float TextSpeed = 0.05f;
 
 	void SetDialogue(F_Skeleton* Skeleton, int Valut);
+
+	void GoToNextDialogue();
 	
 protected:
 	

@@ -58,6 +58,9 @@ public:
 	void OnReachHome();
 
 	void OpenDialogue();
+	
+	UPROPERTY()
+	UUIDialoge* PlayerWidget;
 
 protected:
 	// Called when the game starts or when spawned
@@ -75,9 +78,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 	TSubclassOf<UUIDialoge> PlayerWidgetClass;
-
-	UPROPERTY()
-	UUIDialoge* PlayerWidget;
 	
 	UPROPERTY()
 	bool isDialoge = true;

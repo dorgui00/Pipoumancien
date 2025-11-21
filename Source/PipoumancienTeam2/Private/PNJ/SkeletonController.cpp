@@ -64,13 +64,6 @@ void ASkeletonController::BeginOverlaps(UPrimitiveComponent* OverlappedComp, AAc
 void ASkeletonController::EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	// if (MyState != ESkeletonState::Dialogue) return ;
-	//
-	// // STATE VILLAGE
-	// if (OtherActor->IsA(APipouCharacter::StaticClass()))
-	// {
-	// 	isDialoge = true;
-	// }
 }
 
 // STATE

@@ -70,6 +70,39 @@ void UUIDialoge::SetDialogue(F_Skeleton* Skeleton , int Valut)
 	
 }
 
+void UUIDialoge::GoToNextDialogue()
+{
+	// Passer à la phrase suivante
+	CurrentDialogueIndex++;
+
+	// Plus de phrases → fin
+	if (CurrentDialogueIndex >= CurrentDialogue.Num() - 1)
+	{
+		RemoveFromParent();
+		UE_LOG(LogTemp, Warning, TEXT("✔ Fin du dialogue"));
+
+		// fin du dialogue state => retour au monde normal
+		GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>()->SetWorldFreeState();
+
+		return ; 
+	}
+
+	// Charger la nouvelle phrase
+	FullText = CurrentDialogue[CurrentDialogueIndex];
+	CurrentCharIndex = 0;
+
+	// Redémarrer l’affichage des lettres
+	GetWorld()->GetTimerManager().ClearTimer(TextTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(
+		TextTimerHandle,
+		this,
+		&UUIDialoge::ShowNextCharacter,
+		TextSpeed,
+		true
+	);
+
+}
+
 FReply UUIDialoge::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
 {
 	if (InKeyEvent.GetKey() == EKeys::E)

@@ -7,6 +7,8 @@
 #include "PipouCharacterStateDialogue.generated.h"
 
 
+class UUIDialoge;
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PIPOUMANCIENTEAM2_API UPipouCharacterStateDialogue : public UPipouCharacterState
 {
@@ -17,5 +19,7 @@ public:
 	virtual void StateEnter(EPipouCharacterStateID PreviousStateID) override;
 	virtual void StateTick(float Deltatime) override;
 	virtual void StateExit(EPipouCharacterStateID NextStateID) override;
-	
+
+	virtual void OnCharacterPressedNote(UInputAction* InputAction) override;
+
 };
