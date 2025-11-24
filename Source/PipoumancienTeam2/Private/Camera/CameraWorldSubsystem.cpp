@@ -3,6 +3,8 @@
 #include "Camera/CameraWorldSubsystem.h"
 
 #include "Camera/CameraComponent.h"
+#include "Character/PipouCharacterStateID.h"
+#include "Character/PipouCharacterStateMachine.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -346,6 +348,11 @@ void UCameraWorldSubsystem::InitCameraZoomParameters()
 }
 
 
+ECameraState UCameraWorldSubsystem::GetState() const
+{
+	return CameraState;
+}
+
 void UCameraWorldSubsystem::SetMusicCamera()
 {
 	// Actor Pos / Rot
@@ -527,17 +534,24 @@ void UCameraWorldSubsystem::FinishGlobalCameraLerp()
 	// Switch to transport by Game Instance
 	// could switch by previous camera state
 	UGlobalGameSubsystem* GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
-	if (GlobalGameSubsystem->GetWorldState() == EWorldState::WorldMusic)
+	// if (GlobalGameSubsystem->GetWorldState() == EWorldState::WorldMusic)
+	// {
+	// 	UMusicWorldSubsystem* MusicWorldSubsystem = GetWorld()->GetSubsystem<UMusicWorldSubsystem>();
+	// 	if (MusicWorldSubsystem->GetMelodyType()==EMelodyType::SUCCEED)
+	// 	{
+	// 		GlobalGameSubsystem ->SetWorldTransportState();
+	// 	}
+	// 	else if (MusicWorldSubsystem->GetMelodyType()==EMelodyType::FAILED)
+	// 	{
+	// 		GlobalGameSubsystem ->SetWorldFreeState();
+	// 	}
+	// }
+
+	
+	// Pipou IDLE
+	for (APipouCharacter* PipouCharacter : GlobalGameSubsystem->PipouCharacters)
 	{
-		UMusicWorldSubsystem* MusicWorldSubsystem = GetWorld()->GetSubsystem<UMusicWorldSubsystem>();
-		if (MusicWorldSubsystem->GetMelodyType()==EMelodyType::SUCCEED)
-		{
-			GlobalGameSubsystem ->SetWorldTransportState();
-		}
-		else if (MusicWorldSubsystem->GetMelodyType()==EMelodyType::FAILED)
-		{
-			GlobalGameSubsystem ->SetWorldFreeState();
-		}
+		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
 	}
 }
 

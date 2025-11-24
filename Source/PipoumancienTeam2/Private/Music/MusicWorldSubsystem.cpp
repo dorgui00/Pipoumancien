@@ -238,7 +238,7 @@ void UMusicWorldSubsystem::SucceedMelody()
 			GlobalHUDSubsystem->RemovePartitionFinish();
 
 			// Camera
-			GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
+			GlobalGameSubsystem->SetWorldTransportState();
 		},
 		2.f,
 		false
@@ -272,9 +272,10 @@ void UMusicWorldSubsystem::LostMelody()
 		IsAnimationFinished, [this]()
 		{
 			GlobalHUDSubsystem->RemovePartitionFinish();
-			
+
+			GlobalGameSubsystem->SetWorldFreeState();
 			// Camera
-			GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
+			//GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
 		},
 		2.f,
 		false

@@ -139,6 +139,8 @@ public :
 	ECameraState CameraState;
 	ECameraState PreviousState;
 
+	ECameraState GetState() const;
+
 	void SetMusicCamera();
 
 	void SetGlobalCamera();
