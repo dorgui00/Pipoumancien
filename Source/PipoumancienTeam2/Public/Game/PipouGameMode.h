@@ -38,7 +38,6 @@ private:
 
 	// World Sounds
 	UInputSoundData* LoadInputSoundDataFromConfig();
-	void InitWorldSoundsMap() const ;
 	
 	// Cameras
 	void GetCamera();

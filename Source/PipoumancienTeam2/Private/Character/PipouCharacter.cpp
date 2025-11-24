@@ -441,6 +441,25 @@ void APipouCharacter::OnComponentEndOverlap(UPrimitiveComponent* OverlappedCompo
 
 #pragma endregion
 
+#pragma region Sounds
+
+void APipouCharacter::InitWorldSoundData()
+{
+	WorldSoundFromInput =
+	{
+		{ InputData->InputNoteY, InputSoundData->UpSound},
+		{ InputData->InputNoteB, InputSoundData->RightSound},
+		{ InputData->InputNoteA, InputSoundData->DownSound}, 
+		{ InputData->InputNoteX, InputSoundData->LeftSound}
+	};
+}
+
+TObjectPtr<USoundBase> APipouCharacter::GetWorldSoundFromInput(TObjectPtr<UInputAction> InputAction) const
+{
+	return WorldSoundFromInput[InputAction];
+}
+
+#pragma endregion
 
 
 

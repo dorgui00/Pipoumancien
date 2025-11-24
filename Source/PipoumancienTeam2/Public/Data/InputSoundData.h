@@ -9,31 +9,25 @@
 /**
  * 
  */
+class USoundBase;
+
 UCLASS()
 class PIPOUMANCIENTEAM2_API UInputSoundData : public UDataAsset
 {
 	GENERATED_BODY()
 
+public :
 	// Sound Inputs 
-	UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
-	TSoftObjectPtr<USoundBase> UpSound;
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USoundBase> UpSound;
 	
-	UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
-	TSoftObjectPtr<USoundBase> RightSound;
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USoundBase> RightSound;
 	
-	UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
-	TSoftObjectPtr<USoundBase> DownSound;
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USoundBase> DownSound;
 	
-	UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
-	TSoftObjectPtr<USoundBase> LeftSound;
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USoundBase> LeftSound;
 
-	// Map Sound From Input
-	UPROPERTY()
-	TMap<TObjectPtr<UInputAction>, TObjectPtr<USoundBase>> WorldSoundFromInput =
-	{
-		{ InputData->InputNoteY, UpSound.LoadSynchronous()},
-		{ InputData->InputNoteB, RightSound.LoadSynchronous() },
-		{ InputData->InputNoteA, DownSound.LoadSynchronous() }, 
-		{ InputData->InputNoteX, LeftSound.LoadSynchronous() }
-	};
 };

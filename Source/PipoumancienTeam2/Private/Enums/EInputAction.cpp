@@ -4,10 +4,3 @@
 #include "Enums/EInputAction.h"
 
 
-EInputAction::EInputAction()
-{
-}
-
-EInputAction::~EInputAction()
-{
-}
