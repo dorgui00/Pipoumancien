@@ -7,6 +7,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "PipouGameMode.generated.h"
 
+class UInputSoundData;
 class UCameraComponent;
 class UInputMappingContext;
 class UPipouCharacterInputData;
@@ -35,6 +36,10 @@ private:
 	UPipouCharacterInputData* LoadInputDataFromConfig();
 	UInputMappingContext* LoadInputMappingContextFromConfig();
 
+	// World Sounds
+	UInputSoundData* LoadInputSoundDataFromConfig();
+	void InitWorldSoundsMap() const ;
+	
 	// Cameras
 	void GetCamera();
 

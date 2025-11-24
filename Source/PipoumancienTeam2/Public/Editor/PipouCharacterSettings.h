@@ -21,16 +21,30 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category="Inputs")
 	TSoftObjectPtr<UInputMappingContext> InputMappingContext;
 
-	// // Sound Inputs 
-	// UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
-	// TSoftObjectPtr<USoundCue> UpSound;
-	//
-	// UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
-	// TSoftObjectPtr<USoundCue> RightSound;
-	//
-	// UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
-	// TSoftObjectPtr<USoundCue> DownSound;
-	//
-	// UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
-	// TSoftObjectPtr<USoundCue> LeftSound;
+	// Sounds
+	UPROPERTY(Config, EditAnywhere, Category="Sounds")
+	TSoftObjectPtr<UInputSoundData> InputSoundData;
+
+	// Sound Inputs 
+	UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
+	TSoftObjectPtr<USoundBase> UpSound;
+	
+	UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
+	TSoftObjectPtr<USoundBase> RightSound;
+	
+	UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
+	TSoftObjectPtr<USoundBase> DownSound;
+	
+	UPROPERTY(Config, EditAnywhere, Category="Sound Inputs")
+	TSoftObjectPtr<USoundBase> LeftSound;
+
+	// map sound from input
+	void InitWorldSounds();
+	
+	TObjectPtr<USoundBase> GetWorldSoundFromInput(TObjectPtr<UInputAction>) const ;
+	
+private :
+	UPROPERTY()
+	TMap<TObjectPtr<UInputAction>, TObjectPtr<USoundBase>> WorldSoundFromInput;
+
 };

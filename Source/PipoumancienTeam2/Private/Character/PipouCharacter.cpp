@@ -280,7 +280,6 @@ void APipouCharacter::OnInputNoteAStarted(const FInputActionValue& InputActionVa
 	InputNoteA = true;
 	InputPressedNoteEvent.Broadcast(InputData->InputNoteA);
 
-	// play son A
 }
 
 void APipouCharacter::OnInputNoteATriggered(const FInputActionValue& InputActionValue)
@@ -298,8 +297,6 @@ void APipouCharacter::OnInputNoteBStarted(const FInputActionValue& InputActionVa
 {
 	InputNoteB = true;
 	InputPressedNoteEvent.Broadcast(InputData->InputNoteB);
-
-	// play son B
 }
 
 void APipouCharacter::OnInputNoteBTriggered(const FInputActionValue& InputActionValue)
@@ -318,7 +315,6 @@ void APipouCharacter::OnInputNoteXStarted(const FInputActionValue& InputActionVa
 	InputNoteX = true;
 	InputPressedNoteEvent.Broadcast(InputData->InputNoteX);
 
-	// play son x
 }
 
 void APipouCharacter::OnInputNoteXTriggered(const FInputActionValue& InputActionValue)
@@ -336,8 +332,6 @@ void APipouCharacter::OnInputNoteYStarted(const FInputActionValue& InputActionVa
 {
 	InputNoteY = true;
 	InputPressedNoteEvent.Broadcast(InputData->InputNoteY);
-
-	// play son Y
 }
 
 void APipouCharacter::OnInputNoteYTriggered(const FInputActionValue& InputActionValue)

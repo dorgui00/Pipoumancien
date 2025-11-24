@@ -9,6 +9,7 @@
 #include "UI/PipouHUD.h"
 #include "PipouCharacter.generated.h"
 
+class UInputSoundData;
 class UCameraComponent;
 class ASkeletonController;
 class IInteract;
@@ -80,6 +81,9 @@ public:
 	// Store the data asset of our input action.
 	UPROPERTY()
 	TObjectPtr<UPipouCharacterInputData> InputData;
+	
+	UPROPERTY()
+	TObjectPtr<UInputSoundData> InputSoundData;
 	
 	// Not Needed since the local multiplayer system.
 	// UPROPERTY()

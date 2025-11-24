@@ -30,6 +30,9 @@ void APipouGameMode::BeginPlay()
 	GetCamera();
 	
 	SpawnCharacters(PlayerStartsPoint);
+
+	// Init sounds after init InputData
+	InitWorldSoundsMap();
 	
 }
 
@@ -46,6 +49,22 @@ UInputMappingContext* APipouGameMode::LoadInputMappingContextFromConfig()
 	const UPipouCharacterSettings* CharacterSettings = GetDefault<UPipouCharacterSettings>();
 	if (CharacterSettings == nullptr) return nullptr;
 	return CharacterSettings->InputMappingContext.LoadSynchronous();
+}
+
+UInputSoundData* APipouGameMode::LoadInputSoundDataFromConfig()
+{
+	const UPipouCharacterSettings* CharacterSettings = GetDefault<UPipouCharacterSettings>();
+	if (CharacterSettings == nullptr) return nullptr;
+	return CharacterSettings->InputSoundData.LoadSynchronous();
+}
+
+void APipouGameMode::InitWorldSoundsMap() const
+{
+	const UPipouCharacterSettings* CharacterSettingsConst = GetDefault<UPipouCharacterSettings>();
+	if (CharacterSettingsConst == nullptr) return ;
+
+	UPipouCharacterSettings* CharacterSettings = const_cast<UPipouCharacterSettings*>(CharacterSettingsConst);
+	CharacterSettings->InitWorldSounds();
 }
 
 
@@ -65,8 +84,9 @@ void APipouGameMode::FindPlayerStartActorsInScene(TArray<APlayerStart*>& ResultA
 
 void APipouGameMode::SpawnCharacters(const TArray<APlayerStart*>& SpawnPoints)
 {
-	UPipouCharacterInputData* InputData = LoadInputDataFromConfig();
+	TObjectPtr<UPipouCharacterInputData> InputData = LoadInputDataFromConfig();
 	// UInputMappingContext* InputMappingContext = LoadInputMappingContextFromConfig();
+	TObjectPtr<UInputSoundData> InputSoundData = LoadInputSoundDataFromConfig();
 	
 	for (APlayerStart* SpawnPoint : SpawnPoints)
 	{
@@ -78,7 +98,8 @@ void APipouGameMode::SpawnCharacters(const TArray<APlayerStart*>& SpawnPoints)
 		if (NewCharacter == nullptr) continue;
 		
 		NewCharacter->CameraMain = CameraMain;
-		NewCharacter->InputData =  InputData;
+		NewCharacter->InputData =  InputData; // INPUTS
+		NewCharacter->InputSoundData = InputSoundData; // SOUNDS
 		// NewCharacter->InputMappingContext = InputMappingContext;
 		NewCharacter->SetOrientXY(FVector2D(CameraMain->GetForwardVector().X, CameraMain->GetForwardVector().Y));
 		NewCharacter->AutoPossessPlayer = InputType;
