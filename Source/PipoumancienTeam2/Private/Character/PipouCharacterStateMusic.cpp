@@ -108,10 +108,6 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 		{
 			SliderPitchSpeed = MaxPitchSpeed;
 		}
-
-		UE_LOGFMT(LogTemp, Warning, "Current: {0}", SliderPitchSpeed);
-		UE_LOGFMT(LogTemp, Warning, "Max: {0}", MaxPitchSpeed);
-		UE_LOGFMT(LogTemp, Warning, "Accel: {0}", AccelerationPitchSpeed);
 		
 		MusicWorldSubsystem->CurrentCursorValue = FMath::Clamp(MusicWorldSubsystem->CurrentCursorValue + InputActionValue.Get<float>() * SliderPitchSpeed,
 			-1.f, 1.0f);
@@ -134,16 +130,20 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 	{
 		if (MusicWorldSubsystem->IsAwaitingReply && MusicWorldSubsystem->GetCurrentWaitingNote()->InputAction == InputAction)
 		{
+			HasPressedNotes = true;
 			MusicWorldSubsystem->ReceivedMusicianInput();
+			MusicWorldSubsystem->SetNoteFeedbackMusic(FLinearColor::Green);
 		}
 		else if (!MusicWorldSubsystem->IsAwaitingReply && !MusicWorldSubsystem->IsInCountDown && !HasPressedNotes)
 		{
 			HasPressedNotes = true;
 			
 			MusicWorldSubsystem->CurrentFailNotePossible--;
+			MusicWorldSubsystem->SetNoteFeedbackMusic(FLinearColor::Red);
 
 			if (MusicWorldSubsystem->CurrentFailNotePossible <= 0)
 			{
+				MusicWorldSubsystem->CurrentFailNotePossible = 0;
 				MusicWorldSubsystem->LostMelody();
 			}
 		}
