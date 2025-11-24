@@ -131,14 +131,11 @@ void UGlobalGameSubsystem::SetWorldTransportState()
 	// WORLD STATE
 	WorldState = EWorldState::WorldTransport;
 
-	// Pipou IDLE
-	for (APipouCharacter* PipouCharacter : PipouCharacters)
-	{
-		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
-	}
-
 	// Add Follow Component
 	GetCurrentSkeleton()->SetSkeletonForTransport();
+
+	// Camera
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
 }
 
 // called when current skeleton reached village
@@ -148,15 +145,12 @@ void UGlobalGameSubsystem::SetWorldFreeState()
 	
 	// WORLD STATE
 	WorldState = EWorldState::WorldFree;
-
-	// Pipou IDLE
-	for (APipouCharacter* PipouCharacter : PipouCharacters)
-	{
-		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
-	}
-
+	
 	// CAMERA
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
+	UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
+	if (CameraWorldSubsystem->GetState() == ECameraState::GlobalCamera) return;
+
+	CameraWorldSubsystem->SetGlobalCamera(); // set characters in idle at the end of the lerp
 	
 }
 
@@ -167,7 +161,7 @@ void UGlobalGameSubsystem::SetWorldDialogueState(APipouCharacter* Interactor, AS
 	// WORLD STATE
 	WorldState = EWorldState::WorldDialogue;
 
-	// Pipou IDLE
+	// Pipou Dialogue
 	for (APipouCharacter* PipouCharacter : PipouCharacters)
 	{
 		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Dialogue);
