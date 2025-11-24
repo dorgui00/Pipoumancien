@@ -6,6 +6,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "MusicWorldSubsystem.generated.h"
 
+class UMusicNote;
 class ASkeletonController;
 class UGlobalHUDSubsystem;
 class UGlobalGameSubsystem;
@@ -34,6 +35,8 @@ public:
 	#pragma region Skeleton&Notes
 	// Get the current note playing.
 	F_Note* GetCurrentWaitingNote() const;
+
+	UMusicNote* GetCurrentWaitingNoteWBP() const; 
 
 	// Manage the WaitingNoteIndex.
 	int GetCurrentWaitingNoteIndex() const;
@@ -68,6 +71,8 @@ public:
 	void LostQTE();
 
 	void LostMelody();
+
+	void SetNoteFeedbackMusic(FLinearColor NewColor) const;
 
 	EMelodyType GetMelodyType() const;
 	
@@ -132,6 +137,8 @@ private:
 	bool HasAchievedQte();
 
 	EMelodyType MelodyState = EMelodyType::NONE;
+
+	bool HasLostMelody = false;
 
 	#pragma endregion
 

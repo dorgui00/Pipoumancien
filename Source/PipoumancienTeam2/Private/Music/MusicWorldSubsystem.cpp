@@ -60,8 +60,6 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 
 	if (!IsInWorldStateMusic) return;
 
-	// UE_LOGFMT(LogTemp, Warning, "{0}", CurrentFailNotePossible);
-
 	if (IsInCountDown)
 	{
 		TimerCountDown -= DeltaTime;
@@ -126,8 +124,6 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 					// go next note
 					else
 					{
-						GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Go Next Note")), true, FVector2D(2, 2));
-
 						// Increment the FailNotePossible to give back chance to player.
 						// If it's already at the max then limit the CurrentFailNotePossible at the Max
 						CurrentFailNotePossible++;
@@ -157,10 +153,18 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 #pragma region Skeletons&Notes
 F_Note* UMusicWorldSubsystem::GetCurrentWaitingNote() const
 {
-	if (CurrentWaitingNoteIndex > CurrentSkeleton->MySkeleton->Notes.Num()-1)
-		UE_LOG(LogTemp, Error, TEXT("Current waiting Note is out of range"));
+	if (CurrentWaitingNoteIndex > CurrentSkeleton->MySkeleton->Notes.Num() - 1)
+		UE_LOGFMT(LogTemp, Error, "ERROR: Current waiting Note is out of range !");
 	
 	return &CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex];
+}
+
+UMusicNote* UMusicWorldSubsystem::GetCurrentWaitingNoteWBP() const
+{
+	if (GetCurrentWaitingNote() == nullptr)
+		UE_LOGFMT(LogTemp, Error, "ERROR: No current waiting note !");
+
+	return GlobalHUDSubsystem->NotesInstanciated[GetCurrentWaitingNoteIndex()];
 }
 
 int UMusicWorldSubsystem::GetCurrentWaitingNoteIndex() const
@@ -202,6 +206,7 @@ void UMusicWorldSubsystem::InitMusic(ASkeletonController* Skeleton)
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->SpawnNotesPartition(CurrentSkeleton);
 	
 	IsInWorldStateMusic = true;
+	HasLostMelody = false;
 	
 	// Initialize CurrentFailNotePossible.
 	CurrentFailNotePossible = MaxFailNotePossible;
@@ -250,6 +255,9 @@ void UMusicWorldSubsystem::LostMelody()
 	// DEBUG
 	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie raté")), true, FVector2D(2, 2));
 
+	if (HasLostMelody) return;
+	HasLostMelody = true;
+	
 	// FAILED
 	MelodyState = EMelodyType::FAILED;
 	
@@ -281,6 +289,15 @@ void UMusicWorldSubsystem::LostMelody()
 		);
 }
 
+void UMusicWorldSubsystem::SetNoteFeedbackMusic(FLinearColor NewColor) const
+{
+	UResurrectionWidget* ResurrectionWidget = GlobalHUDSubsystem->WBPResurrectionInstance;
+	if (!ResurrectionWidget) return;
+
+	UImage* CurrentNoteFeedback = ResurrectionWidget->GetFeedbackPosFromInputPitch(GetCurrentWaitingNote()->Pitch);
+	GlobalHUDSubsystem->SetObjectColor<UImage>(CurrentNoteFeedback, NewColor);
+}
+
 bool UMusicWorldSubsystem::HasAchievedQte()
 {
 	UMusicNote* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
@@ -294,25 +311,7 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 	
 	 IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch >= CurrentCursorValue - PitchTolerance
 		&& GetCurrentWaitingNote()->Pitch <= CurrentCursorValue + PitchTolerance;
-	
-	if (HasMusicianReceivedInput)
-	{
-		GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Green);
-	}
-	else
-	{
-		GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Red);
-	}
-	
-	if (IsConductorOnTheRightPitch)
-	{
-		GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Green);
-	}
-	else
-	{
-		GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Red);
-	}
-	
+
 	if (HasMusicianReceivedInput && IsConductorOnTheRightPitch)
 	{
 		return true;

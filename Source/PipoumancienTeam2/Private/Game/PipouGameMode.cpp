@@ -78,7 +78,7 @@ void APipouGameMode::SpawnCharacters(const TArray<APlayerStart*>& SpawnPoints)
 		if (NewCharacter == nullptr) continue;
 		
 		NewCharacter->CameraMain = CameraMain;
-		NewCharacter->InputData =  InputData;
+		NewCharacter->InputData = InputData;
 		// NewCharacter->InputMappingContext = InputMappingContext;
 		NewCharacter->SetOrientXY(FVector2D(CameraMain->GetForwardVector().X, CameraMain->GetForwardVector().Y));
 		NewCharacter->AutoPossessPlayer = InputType;

@@ -26,6 +26,11 @@ public:
 
 	UUserWidget* GetSpawnPointFromInputPitch(float InputPitch);
 
+	UPROPERTY()
+	TMap<float, UImage*> FeedbackPosFromInputPitch;
+
+	UImage* GetFeedbackPosFromInputPitch(float InputPitch);
+
 	UPROPERTY(meta = (BindWidget))
 	UCanvasPanel* SlotSpawnPoints;
 
@@ -58,4 +63,20 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UUserWidget* SpawnPoint_5;
 
+	// Feedback
+	UPROPERTY(meta = (BindWidget))
+	UImage* NoteFeedBackOne;
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* NoteFeedBackTwo;
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* NoteFeedBackThree;
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* NoteFeedBackFour;
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* NoteFeedBackFive;
+	
 };
