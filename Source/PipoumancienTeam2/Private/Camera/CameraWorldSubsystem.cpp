@@ -3,6 +3,7 @@
 #include "Camera/CameraWorldSubsystem.h"
 
 #include "Camera/CameraComponent.h"
+#include "Camera/CameraVisibleTarget.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
 #include "Game/GlobalGameSubsystem.h"
@@ -41,13 +42,6 @@ void UCameraWorldSubsystem::AssignAllCameras()
 	// get/set main camera
 	AActor* CameraActor = FindCameraActorByTag(TEXT("CameraMain"));
 	
-	//Find Camera in child components
-	// TArray<UActorComponent*> Components =  CameraActor->K2_GetComponentsByClass(UCameraComponent::StaticClass());
-	//
-	// for (UActorComponent* Component : Components)
-	// {
-	// 	UE_LOG(LogTemp, Display, TEXT("ti"));
-	// }
 	
 	CameraMain = FindCameraComponentByTag(CameraActor, ("CameraMain"));
 	if(!CameraMain)
@@ -269,6 +263,61 @@ void UCameraWorldSubsystem::TickUpdateCameraZoom(float DeltaTime)
 	CameraMain->SetWorldLocation(pos);
 }
 
+void UCameraWorldSubsystem::InitCameraVisibility()
+{
+	// recuperer le ec channel de la visibility
+	//VisibilityChannel
+	
+	// recuperer le necromancien
+	
+	// foreach target multiple line trace
+	FVector Pos;
+
+	// TO EDIT : DEBUG
+	for (auto Target : VisibleTargets)
+	{
+		//Uniquement si l’objet dans la liste implémente l’interface 
+		if (Target !=nullptr && Target->Implements<UCameraVisibleTarget>())
+		{
+			if (ICameraVisibleTarget* VisibleTarget = Cast<ICameraVisibleTarget>(Target))
+			{
+					Pos = VisibleTarget->GetVisiblePosition();
+			}
+		};
+	}
+
+	// Viewport center
+	FVector2D ViewportBoundsMin, ViewportBoundsMax;
+	GetViewportBounds(ViewportBoundsMin,ViewportBoundsMax);
+
+	FVector2D ViewportCenter = (ViewportBoundsMin + ViewportBoundsMax) / 2;
+	FVector ViewportCenterToWorld = CalculateWorldPositionFromViewportPosition(ViewportCenter);
+	
+	DrawDebugLine(GetWorld(), ViewportCenterToWorld, Pos, FColor::Blue, false, 2.f, 0, 2.f);
+}
+
+void UCameraWorldSubsystem::AddVisibleTarget(UObject* VisibleTarget)
+{
+	FollowTargets.Add(VisibleTarget);
+}
+
+void UCameraWorldSubsystem::RemoveVisibleTarget(UObject* VisibleTarget)
+{
+	FollowTargets.Remove(VisibleTarget);
+}
+
+void UCameraWorldSubsystem::TickUpdateCameraVisibility(float DeltaTime)
+{
+	// TO EDIT => to complete
+	
+	// tirer un multiple line trace
+	// du milieu du screen
+	// au necromancien
+
+	// debug
+	
+}
+
 void UCameraWorldSubsystem::TickUpdateCameraPosition(float DeltaTime)
 {
 	FVector AveragePosition = CalculateAveragePositionBetweenTargets();
@@ -461,21 +510,21 @@ void UCameraWorldSubsystem::LerpCamera(float DeltaTime)
 
 	//Lerp Camera Actor
 	if (CanLerpActor)
-	LerpCameraActor(DeltaTime); // World
+		LerpCameraActor(DeltaTime); // World
 
 	//Lerp Camera Component
 	if (CanLerpComponent)
-	LerpCameraComponent(DeltaTime); // relative to bp
+		LerpCameraComponent(DeltaTime); // relative to bp
 
 	// On finished lerp
-	if (LerpTimer>=1){
-		UE_LOG(LogTemp, Display, TEXT("Fini de lerp"));
-	
-		LerpTimer = 0;
+	if (LerpTimer>=1)
+	{
+		// DEBUG
+		//UE_LOG(LogTemp, Display, TEXT("Fini de lerp"));
 
 		FinishCameraLerp();
 		
-		IsSettingCamera = false;
+		ResetLerp();
 	}
 }
 
@@ -497,6 +546,13 @@ void UCameraWorldSubsystem::LerpCameraActor(float DeltaTime)
 	CameraMain->GetOwner()->SetActorLocation(NewPos);
 }
 
+
+void UCameraWorldSubsystem::ResetLerp()
+{
+	IsSettingCamera = false; // stop lerp
+	
+	LerpTimer = 0; // reset timer
+}
 
 void UCameraWorldSubsystem::FinishCameraLerp()
 {
@@ -531,22 +587,7 @@ void UCameraWorldSubsystem::FinishMusicCameraLerp()
 
 void UCameraWorldSubsystem::FinishGlobalCameraLerp()
 {
-	// Switch to transport by Game Instance
-	// could switch by previous camera state
 	UGlobalGameSubsystem* GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
-	// if (GlobalGameSubsystem->GetWorldState() == EWorldState::WorldMusic)
-	// {
-	// 	UMusicWorldSubsystem* MusicWorldSubsystem = GetWorld()->GetSubsystem<UMusicWorldSubsystem>();
-	// 	if (MusicWorldSubsystem->GetMelodyType()==EMelodyType::SUCCEED)
-	// 	{
-	// 		GlobalGameSubsystem ->SetWorldTransportState();
-	// 	}
-	// 	else if (MusicWorldSubsystem->GetMelodyType()==EMelodyType::FAILED)
-	// 	{
-	// 		GlobalGameSubsystem ->SetWorldFreeState();
-	// 	}
-	// }
-
 	
 	// Pipou IDLE
 	for (APipouCharacter* PipouCharacter : GlobalGameSubsystem->PipouCharacters)
@@ -644,7 +685,7 @@ void UCameraWorldSubsystem::ClampPositionIntoCameraBounds(FVector& Position)
 	Position = ClampVector(Position, WorldBoundsMin,WorldBoundsMax );
 }
 
-void UCameraWorldSubsystem::GetViewportBounds(FVector2D& OutViewportBoundsMin, FVector2D& OutViewportBoundsMax)
+void UCameraWorldSubsystem::GetViewportBounds(FVector2D& OutViewportBoundsMin, FVector2D& OutViewportBoundsMax) const
 {
 	// Find Viewport
 	UGameViewportClient* ViewportClient = GetWorld()->GetGameViewport();
