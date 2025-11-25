@@ -49,6 +49,8 @@ void UAC_SkeletonFollower::TickComponent(float DeltaTime, ELevelTick TickType, F
     }
 
     CheckPlayerRange();
+
+    UpdatePlayerMovement(DeltaTime);
 }
 
 
@@ -87,8 +89,6 @@ void UAC_SkeletonFollower::CheckPlayerRange()
         StartPathGeneration();
     }
 }
-
-
 
 void UAC_SkeletonFollower::EnsureGeneratedSpline()
 {
@@ -147,6 +147,9 @@ static FVector ClosestPointOnPlayerCircle(const FVector& PlayerPos, const FVecto
 void UAC_SkeletonFollower::GenerateNextPathPoint()
 {
     if (!ParentActor || PipouPlayers.Num() < 2)
+        return;
+
+    if (!IsAnyPlayerMoving())
         return;
 
     Player1Location = PipouPlayers[0] ? PipouPlayers[0]->GetActorLocation() : FVector::ZeroVector;
@@ -309,7 +312,53 @@ void UAC_SkeletonFollower::TickFollowSpline(float DeltaTime)
     }
 }
 
+#pragma region Player Checks
 
+void UAC_SkeletonFollower::UpdatePlayerMovement(float DeltaTime)
+{
+    bAnyPlayerMoving = false;
+
+    if (PipouPlayers.Num() == 0 || DeltaTime <= KINDA_SMALL_NUMBER)
+    {
+        return;
+    }
+
+    if (!bHasPreviousPlayerLocations || PreviousPlayerLocations.Num() != PipouPlayers.Num())
+    {
+        PreviousPlayerLocations.SetNum(PipouPlayers.Num());
+        for (int32 i = 0; i < PipouPlayers.Num(); ++i)
+        {
+            if (PipouPlayers[i])
+            {
+                PreviousPlayerLocations[i] = PipouPlayers[i]->GetActorLocation();
+            }
+        }
+
+        bHasPreviousPlayerLocations = true;
+        return;
+    }
+
+    for (int32 i = 0; i < PipouPlayers.Num(); ++i)
+    {
+        AActor* Player = PipouPlayers[i];
+        if (!Player) continue;
+
+        const FVector CurrentLoc = Player->GetActorLocation();
+        const FVector PrevLoc = PreviousPlayerLocations[i];
+
+        const float DistanceMoved = FVector::Dist(CurrentLoc, PrevLoc);
+
+        PreviousPlayerLocations[i] = CurrentLoc;
+
+        if (DistanceMoved >= PlayerMovingDistanceThreshold)
+        {
+            bAnyPlayerMoving = true;
+            break;
+        }
+    }
+}
+
+#pragma endregion
 
 void UAC_SkeletonFollower::OnParentHit(AActor* SelfActor, AActor* OtherActor,
     FVector NormalImpulse, const FHitResult& Hit)
