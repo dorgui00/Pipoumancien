@@ -51,13 +51,12 @@ void APipouCharacter::BeginPlay()
 	
 	// Camera
 	SetCameraView();
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->AddFollowTarget(this);
+	
+	UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
+	CameraWorldSubsystem->AddFollowTarget(this);
 
 	if (this->Implements<UCameraVisibleTarget>())
-	{
-		UE_LOG(LogTemp, Display, TEXT("character added in visible target"));
-		GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->AddVisibleTarget(this);
-	}
+		CameraWorldSubsystem->AddVisibleTarget(this);
 
 	// TO EDIT : verif ordre d execution
 	GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>()->SetCharacters(this);
