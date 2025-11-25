@@ -38,7 +38,7 @@ public:
 	UPROPERTY()
 	UCanvasPanelSlot* EndPoint;
 
-	float NoteAlpha = 0;
+	// float NoteAlpha = 0;
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* LetterText;

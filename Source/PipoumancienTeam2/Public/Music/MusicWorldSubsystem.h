@@ -26,91 +26,83 @@ class PIPOUMANCIENTEAM2_API UMusicWorldSubsystem : public UTickableWorldSubsyste
 	GENERATED_BODY()
 
 public:
-	#pragma region Timer Music
-	// Timer we increment while the UI is lerping.
-	float TimerLerpingOffset = 0.f;
+	// ---- MUSIC UI TIMER ----
+	float GetTimerLerpingOffset() const;
+	void IncreaseTimerLerpingOffset(float DeltaTime);
 	
-	#pragma endregion
+	// ---- MUSIC COUNTDOWN ----
+	bool IsInCountDown = false;
+	
+	float GetTimerCountdown() const;
+	void DecreaseTimerCountdown(float DeltaTime);
 
-	#pragma region Skeleton&Notes
-	// Get the current note playing.
+	
+	// ---- NOTES & SKELETONS ----
 	F_Note* GetCurrentWaitingNote() const;
+	UMusicNote* GetCurrentWaitingNoteWidget() const;
 
-	UMusicNote* GetCurrentWaitingNoteWBP() const; 
-
-	// Manage the WaitingNoteIndex.
 	int GetCurrentWaitingNoteIndex() const;
 	void SetCurrentWaitingNoteIndex(int NewIndex);
 
-	// Change variable HasMusicianReceivedInput to true if not.
+	// Tell the Music Logic the player HAS pressed an input.
 	void ReceivedMusicianInput();
 	
-	#pragma endregion
-
-	#pragma region Music
-	// Music Speed.
+	
+	// ---- MUSIC LOGIC ----
 	UPROPERTY()
 	float MusicGlobalSpeed = 1.f;
 
 	UPROPERTY()
-	int CurrentFailNotePossible;
-
-	UPROPERTY()
 	int MaxFailNotePossible = 5;
 
-	// Tolerance for the player to play the QTE.
+	UPROPERTY()
 	float TimeTolerance = 0.2f;
 
-	// Check if the UI is lerping offset.
-	bool IsLerpingOffset = true;
+	float GetCurrentPitchCursorValue() const;
+	void SetCurrentPitchCursorValue(float NewPitchCursorValue);
 
-	// Store the current cursor value.
-	float CurrentCursorValue = 0.f;
+	// Return the status of IsAwaitingReplyVariable.
+	bool GetIsAwatingReply() const;
 
-	// When you're not at the right time for the QTE.
+	// Called when the player performs an action too early or too late.
 	void LostQTE();
-
 	void LostMelody();
-
 	void SetNoteFeedbackMusic(FLinearColor NewColor) const;
 
+	// Fail Note possible -> Health Bar of the partition.
+	int GetCurrentFailNotePossible() const;
+	void SetCurrentFailNotePossible(float NewValue);
+	bool HasLostAllFaileNotePossible() const;
+
 	EMelodyType GetMelodyType() const;
-	
-	#pragma endregion
 
-	#pragma region Replies
-	bool IsAwaitingReply = false;
 	
-	#pragma endregion
-
-	#pragma region Countdown
-	bool IsInCountDown = false;
-	
-	#pragma endregion
-
-	#pragma region Utilities
+	// ---- UTILITIES ----
 	void InitMusic(ASkeletonController* Skeleton);
-
-	#pragma endregion
 	
 protected:
-	#pragma region SubsystemOverride
+	// ---- SUBSYSTEM OVERRIDE ---- 
 	virtual void PostInitialize() override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override {return TStatId();};
 
-	#pragma endregion
-
 private:
-	#pragma region Countdown
-	float TimerCountDown = 3.f;
-
-	void StartCountDown();
+	// ---- MUSIC UI TIMER ----
+	float TimerLerpingOffset = 0.f;
+	bool IsLerpingOffset = true;
 	
-	#pragma endregion
+	bool HasFinishedLerpingOffset() const;
 
-	#pragma region Skeleton&Notes
+	
+	// ---- MUSIC COUNTDOWN ---- 
+	float TimerCountDown = 3.f;
+	void StartCountDown();
+	void FinishCountDown();
+	bool HasFinishedCountdown() const;
+
+	
+	// ---- NOTES & SKELETONS ----
 	UPROPERTY()
 	ASkeletonController* CurrentSkeleton = nullptr;
 	
@@ -120,37 +112,67 @@ private:
 	UPROPERTY()
 	bool IsConductorOnTheRightPitch = false;
 
+	UPROPERTY()
 	int CurrentWaitingNoteIndex = 0;
 
+	// Tell the Music Logic the player HAS NOT pressed an input.
 	void ResetMusicianReply();
 		
-	#pragma endregion
 
-	#pragma region Music
-	// Tempo handle all the music rythm.
+	// ---- MUSIC LOGIC ----
 	float Tempo = 0.f;
-	
-	void SucceedMelody();
 
+	// The slider value accepted 
 	float PitchTolerance = 0.2f;
 
-	bool HasAchievedQte();
-
-	EMelodyType MelodyState = EMelodyType::NONE;
+	UPROPERTY()
+	float CurrentPitchCursorValue = 0.f;
 
 	bool HasLostMelody = false;
+	EMelodyType MelodyState = EMelodyType::NONE;
+	
+	// The Music Logic is waiting or not for the player to do an action.
+	bool IsAwaitingReply = false;
 
-	#pragma endregion
+	UPROPERTY()
+	int CurrentFailNotePossible;
 
-	#pragma region Utilities
+	void PlayMusic();
+
+	bool HasCurrentFailNoteReachMaximumValue() const;
+	
+	
+	void IncreaseMusicTempo(float DeltaTime);
+
+	// Change the CurrentWaitingNoteIndex to go to the next note.
+	void GoNextNote();
+
+	// Is the player before the time to do the QTE.
+	bool IsBeforeWindowNote() const;
+
+	// Has the player enter the time to do the QTE.
+	bool HasEnteredWindowNote() const;
+
+	// Has the player exited time to do the QTE.
+	bool HasExitedWindowNote() const;
+
+	// Has the player play all the notes in the current Notes Array.
+	bool HasReachEndOfPartition() const;
+
+	// Called when the player pressed input during the time of the QTE.
+	void SucceedQTE();
+	
+	void SucceedMelody();
+	bool HasAchievedQte();
+
+	
+	// ---- UTILITIES ----
 	bool IsInWorldStateMusic = false;
-
+	
 	UPROPERTY()
 	UGlobalGameSubsystem* GlobalGameSubsystem;
 
 	UPROPERTY()
 	UGlobalHUDSubsystem* GlobalHUDSubsystem;
-
-	#pragma endregion
 
 };

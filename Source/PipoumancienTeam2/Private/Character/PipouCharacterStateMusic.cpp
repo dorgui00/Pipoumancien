@@ -109,13 +109,12 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 			SliderPitchSpeed = MaxPitchSpeed;
 		}
 		
-		MusicWorldSubsystem->CurrentCursorValue = FMath::Clamp(MusicWorldSubsystem->CurrentCursorValue + InputActionValue.Get<float>() * SliderPitchSpeed,
-			-1.f, 1.0f);
+		MusicWorldSubsystem->SetCurrentPitchCursorValue(FMath::Clamp(MusicWorldSubsystem->GetCurrentPitchCursorValue() + InputActionValue.Get<float>() * SliderPitchSpeed, -1.f, 1.0f)); 
 
 		UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
 		if (!HUDSubsystem || !HUDSubsystem->WBPResurrectionInstance) return;
 
-		HUDSubsystem->WBPResurrectionInstance->SetSliderPitch(MusicWorldSubsystem->CurrentCursorValue);
+		HUDSubsystem->WBPResurrectionInstance->SetSliderPitch(MusicWorldSubsystem->GetCurrentPitchCursorValue());
 	}
 }
 
@@ -128,22 +127,26 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 {
 	if (CurrentRole == EPipouCharacterRoles::Musician)
 	{
-		if (MusicWorldSubsystem->IsAwaitingReply && MusicWorldSubsystem->GetCurrentWaitingNote()->InputAction == InputAction)
+		if (MusicWorldSubsystem->GetIsAwatingReply() && MusicWorldSubsystem->GetCurrentWaitingNote()->InputAction == InputAction)
 		{
 			HasPressedNotes = true;
 			MusicWorldSubsystem->ReceivedMusicianInput();
 			MusicWorldSubsystem->SetNoteFeedbackMusic(FLinearColor::Green);
+			
+			// Set invisibility for the notes.
+			MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor(0.f, 0.f, 0.f,0.f));
+			MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->LetterText->SetColorAndOpacity(FLinearColor(0.f, 0.f, 0.f,0.f));
 		}
-		else if (!MusicWorldSubsystem->IsAwaitingReply && !MusicWorldSubsystem->IsInCountDown && !HasPressedNotes)
+		else if (!MusicWorldSubsystem->GetIsAwatingReply() && !MusicWorldSubsystem->IsInCountDown && !HasPressedNotes)
 		{
 			HasPressedNotes = true;
 			
-			MusicWorldSubsystem->CurrentFailNotePossible--;
+			MusicWorldSubsystem->SetCurrentFailNotePossible(MusicWorldSubsystem->GetCurrentFailNotePossible() - 1);
 			MusicWorldSubsystem->SetNoteFeedbackMusic(FLinearColor::Red);
 
-			if (MusicWorldSubsystem->CurrentFailNotePossible <= 0)
+			if (MusicWorldSubsystem->HasLostAllFaileNotePossible())
 			{
-				MusicWorldSubsystem->CurrentFailNotePossible = 0;
+				MusicWorldSubsystem->SetCurrentFailNotePossible(0);
 				MusicWorldSubsystem->LostMelody();
 			}
 		}
