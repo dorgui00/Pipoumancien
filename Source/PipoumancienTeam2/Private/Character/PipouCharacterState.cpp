@@ -6,11 +6,14 @@
 #include "InputActionValue.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
+#include "Editor/PipouCharacterSettings.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Interaction/Interact.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "PNJ/SkeletonController.h"
+
+class UPipouCharacterSettings;
 
 UPipouCharacterState::UPipouCharacterState()
 {
@@ -87,6 +90,10 @@ void UPipouCharacterState::ResetWorldInteraction()
 
 void UPipouCharacterState::OnCharacterPressedNote(UInputAction* InputAction)
 {
+	// SOUND
+	UGameplayStatics::PlaySound2D(GetWorld(), Character->GetWorldSoundFromInput(InputAction));
+
+	// CHECK INTERACTION
 	TObjectPtr<UGlobalGameSubsystem> GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
 	if (!GlobalGameSubsystem) return;
 	
