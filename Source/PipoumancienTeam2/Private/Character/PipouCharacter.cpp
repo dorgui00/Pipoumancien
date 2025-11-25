@@ -4,6 +4,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
+#include "Camera/CameraVisibleTarget.h"
 #include "Character/PipouCharacterInputData.h"
 #include "Camera/CameraWorldSubsystem.h"
 #include "Character/PipouCharacterState.h"
@@ -47,8 +48,16 @@ void APipouCharacter::BeginPlay()
 
 	CreateStateMachine();
 	InitStateMachine();
+	
+	// Camera
 	SetCameraView();
 	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->AddFollowTarget(this);
+
+	if (this->Implements<UCameraVisibleTarget>())
+	{
+		UE_LOG(LogTemp, Display, TEXT("character added in visible target"));
+		GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->AddVisibleTarget(this);
+	}
 
 	// TO EDIT : verif ordre d execution
 	GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>()->SetCharacters(this);
