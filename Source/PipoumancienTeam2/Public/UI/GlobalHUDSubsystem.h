@@ -139,6 +139,13 @@ public:
 			CurrentObject->SetWidgetStyle(Style);
 		}
 
+		if constexpr (std::is_same_v<T, UImage>)
+		{
+			FSlateBrush ImageBrush = CurrentObject->GetBrush();
+			ImageBrush.TintColor = FSlateColor(NewColor);
+			CurrentObject->SetBrush(ImageBrush);
+		}
+
 		// Add to my map the current object and associate it with handle or find it if there is one.
 		FTimerHandle& Handle = ColorResetTimers.FindOrAdd(CurrentObject);
 
@@ -178,6 +185,13 @@ public:
 					Style.SetNormalThumbImage(ThumbBrush);
 
 					WeakObj->SetWidgetStyle(Style);
+				}
+
+				if constexpr (std::is_same_v<T, UImage>)
+				{
+					FSlateBrush ImageBrush = Obj->GetBrush();
+					ImageBrush.TintColor = FSlateColor(FLinearColor::White);
+					Obj->SetBrush(ImageBrush);
 				}
 			},
 			// It will start after 0.2f seconds of wait. 
