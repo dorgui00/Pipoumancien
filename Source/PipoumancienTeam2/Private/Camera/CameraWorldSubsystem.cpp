@@ -9,9 +9,9 @@
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Music/MusicWorldSubsystem.h"
 #include "PipoumancienTeam2/Public/Camera/CameraFollowTarget.h"
 #include "PNJ/SkeletonController.h"
+#include "Settings/SubsystemSettings.h"
 
 
 void UCameraWorldSubsystem::PostInitialize()
@@ -31,7 +31,9 @@ void UCameraWorldSubsystem::InitCameraSubsystem()
 {
 	AssignAllCameras();
 	
-	InitMainCamera(); 
+	InitMainCamera();
+	
+	InitCameraVisibility();
 
 }
 
@@ -98,6 +100,8 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 	else if (CameraState == ECameraState::GlobalCamera)
 	{
 		TickUpdateCameraPosition(DeltaTime);
+		
+		TickUpdateCameraVisibility(DeltaTime);
 	}
 }
 
@@ -263,58 +267,122 @@ void UCameraWorldSubsystem::TickUpdateCameraZoom(float DeltaTime)
 	CameraMain->SetWorldLocation(pos);
 }
 
+
+void UCameraWorldSubsystem::AddVisibleTarget(UObject* VisibleTarget)
+{
+	VisibleTargets.Add(VisibleTarget);
+
+	// TO EDIT => passer les coll en block ce channel special (ici, visible)
+}
+
+void UCameraWorldSubsystem::RemoveVisibleTarget(UObject* VisibleTarget)
+{
+	VisibleTargets.Remove(VisibleTarget);
+}
+
+
 void UCameraWorldSubsystem::InitCameraVisibility()
 {
-	// recuperer le ec channel de la visibility
-	//VisibilityChannel
+	//
+	//InvisibleMaterial = ghostMaterialAsset.Object;
+
+	const USubsystemSettings* SubsystemSettings = GetDefault<USubsystemSettings>();
+	InvisibleMaterial =  SubsystemSettings->InvisibleMaterial.LoadSynchronous() ;
 	
-	// recuperer le necromancien
+}
+
+void UCameraWorldSubsystem::TickUpdateCameraVisibility(float DeltaTime)
+{	
+	// Viewport center
+	FVector2D ViewportBoundsMin, ViewportBoundsMax;
+	GetViewportBounds(ViewportBoundsMin,ViewportBoundsMax);
+
+	float ViewportCenterX = (ViewportBoundsMin.X + ViewportBoundsMax.X)/2;
+	float ViewportCenterY = (ViewportBoundsMin.Y + ViewportBoundsMax.Y)/2;
+	FVector2D ViewportCenter = FVector2D(ViewportCenterX,ViewportCenterY);
+	//FVector ViewportCenterToWorld = CalculateWorldPositionFromViewportPosition(ViewportCenter);
+
+	APlayerController* PlayerController= UGameplayStatics::GetPlayerController(GetWorld(),0);
+	if (PlayerController==nullptr) return;
+	
+	FVector CameraWorldProjectDir;
+	FVector WorldPosition;
+	UGameplayStatics::DeprojectScreenToWorld(
+		PlayerController,
+		ViewportCenter,
+		WorldPosition,
+		CameraWorldProjectDir
+		);
+	
 	
 	// foreach target multiple line trace
 	FVector Pos;
 
-	// TO EDIT : DEBUG
+	// // TO EDIT : DEBUG
 	for (auto Target : VisibleTargets)
 	{
 		//Uniquement si l’objet dans la liste implémente l’interface 
 		if (Target !=nullptr && Target->Implements<UCameraVisibleTarget>())
 		{
-			if (ICameraVisibleTarget* VisibleTarget = Cast<ICameraVisibleTarget>(Target))
-			{
-					Pos = VisibleTarget->GetVisiblePosition();
-			}
+			Pos = ICameraVisibleTarget::Execute_GetVisiblePosition(Target);
+					
+			//DrawDebugLine(GetWorld(), WorldPosition, Pos, FColor::Blue, false, 2.f, 0, 2.f);
 		};
 	}
-
-	// Viewport center
-	FVector2D ViewportBoundsMin, ViewportBoundsMax;
-	GetViewportBounds(ViewportBoundsMin,ViewportBoundsMax);
-
-	FVector2D ViewportCenter = (ViewportBoundsMin + ViewportBoundsMax) / 2;
-	FVector ViewportCenterToWorld = CalculateWorldPositionFromViewportPosition(ViewportCenter);
 	
-	DrawDebugLine(GetWorld(), ViewportCenterToWorld, Pos, FColor::Blue, false, 2.f, 0, 2.f);
-}
-
-void UCameraWorldSubsystem::AddVisibleTarget(UObject* VisibleTarget)
-{
-	FollowTargets.Add(VisibleTarget);
-}
-
-void UCameraWorldSubsystem::RemoveVisibleTarget(UObject* VisibleTarget)
-{
-	FollowTargets.Remove(VisibleTarget);
-}
-
-void UCameraWorldSubsystem::TickUpdateCameraVisibility(float DeltaTime)
-{
-	// TO EDIT => to complete
+	// recuperer le ec channel de la visibility
+	//VisibilityChannel
 	
-	// tirer un multiple line trace
-	// du milieu du screen
-	// au necromancien
+	CurrentInvisibleObjects.Empty();
+	TArray<struct FHitResult> OutHits;
+	
+	if (GetWorld()->LineTraceMultiByChannel(OutHits,WorldPosition,Pos,ECollisionChannel::ECC_GameTraceChannel6))
+	{
+		for (auto Hit : OutHits)
+		{
+			// Hit visible target
+			if (Hit.GetActor() && Hit.GetActor()->Implements<UCameraVisibleTarget>())
+			{
+				UE_LOG(LogTemp,Display,TEXT("Hit Player %s"),*Hit.GetActor()->GetName());
+				
+				//return ;
+			}
+			else
+			{
+				UE_LOG(LogTemp,Display,TEXT("Hit quelque chose avant le player %s"), *Hit.GetActor()->GetName());
+			
+				if (UMeshComponent* MeshComponent = Cast<UMeshComponent>(Hit.GetActor()->GetComponentByClass(UMeshComponent::StaticClass())))
+				{
+					
+					TObjectPtr<UMaterialInterface> Material =	MeshComponent->GetMaterial(0);
+					if (PreviousInvisibleObjects.Contains(Hit.GetActor()))
+						Material = *PreviousInvisibleObjects.Find(Hit.GetActor());
+						
+					CurrentInvisibleObjects.Add(Hit.GetActor(),Material);
+					MeshComponent->SetMaterial(0,InvisibleMaterial);
+				}
+			}
+		}
+	};
 
-	// debug
+	for (auto PreviousInvisibleObject : PreviousInvisibleObjects)
+	{
+		// invisible again
+		if (CurrentInvisibleObjects.Contains(PreviousInvisibleObject.Key))
+		{
+			UE_LOG(LogTemp, Display, TEXT("ENcore invisible"));
+		}
+		// no more invisible
+		else
+		{
+			UE_LOG(LogTemp, Display, TEXT("Plus invisible"));
+			UMeshComponent* Mesh = Cast<UMeshComponent>(PreviousInvisibleObject.Key->GetComponentByClass(UMeshComponent::StaticClass()));
+			UMaterialInterface* M = PreviousInvisibleObject.Value;
+			Mesh->SetMaterial(0,M);
+		}
+	}
+	
+	PreviousInvisibleObjects = CurrentInvisibleObjects;
 	
 }
 

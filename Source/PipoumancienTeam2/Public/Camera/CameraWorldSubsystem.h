@@ -21,6 +21,21 @@ enum class ECameraState : uint8{
 	DialogueCamera = 3,
 };
 
+
+// USTRUCT()
+// struct FInvisibleObject
+// {
+// 	GENERATED_USTRUCT_BODY()
+//
+// 	FInvisibleObject();
+//
+// 	UPROPERTY()
+// 	AActor* Actor;
+//
+// 	FString MaterialPath;
+// 	//UMaterialInterface Material;
+// };
+
 UCLASS()
 class PIPOUMANCIENTEAM2_API UCameraWorldSubsystem : public UTickableWorldSubsystem
 {
@@ -146,6 +161,26 @@ private :
 	
 	void InitCameraVisibility();
 	void TickUpdateCameraVisibility(float DeltaTime);
+
+	UPROPERTY()
+	UMaterialInterface* InvisibleMaterial;
+
+	UPROPERTY()
+	//TMap<TSoftObjectPtr<AActor>,FString> CurrentInvisibleObjects;
+	TMap<TObjectPtr<AActor>, TObjectPtr<UMaterialInterface>> CurrentInvisibleObjects;
+	
+	UPROPERTY()
+	//TMap<TSoftObjectPtr<AActor>, FString> PreviousInvisibleObjects;
+	TMap<TObjectPtr<AActor>, TObjectPtr<UMaterialInterface>> PreviousInvisibleObjects;
+	//TArray<FTest> CurrentInvisibleObjects;
+
+	// UPROPERTY()
+	// TArray<FInvisibleObject> CurrentInvisibleObjects;
+	//
+	// UPROPERTY()
+	// TArray<FInvisibleObject> PreviousInvisibleObjects;
+
+
 	
 #pragma endregion
 
@@ -235,3 +270,7 @@ private :
 	
 # pragma endregion
 };
+
+
+
+

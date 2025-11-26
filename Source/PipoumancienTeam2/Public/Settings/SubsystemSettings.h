@@ -52,9 +52,16 @@ public:
 	
 	#pragma endregion
 
-	#pragma region DataManager
-	UPROPERTY(Config, EditAnywhere, Category="GlobalDatatableManager")
+	#pragma region DatatableManager
+	UPROPERTY(Config, EditAnywhere, Category="MusicDatatableManager")
 	TSoftObjectPtr<UDataTable> DT_Music;
 
 	#pragma endregion
+
+#pragma region Camera Subsystem
+	
+	UPROPERTY(Config, EditAnywhere, Category="GlobalDatatableManager")
+	TSoftObjectPtr<UMaterialInterface> InvisibleMaterial;
+	
+#pragma endregion
 };
