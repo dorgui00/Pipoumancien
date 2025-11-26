@@ -6,17 +6,19 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "CameraWorldSubsystem.generated.h"
 
+class APipouCharacter;
+class ASkeletonController;
 class UCameraComponent;
 /**
  * 
 */
 
 // UENUM()
-enum class ECameraType : uint8{
+enum class ECameraState : uint8{
 	None = 0,
 	MusicCamera = 1,
 	GlobalCamera = 2,
-	Dialogue = 3,
+	DialogueCamera = 3,
 };
 
 UCLASS()
@@ -28,24 +30,24 @@ class PIPOUMANCIENTEAM2_API UCameraWorldSubsystem : public UTickableWorldSubsyst
 public :
 	virtual void PostInitialize() override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
-	virtual void OnWorldComponentsUpdated(UWorld& World) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override {return TStatId();};
+
 #pragma endregion
 
-#pragma region MainCamera
+#pragma region Init
 public :
-	void InitCameraSubsystem();
 	
 	UPROPERTY()
 	TObjectPtr<UCameraComponent> CameraMain;
 	
-protected:
-	FTransform InitMainCameraTransform;
+	void InitCameraSubsystem();
 	
-	void TickUpdateCameraZoom(float DeltaTime);
+private :
+	// Init Cameras
+	void AssignAllCameras();
 	
-	void TickUpdateCameraPosition(float DeltaTime);
+	void InitMainCamera();
 
 #pragma endregion
 
@@ -75,7 +77,8 @@ protected :
 	
 #pragma region Misc
 protected:
-	UCameraComponent* FindCameraByTag(const FName& Tag) const;
+	AActor* FindCameraActorByTag(const FName& Tag) const;
+	UCameraComponent* FindCameraComponentByTag(const AActor* Owner, const FName& Tag) const;
 
 private :
 	void InitCameraRotationToPivot();
@@ -83,10 +86,8 @@ private :
 #pragma endregion
 
 #pragma region Bounds
-public :
-	void GetViewportBounds(FVector2D& OutViewportBoundsMin, FVector2D& OutViewportBoundsMax);
-
-protected :
+	
+private :
 	UPROPERTY()
 	FVector2D CameraBoundsMin;
 
@@ -102,14 +103,16 @@ protected :
 
 	void ClampPositionIntoCameraBounds(FVector& Position);
 
-	//void GetViewportBounds(FVector2D& OutViewportBoundsMin, FVector2D& OutViewportBoundsMax);
+	void GetViewportBounds(FVector2D& OutViewportBoundsMin, FVector2D& OutViewportBoundsMax) const;
 
 	FVector CalculateWorldPositionFromViewportPosition(const FVector2D& ViewportPosition);
 	
 #pragma endregion
 
 #pragma region Zoom
-	protected :
+	
+private  :
+	
 	UPROPERTY()
 	float CameraZoomYMin = 0.f;
 
@@ -125,20 +128,110 @@ protected :
 	UFUNCTION()
 	void InitCameraZoomParameters();
 	
+	void TickUpdateCameraZoom(float DeltaTime);
+	
 #pragma endregion
 
-	// Lerp cameras
-#pragma region MusicCamera
+#pragma  region Visible Target
 public :
-	void CallCamera(const ECameraType CameraType);
-
-protected :
-	FTransform AimedCameraTransform;
 	
-	bool IsSettingCamera = false;
-	bool IsWorldTransform = false;
+	void AddVisibleTarget(UObject* VisibleTarget);
+	void RemoveVisibleTarget(UObject* VisibleTarget);
 	
-	void SetCamera(float DeltaTime, bool IsWorld);
+private :
+	UPROPERTY()
+	TArray<UObject*> VisibleTargets;
+	
+	ECollisionChannel VisibilityChannel;
+	
+	void InitCameraVisibility();
+	void TickUpdateCameraVisibility(float DeltaTime);
 	
 #pragma endregion
+
+	// CAMERAS
+#pragma region Cameras
+
+public :
+	
+	// STATE
+	ECameraState GetState() const;
+	
+private :
+	// STATE
+	ECameraState CameraState;
+	ECameraState PreviousState;
+	
+	// LERP CAMERAS
+	bool IsSettingCamera = false;
+	float LerpTimer = 0;
+	
+	void LerpCamera(float DeltaTime);
+	void LerpCameraComponent(float DeltaTime);
+	void LerpCameraActor(float DeltaTime);
+
+	// Component Pos/Rot
+	FTransform StartComponentTransform;
+	FTransform EndComponentTransform;
+
+	// Actor Pos/Rot
+	FTransform StartActorTransform;
+	FTransform EndActorTransform;
+
+	bool CanLerpActor = false;
+	bool CanLerpComponent = false;
+	
+	void ResetLerp();
+	void FinishCameraLerp();
+	
+
+#pragma endregion
+
+	// GLOBAL CAMERA
+#pragma region Global Camera
+	
+public :
+	void SetGlobalCamera();
+
+private :
+	
+	UPROPERTY()
+	TObjectPtr<UCameraComponent> GlobalCamera;
+	
+	void TickUpdateCameraPosition(float DeltaTime);
+	
+	void FinishGlobalCameraLerp();
+	
+	
+#pragma endregion
+
+	//MUSIC CAMERA
+#pragma region MusicCamera
+
+public :
+	void SetMusicCamera();
+
+private :	
+
+	UPROPERTY()
+	TObjectPtr<UCameraComponent> MusicCamera;
+	
+	void FinishMusicCameraLerp();
+
+#pragma endregion
+
+	// DIALOGUE CAMERA
+#pragma region Dialogue Camera
+public :
+
+	void SetDialogueCamera(APipouCharacter* Interactor, ASkeletonController* Speaker);
+
+private :
+	
+	UPROPERTY()
+	TObjectPtr<UCameraComponent> DialogueCamera;
+	
+	void FinishDialogueCameraLerp();
+	
+# pragma endregion
 };

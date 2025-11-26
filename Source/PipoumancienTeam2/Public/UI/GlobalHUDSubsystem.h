@@ -8,6 +8,7 @@
 #include "Components/TextBlock.h"
 #include "GlobalHUDSubsystem.generated.h"
 
+class UPartitionFinish;
 struct F_Note;
 class USlider;
 class UMusicWorldSubsystem;
@@ -38,6 +39,16 @@ public:
 
 	// Remove the resurrection widget from screen.
 	void RemoveResurrectionWidget();
+
+	UPROPERTY()
+	TSubclassOf<UPartitionFinish> WBPPartitionFinishClass;
+
+	UPROPERTY()
+	TObjectPtr<UPartitionFinish> WBPPartitionFinishInstance;
+	
+	void DisplayPartitionFinish(const FString& TextInThePartition);
+
+	void RemovePartitionFinish() const;
 
 	// Note Widget Class.
 	UPROPERTY()
@@ -106,7 +117,7 @@ public:
 
 	// My template function to be called for either changing color of a slider handle or one of my note 
 	template<class T>
-	void SetObjectColor(T* CurrentObject, FLinearColor NewColor, bool HasAchievedInput)
+	void SetObjectColor(T* CurrentObject, FLinearColor NewColor)
 	{
 		if (!CurrentObject) return;
 
@@ -128,6 +139,13 @@ public:
 			CurrentObject->SetWidgetStyle(Style);
 		}
 
+		if constexpr (std::is_same_v<T, UImage>)
+		{
+			FSlateBrush ImageBrush = CurrentObject->GetBrush();
+			ImageBrush.TintColor = FSlateColor(NewColor);
+			CurrentObject->SetBrush(ImageBrush);
+		}
+
 		// Add to my map the current object and associate it with handle or find it if there is one.
 		FTimerHandle& Handle = ColorResetTimers.FindOrAdd(CurrentObject);
 
@@ -138,12 +156,10 @@ public:
 		using TObjectClass = std::remove_pointer_t<T>;
 		TWeakObjectPtr<TObjectClass> WeakObj = CurrentObject;
 
-		bool AchievedInput = HasAchievedInput;
-		
 		// Create a timer with our timer event on our WeakObj.
 		GetWorld()->GetTimerManager().SetTimer(
 			Handle,
-			[WeakObj, AchievedInput]()
+			[WeakObj]()
 			{
 				if (!WeakObj.IsValid()) return;
 
@@ -151,7 +167,7 @@ public:
 				T* Obj = WeakObj.Get();
 
 				// Set a default color: blue.
-				FLinearColor DefaultColor = AchievedInput ? FLinearColor::Gray : FLinearColor::Blue;
+				FLinearColor DefaultColor = FLinearColor::Blue;
 
 				// Check if it's a note or a slider to change the color or the slider handle color depending on the object.
 				if constexpr (std::is_same_v<T, UMusicNote>)
@@ -165,10 +181,17 @@ public:
 					FSliderStyle Style = WeakObj->GetWidgetStyle();
 					FSlateBrush ThumbBrush = Style.NormalThumbImage;
 
-					ThumbBrush.OutlineSettings.Color = FLinearColor::Blue; 
+					ThumbBrush.OutlineSettings.Color = DefaultColor; 
 					Style.SetNormalThumbImage(ThumbBrush);
 
 					WeakObj->SetWidgetStyle(Style);
+				}
+
+				if constexpr (std::is_same_v<T, UImage>)
+				{
+					FSlateBrush ImageBrush = Obj->GetBrush();
+					ImageBrush.TintColor = FSlateColor(FLinearColor::White);
+					Obj->SetBrush(ImageBrush);
 				}
 			},
 			// It will start after 0.2f seconds of wait. 

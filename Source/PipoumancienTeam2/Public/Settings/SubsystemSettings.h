@@ -7,6 +7,7 @@
 #include "UI/UResurrectionWidget.h"
 #include "SubsystemSettings.generated.h"
 
+class UPartitionFinish;
 class UMusicNote;
 
 UCLASS(Config=Game, DefaultConfig, meta=(DisplayName="Subsystem Settings"))
@@ -23,11 +24,11 @@ public:
 	TSubclassOf<UMusicNote> WBPNoteClass;
 
 	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
+	TSubclassOf<UPartitionFinish> WBPPartitionFinishClass;
+	
+	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
 	float RatioDistance = 100.f;
 
-	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
-	float SliderPitchSpeed = 0.05f;
-	
 	#pragma endregion
 
 	#pragma region MusicSubsystem
@@ -35,10 +36,19 @@ public:
 	float MusicGlobalSpeed = 1.f;
 
 	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
+	int MaxFailNotePossible = 5;
+
+	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
 	float TimeTolerance = 0.3f;
 
 	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
 	float PitchTolerance = 0.2f;
+
+	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
+	float MaxSpeedPitch = 0.1f;
+
+	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
+	float AccelerationPitchSpeed = 0.01f;
 	
 	#pragma endregion
 

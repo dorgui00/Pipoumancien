@@ -18,7 +18,8 @@ enum class EWorldState : uint8{
 	WorldFree = 1,
 	WorldMusic = 2,
 	WorldTransport = 3,
-	Menus = 4,
+	WorldDialogue = 4,
+	Menus = 5,
 };
 
 UCLASS()
@@ -53,17 +54,21 @@ public :
 
 	void CheckIfPlayersOverlapSameSkeleton();
 
-	//DEBUG
-	void SetWorldMusicState();
+	// State
 	EWorldState GetWorldState() const;
+	
+	void SetWorldMusicState();
+
+	void SetWorldTransportState();
+
+	void SetWorldFreeState();
+
+	void SetWorldDialogueState(APipouCharacter* Interactor, ASkeletonController* Speaker);
 	
 private :
 
 	// World State
 	EWorldState WorldState = EWorldState::WorldFree; // TO EDIT
-
-	//DEBUG
-	//void SetWorldMusicState();
 	
 	// Skeleton
 	UPROPERTY()

@@ -5,6 +5,8 @@
 #include "Tools/SplinePathGenerator.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
+#include "Tools/SplinePathGenerator.h"
 
 APathManager::APathManager()
 {
@@ -38,7 +40,6 @@ void APathManager::BuildFromGenerator()
 
     if (!SourceGenerator || !GetWorld())
     {
-        UE_LOG(LogTemp, Warning, TEXT("PathManager: No SourceGenerator found."));
         return;
     }
 
@@ -50,51 +51,16 @@ void APathManager::BuildFromGenerator()
 
     if (StartPoints.Num() == 0 || EndPoints.Num() == 0)
     {
-        UE_LOG(LogTemp, Warning, TEXT("PathManager: Need at least one StartPoint and one EndPoint."));
         return;
     }
 
-    SplineMatrix.SetNumZeroed(StartPoints.Num() * EndPoints.Num());
+    SplineMatrix = SourceGenerator->GeneratedSplines;
 
-    for (int32 StartIdx = 0; StartIdx < StartPoints.Num(); ++StartIdx)
-    {
-        AActor* Start = StartPoints[StartIdx];
-        if (!Start) continue;
-
-        for (int32 EndIdx = 0; EndIdx < EndPoints.Num(); ++EndIdx)
-        {
-            AActor* End = EndPoints[EndIdx];
-            if (!End) continue;
-
-            USplineComponent* Spline = NewObject<USplineComponent>(this, USplineComponent::StaticClass(), NAME_None, RF_Transactional);
-            Spline->SetupAttachment(RootComponent);
-            Spline->RegisterComponent();
-            Spline->SetMobility(EComponentMobility::Movable);
-
-            Spline->ClearSplinePoints(false);
-            Spline->AddSplinePoint(Start->GetActorLocation(), ESplineCoordinateSpace::World, false);
-            Spline->AddSplinePoint(End->GetActorLocation(), ESplineCoordinateSpace::World, true);
-            Spline->SetClosedLoop(false);
-            Spline->SetSplinePointType(0, ESplinePointType::Curve, false);
-            Spline->SetSplinePointType(1, ESplinePointType::Curve, true);
-
-            const int32 FI = FlatIndex(StartIdx, EndIdx);
-            SplineMatrix[FI] = Spline;
-
-            Spline->ComponentTags.Add(FName("VillageSpline"));
-        }
-    }
+    const int32 ExpectedNum = StartPoints.Num() * EndPoints.Num();
 }
 
 void APathManager::ClearRuntimeSplines()
 {
-    for (USplineComponent* S : SplineMatrix)
-    {
-        if (S)
-        {
-            S->DestroyComponent();
-        }
-    }
     SplineMatrix.Empty();
 }
 
@@ -105,13 +71,18 @@ AActor* APathManager::GetEndPoint(int32 EndIdx) const
 
 USplineComponent* APathManager::GetSplineForIndices(int32 StartIdx, int32 EndIdx) const
 {
-    if (!StartPoints.IsValidIndex(StartIdx) || !EndPoints.IsValidIndex(EndIdx))
+    const int32 Index = FlatIndex(StartIdx, EndIdx);
+
+    if (!SplineMatrix.IsValidIndex(Index))
     {
         return nullptr;
     }
-    const int32 FI = FlatIndex(StartIdx, EndIdx);
-    return SplineMatrix.IsValidIndex(FI) ? SplineMatrix[FI] : nullptr;
+
+    USplineComponent* Spline = SplineMatrix[Index];
+
+    return Spline;
 }
+
 
 int32 APathManager::GetClosestStartIndex(const FVector& WorldPos) const
 {

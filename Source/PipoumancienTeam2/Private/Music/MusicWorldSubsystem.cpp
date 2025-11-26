@@ -14,6 +14,7 @@
 #include "PNJ/SkeletonController.h"
 #include "Settings/SubsystemSettings.h"
 #include "UI/GlobalHUDSubsystem.h"
+#include "UI/PartitionFinish.h"
 #include "UI/UResurrectionWidget.h"
 
 #pragma region MusicWorldSubsystem
@@ -46,6 +47,9 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
 	// Initialize Pitch Tolerance.
 	PitchTolerance = SubsystemSettings->PitchTolerance;
+
+	// Initialize MaxFailNotePossible.
+	MaxFailNotePossible = SubsystemSettings->MaxFailNotePossible;
 }
 
 #pragma endregion
@@ -61,7 +65,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		TimerCountDown -= DeltaTime;
 
 		// Finish Countdown
-		if (TimerCountDown<=0)
+		if (TimerCountDown <= 0)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Finish CountDown")), true, FVector2D(2, 2));
 			
@@ -90,9 +94,6 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			
 			if (!CurrentSkeleton) return; // Secu check if current skeleton is set
 
-			F_Note* CurrentNote = GetCurrentWaitingNote();
-			UMusicNote* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
-
 			// Not yet time for qte => !IsAwaitingReply
 			if (Tempo < ((CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * MusicGlobalSpeed))
 			{
@@ -103,7 +104,6 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			// Is Awaiting Reply
 			if (Tempo >= ((CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Frequency - TimeTolerance) * MusicGlobalSpeed) && !IsAwaitingReply)
 			{
-				// CurrentNoteSlot->NoteImage->SetColorAndOpacity(FLinearColor::Green);
 				IsAwaitingReply = true;
 				return;
 			}
@@ -119,13 +119,19 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 					//Melodie finie et réussie
 					if (CurrentWaitingNoteIndex == CurrentSkeleton->MySkeleton->Notes.Num()-1)
 					{
-						FinishMelody();
+						SucceedMelody();
 					}
 					// go next note
 					else
 					{
-						GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Go Next Note")), true, FVector2D(2, 2));
-						CurrentNoteSlot->NoteImage->SetColorAndOpacity({0.5, 0.5, 0.5, 1.0f});
+						// Increment the FailNotePossible to give back chance to player.
+						// If it's already at the max then limit the CurrentFailNotePossible at the Max
+						CurrentFailNotePossible++;
+
+						if (CurrentFailNotePossible >= MaxFailNotePossible)
+						{
+							CurrentFailNotePossible = MaxFailNotePossible;
+						}
 						
 						Tempo = TimeTolerance * MusicGlobalSpeed;
 						SetCurrentWaitingNoteIndex(GetCurrentWaitingNoteIndex() + 1);
@@ -147,10 +153,18 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 #pragma region Skeletons&Notes
 F_Note* UMusicWorldSubsystem::GetCurrentWaitingNote() const
 {
-	if (CurrentWaitingNoteIndex > CurrentSkeleton->MySkeleton->Notes.Num()-1)
-		UE_LOG(LogTemp, Error, TEXT("Current waiting Note is out of range"));
+	if (CurrentWaitingNoteIndex > CurrentSkeleton->MySkeleton->Notes.Num() - 1)
+		UE_LOGFMT(LogTemp, Error, "ERROR: Current waiting Note is out of range !");
 	
 	return &CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex];
+}
+
+UMusicNote* UMusicWorldSubsystem::GetCurrentWaitingNoteWBP() const
+{
+	if (GetCurrentWaitingNote() == nullptr)
+		UE_LOGFMT(LogTemp, Error, "ERROR: No current waiting note !");
+
+	return GlobalHUDSubsystem->NotesInstanciated[GetCurrentWaitingNoteIndex()];
 }
 
 int UMusicWorldSubsystem::GetCurrentWaitingNoteIndex() const
@@ -180,6 +194,8 @@ void UMusicWorldSubsystem::ResetMusicianReply()
 #pragma region Music Mechanic
 void UMusicWorldSubsystem::InitMusic(ASkeletonController* Skeleton)
 {
+	MelodyState = EMelodyType::NONE;
+	
 	// Init Data
 	CurrentSkeleton = Skeleton;
 
@@ -190,15 +206,22 @@ void UMusicWorldSubsystem::InitMusic(ASkeletonController* Skeleton)
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->SpawnNotesPartition(CurrentSkeleton);
 	
 	IsInWorldStateMusic = true;
+	HasLostMelody = false;
+	
+	// Initialize CurrentFailNotePossible.
+	CurrentFailNotePossible = MaxFailNotePossible;
 	
 	StartCountDown();
 }
 
-void UMusicWorldSubsystem::FinishMelody()
+void UMusicWorldSubsystem::SucceedMelody()
 {
 	// DEBUG
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")), true, FVector2D(2, 2));
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")), true, FVector2D(2, 2));
 
+	// SUCCEED
+	MelodyState = EMelodyType::SUCCEED;
+	
 	// Reset Music
 	IsInWorldStateMusic = false;
 	Tempo = 0.f;
@@ -206,24 +229,81 @@ void UMusicWorldSubsystem::FinishMelody()
 	
 	// UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
-	
-	// Camera
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::GlobalCamera);
 
-	// TO EDIT (just to fix build)
-	for (APipouCharacter* PipouCharacter : GlobalGameSubsystem->PipouCharacters)
-	{
-		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
-	}
-				
-	GlobalGameSubsystem->GetCurrentSkeleton()->SetSkeletonForTransport();
+	// Animation of Enter
+	GlobalHUDSubsystem->DisplayPartitionFinish("SUCCEED MELODY");
+
+	/// TO EDIT don't use delay
+	FTimerHandle IsAnimationFinished;
+	GetWorld()->GetTimerManager().ClearTimer(IsAnimationFinished);
+
+	GetWorld()->GetTimerManager().SetTimer(
+		IsAnimationFinished, [this]()
+		{
+			GlobalHUDSubsystem->RemovePartitionFinish();
+
+			// Camera
+			GlobalGameSubsystem->SetWorldTransportState();
+		},
+		2.f,
+		false
+	);
+}
+
+void UMusicWorldSubsystem::LostMelody()
+{
+	// DEBUG
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie raté")), true, FVector2D(2, 2));
+
+	if (HasLostMelody) return;
+	HasLostMelody = true;
+	
+	// FAILED
+	MelodyState = EMelodyType::FAILED;
+	
+	// Reset Music
+	IsInWorldStateMusic = false;
+	Tempo = 0.f;
+	CurrentWaitingNoteIndex = 0;
+	
+	// UI
+	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
+
+	// Animation of Exit
+	GlobalHUDSubsystem->DisplayPartitionFinish("FAILED MELODY");
+
+	/// TO EDIT don't use delay
+	FTimerHandle IsAnimationFinished;
+	GetWorld()->GetTimerManager().ClearTimer(IsAnimationFinished);
+
+	GetWorld()->GetTimerManager().SetTimer(
+		IsAnimationFinished, [this]()
+		{
+			GlobalHUDSubsystem->RemovePartitionFinish();
+
+			GlobalGameSubsystem->SetWorldFreeState();
+			// Camera
+			//GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
+		},
+		2.f,
+		false
+		);
+}
+
+void UMusicWorldSubsystem::SetNoteFeedbackMusic(FLinearColor NewColor) const
+{
+	UResurrectionWidget* ResurrectionWidget = GlobalHUDSubsystem->WBPResurrectionInstance;
+	if (!ResurrectionWidget) return;
+
+	UImage* CurrentNoteFeedback = ResurrectionWidget->GetFeedbackPosFromInputPitch(GetCurrentWaitingNote()->Pitch);
+	GlobalHUDSubsystem->SetObjectColor<UImage>(CurrentNoteFeedback, NewColor);
 }
 
 bool UMusicWorldSubsystem::HasAchievedQte()
 {
 	UMusicNote* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
 	USlider* Slider = GlobalHUDSubsystem->WBPResurrectionInstance->PitchSlider;
-
+	
 	if (!Slider || !CurrentNoteSlot || !GetCurrentWaitingNote())
 	{
 		UE_LOGFMT(LogTemp, Error, "Has not achived QTE because one reference or several references are null ! ");
@@ -233,24 +313,6 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 	 IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch >= CurrentCursorValue - PitchTolerance
 		&& GetCurrentWaitingNote()->Pitch <= CurrentCursorValue + PitchTolerance;
 
-	if (HasMusicianReceivedInput)
-	{
-		GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Green, true);
-	}
-	else
-	{
-		GlobalHUDSubsystem->SetObjectColor<UMusicNote>(CurrentNoteSlot, FColor::Red, false);
-	}
-
-	if (IsConductorOnTheRightPitch)
-	{
-		GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Green, true);
-	}
-	else
-	{
-		GlobalHUDSubsystem->SetObjectColor<USlider>(Slider, FColor::Red, false);
-	}
-	
 	if (HasMusicianReceivedInput && IsConductorOnTheRightPitch)
 	{
 		return true;
@@ -261,30 +323,29 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 
 void UMusicWorldSubsystem::LostQTE()
 {
-	// Going from 2 previous notes without exceed 0.
-	int RewindNoteIndex = FMath::Max(0, CurrentWaitingNoteIndex - 2);
+	// Go down of one note possible when you failed the qte.
+	CurrentFailNotePossible--;
 
-	// Rewind the partition in UI.
-	GlobalHUDSubsystem->RewindPartition(RewindNoteIndex, CurrentSkeleton->MySkeleton->Notes[RewindNoteIndex]);
+	// Because we have to go to the next note if we lost the qte we have to give to the tempo the TimeTolerance
+	// It's only if we reach the MaxPossibleFailNote that we lost.
+	Tempo = TimeTolerance * MusicGlobalSpeed;
 
-	// Change back to blue the color of the Slot Note.
-	UMusicNote* RewindNoteSlote1 = GlobalHUDSubsystem->NotesInstanciated[RewindNoteIndex];
-	if (!RewindNoteSlote1) return;
-
-	UMusicNote* RewindNoteSlote2 = GlobalHUDSubsystem->NotesInstanciated[RewindNoteIndex + 1];
-	if (!RewindNoteSlote2) return;
+	// Increment to the next note.
+	if (GetCurrentWaitingNoteIndex() < CurrentSkeleton->MySkeleton->Notes.Num() - 1)
+	{
+		SetCurrentWaitingNoteIndex(GetCurrentWaitingNoteIndex() + 1);
+	}
 	
-	RewindNoteSlote1->NoteImage->SetColorAndOpacity(FLinearColor::Blue);
-	RewindNoteSlote2->NoteImage->SetColorAndOpacity(FLinearColor::Blue);
+	// If the max note possible to fail has been achieved you go out of the music state without the skeletons.
+	if (CurrentFailNotePossible <= 0)
+	{
+		LostMelody();
+	}
+}
 
-	// Set the CurrentNoteIndex to the NewNote after going to 2 previous notes.
-	SetCurrentWaitingNoteIndex(RewindNoteIndex);
-
-	// Restart countdown.
-	StartCountDown();
-
-	// Set Tempo to the Note you have to play + PreviewTime.
-	Tempo = (CurrentSkeleton->MySkeleton->Notes[GetCurrentWaitingNoteIndex()].Frequency - GlobalHUDSubsystem->PreviewTime) * MusicGlobalSpeed;
+EMelodyType UMusicWorldSubsystem::GetMelodyType() const
+{
+	return MelodyState;
 }
 
 void UMusicWorldSubsystem::StartCountDown()
@@ -292,6 +353,8 @@ void UMusicWorldSubsystem::StartCountDown()
 	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Start CountDown de 3 sec")), true, FVector2D(2, 2));
 	
 	Tempo = 0.f;
+	IsLerpingOffset = true;
+	TimerLerpingOffset = 0.f;
 	IsInCountDown = true;
 }
 

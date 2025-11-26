@@ -1,7 +1,6 @@
 
 #include "PNJ/AC_SkeletonFollower.h"
 
-#include "Character/PipouCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
 #include "Components/PrimitiveComponent.h"
@@ -10,16 +9,20 @@
 #include "DrawDebugHelpers.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
+#include "CollisionShape.h" 
+#include "Kismet/GameplayStatics.h"
+
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
-#include "CollisionShape.h" 
+
+#include "Character/PipouCharacter.h"
+#include "Tools/VillagePathManager.h"
 
 
 UAC_SkeletonFollower::UAC_SkeletonFollower()
 {
     PrimaryComponentTick.bCanEverTick = true;
 
-    UE_LOG(LogTemp, Display, TEXT("UAC_SkeletonFollower Added"));
 }
 
 void UAC_SkeletonFollower::BeginPlay()
@@ -46,14 +49,21 @@ void UAC_SkeletonFollower::TickComponent(float DeltaTime, ELevelTick TickType, F
     }
 
     CheckPlayerRange();
+
+    UpdatePlayerMovement(DeltaTime);
 }
 
 
 void UAC_SkeletonFollower::CheckPlayerRange()
 {
-    if (bStartFollowing) return;
+    if (!bCanFollowPlayers)
+        return;
 
-    if (!ParentActor) return;
+    if (bStartFollowing)
+        return;
+
+    if (!ParentActor)
+        return;
 
     const FVector ParentLocation = ParentActor->GetActorLocation();
 
@@ -80,7 +90,6 @@ void UAC_SkeletonFollower::CheckPlayerRange()
     }
 }
 
-
 void UAC_SkeletonFollower::EnsureGeneratedSpline()
 {
     if (SplineToFollow) return;
@@ -102,6 +111,9 @@ void UAC_SkeletonFollower::EnsureGeneratedSpline()
 void UAC_SkeletonFollower::StartPathGeneration()
 {
     UE_LOG(LogTemp, Warning, TEXT("Starting StartPathGeneration();"));
+
+    bOnVillageSpline = false;
+    bHasReachedHome = false;
 
     EnsureGeneratedSpline();
 
@@ -135,6 +147,9 @@ static FVector ClosestPointOnPlayerCircle(const FVector& PlayerPos, const FVecto
 void UAC_SkeletonFollower::GenerateNextPathPoint()
 {
     if (!ParentActor || PipouPlayers.Num() < 2)
+        return;
+
+    if (!IsAnyPlayerMoving())
         return;
 
     Player1Location = PipouPlayers[0] ? PipouPlayers[0]->GetActorLocation() : FVector::ZeroVector;
@@ -238,99 +253,214 @@ void UAC_SkeletonFollower::TickFollowSpline(float DeltaTime)
     if (!ParentActor || !SplineToFollow) return;
 
     TargetDistance = SplineToFollow->GetSplineLength();
+
+    const float PreviousDistance = CurrentDistance;
+
     CurrentDistance = FMath::Min(CurrentDistance + SplineFollowSpeed * DeltaTime, TargetDistance);
 
     const float Dist = CurrentDistance;
 
-
-    const FVector NewLoc = SplineToFollow->GetLocationAtDistanceAlongSpline(
-        Dist,
-        ESplineCoordinateSpace::World
-    );
+    const FVector NewLoc = SplineToFollow->GetLocationAtDistanceAlongSpline(Dist, ESplineCoordinateSpace::World);
 
     FVector FinalLoc = NewLoc;
 
-    if (bOrientToSpline) {
-
+    if (bOrientToSpline)
+    {
         FRotator NewRot;
 
-        if (bYawOnly) {
-
-            FVector Dir = SplineToFollow->GetDirectionAtDistanceAlongSpline(
-                Dist,
-                ESplineCoordinateSpace::World
-            );
+        if (bYawOnly)
+        {
+            FVector Dir = SplineToFollow->GetDirectionAtDistanceAlongSpline(Dist, ESplineCoordinateSpace::World);
 
             Dir.Z = 0.f;
 
-            if (!Dir.IsNearlyZero()) {
-
+            if (!Dir.IsNearlyZero())
+            {
                 NewRot = Dir.Rotation();
-
-            } else {
-
+            }
+            else
+            {
                 NewRot = ParentActor->GetActorRotation();
                 NewRot.Pitch = 0.f;
                 NewRot.Roll = 0.f;
             }
-
-        } else {
-
-            NewRot = SplineToFollow->GetRotationAtDistanceAlongSpline(
-                Dist,
-                ESplineCoordinateSpace::World
-            );
+        }
+        else
+        {
+            NewRot = SplineToFollow->GetRotationAtDistanceAlongSpline(Dist, ESplineCoordinateSpace::World);
         }
 
         ParentActor->SetActorLocationAndRotation(FinalLoc, NewRot);
-
-    } else {
-
+    }
+    else
+    {
         ParentActor->SetActorLocation(FinalLoc);
+    }
+
+    const bool bReachedEndNow =
+        bOnVillageSpline &&
+        !bHasReachedHome &&
+        PreviousDistance < TargetDistance &&
+        FMath::IsNearlyEqual(CurrentDistance, TargetDistance, .5f);
+
+    if (bReachedEndNow)
+    {
+        bHasReachedHome = true;
+        bFollowingSpline = false;
+
+        OnReachHome.Broadcast();
     }
 }
 
+#pragma region Player Checks
 
-
-void UAC_SkeletonFollower::OnParentHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
+void UAC_SkeletonFollower::UpdatePlayerMovement(float DeltaTime)
 {
-    if (OtherActor && OtherActor->ActorHasTag("VillageBorder"))
+    bAnyPlayerMoving = false;
+
+    if (PipouPlayers.Num() == 0 || DeltaTime <= KINDA_SMALL_NUMBER)
     {
+        return;
+    }
+
+    if (!bHasPreviousPlayerLocations || PreviousPlayerLocations.Num() != PipouPlayers.Num())
+    {
+        PreviousPlayerLocations.SetNum(PipouPlayers.Num());
+        for (int32 i = 0; i < PipouPlayers.Num(); ++i)
+        {
+            if (PipouPlayers[i])
+            {
+                PreviousPlayerLocations[i] = PipouPlayers[i]->GetActorLocation();
+            }
+        }
+
+        bHasPreviousPlayerLocations = true;
+        return;
+    }
+
+    for (int32 i = 0; i < PipouPlayers.Num(); ++i)
+    {
+        AActor* Player = PipouPlayers[i];
+        if (!Player) continue;
+
+        const FVector CurrentLoc = Player->GetActorLocation();
+        const FVector PrevLoc = PreviousPlayerLocations[i];
+
+        const float DistanceMoved = FVector::Dist(CurrentLoc, PrevLoc);
+
+        PreviousPlayerLocations[i] = CurrentLoc;
+
+        if (DistanceMoved >= PlayerMovingDistanceThreshold)
+        {
+            bAnyPlayerMoving = true;
+            break;
+        }
+    }
+}
+
+#pragma endregion
+
+void UAC_SkeletonFollower::OnParentHit(AActor* SelfActor, AActor* OtherActor,
+    FVector NormalImpulse, const FHitResult& Hit)
+{
+    if (!OtherActor) return;
+
+    bool bIsVillageBorder = OtherActor->ActorHasTag("VillageBorder");
+
+    if (!bIsVillageBorder)
+    {
+        if (UPrimitiveComponent* OtherRoot = Cast<UPrimitiveComponent>(OtherActor->GetRootComponent()))
+        {
+            if (OtherRoot->GetCollisionObjectType() == ECC_GameTraceChannel4)
+            {
+                bIsVillageBorder = true;
+            }
+        }
+    }
+
+    // On enter village
+    if (bIsVillageBorder)
+    {   
+        bCanFollowPlayers = false;
         bStartFollowing = false;
+
+        OnEnterVillage.Broadcast();
     }
 }
 
 void UAC_SkeletonFollower::OnParentOverlap(AActor* OverlappedActor, AActor* OtherActor)
 {
-    if (OtherActor && OtherActor->ActorHasTag("VillageBorder"))
+    if (!OtherActor) return;
+
+    bool bIsVillageBorder = OtherActor->ActorHasTag("VillageBorder");
+
+    if (!bIsVillageBorder)
     {
-        bStartFollowing = false;
-
-        if (UWorld* World = GetWorld())
+        if (UPrimitiveComponent* OtherRoot = Cast<UPrimitiveComponent>(OtherActor->GetRootComponent()))
         {
-            World->GetTimerManager().ClearTimer(SegmentTimerHandle);
+            const ECollisionChannel Channel = OtherRoot->GetCollisionObjectType();
+            bIsVillageBorder = (Channel == ECC_GameTraceChannel4);
         }
+    }
 
-        if (SplineToFollow)
+    if (!bIsVillageBorder)
+        return;
+
+    // On enter village
+    UE_LOG(LogTemp, Warning, TEXT("[SkeletonFollower] VillageBorder overlap detected with %s"),
+        *GetNameSafe(OtherActor));
+
+    bCanFollowPlayers = false;
+    bStartFollowing = false;
+
+    OnEnterVillage.Broadcast();
+
+    if (UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(SegmentTimerHandle);
+    }
+
+    if (SplineToFollow)
+    {
+        if (SplineToFollow->GetOwner() == GetOwner())
         {
-            if (SplineToFollow->GetOwner() == GetOwner())
+            SplineToFollow->DestroyComponent();
+        }
+        SplineToFollow = nullptr;
+        bFollowingSpline = false;
+    }
+
+    USplineComponent* VillageSpline = nullptr;
+
+    if (UWorld* World = GetWorld())
+    {
+        if (AActor* ManagerActor = UGameplayStatics::GetActorOfClass(World, AVillagePathManager::StaticClass()))
+        {
+            if (AVillagePathManager* Manager = Cast<AVillagePathManager>(ManagerActor))
             {
-                SplineToFollow->DestroyComponent();
+                VillageSpline = Manager->GetSplineForSkeleton(ParentActor);
             }
-            SplineToFollow = nullptr;
-            bFollowingSpline = false;
         }
+    }
 
-        USplineComponent* NearestVillage = FindNearestSplineToOwner(true);
-        if (NearestVillage)
-        {
-            SplineToFollow = NearestVillage;
-            StartFollowingSplineFromClosestPoint();
-        }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("SkeletonFollower: No village spline found nearby."));
-        }
+    if (!VillageSpline)
+    {
+        VillageSpline = FindNearestSplineToOwner(true);
+    }
+
+    if (VillageSpline)
+    {
+        SplineToFollow = VillageSpline;
+
+        bOnVillageSpline = true;
+        bHasReachedHome = false;
+
+        StartFollowingSplineFromClosestPoint();
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("SkeletonFollower: No village spline found/configured for %s."),
+            *GetNameSafe(ParentActor));
     }
 }
 

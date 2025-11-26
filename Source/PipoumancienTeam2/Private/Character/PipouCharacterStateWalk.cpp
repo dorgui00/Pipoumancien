@@ -44,11 +44,8 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 	}
 	else
 	{
-		UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
-		if (!CameraWorldSubsystem) return;
-		
-		FVector MoveDir = CameraWorldSubsystem->CameraMain->GetForwardVector() * FMath::Sign(Character->GetInputMoveXY().Y);
-		MoveDir += CameraWorldSubsystem->CameraMain->GetRightVector() * FMath::Sign(Character->GetInputMoveXY().X);
+		FVector MoveDir = Character->CameraMain->GetForwardVector() * FMath::Sign(Character->GetInputMoveXY().Y);
+		MoveDir += Character->CameraMain->GetRightVector() * FMath::Sign(Character->GetInputMoveXY().X);
 		MoveDir.Normalize();
 		Character->SetOrientXY(FVector2D(MoveDir.X, MoveDir.Y));
 		FVector NextPos = Character->GetActorLocation() +  MoveDir * MoveSpeed;

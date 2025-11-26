@@ -22,7 +22,7 @@ public:
 	
 	APipouCharacter* GetPipouCharacter() const;
 	UPipouCharacterState* GetState(EPipouCharacterStateID StateID);
-	UPipouCharacterState* GetCurrentState(); // TO SUPP ?
+	UPipouCharacterState* GetCurrentState(); 
 	void ChangeState(EPipouCharacterStateID NextStateID);
 	
 private:

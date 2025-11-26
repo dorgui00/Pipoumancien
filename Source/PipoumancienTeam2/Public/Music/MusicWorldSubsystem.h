@@ -6,11 +6,19 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "MusicWorldSubsystem.generated.h"
 
+class UMusicNote;
 class ASkeletonController;
 class UGlobalHUDSubsystem;
 class UGlobalGameSubsystem;
 struct F_Note;
 struct F_Skeleton;
+
+enum class EMelodyType : uint8
+{
+	NONE,
+	SUCCEED,
+	FAILED
+};
 
 UCLASS(Blueprintable)
 class PIPOUMANCIENTEAM2_API UMusicWorldSubsystem : public UTickableWorldSubsystem
@@ -28,6 +36,8 @@ public:
 	// Get the current note playing.
 	F_Note* GetCurrentWaitingNote() const;
 
+	UMusicNote* GetCurrentWaitingNoteWBP() const; 
+
 	// Manage the WaitingNoteIndex.
 	int GetCurrentWaitingNoteIndex() const;
 	void SetCurrentWaitingNoteIndex(int NewIndex);
@@ -42,6 +52,12 @@ public:
 	UPROPERTY()
 	float MusicGlobalSpeed = 1.f;
 
+	UPROPERTY()
+	int CurrentFailNotePossible;
+
+	UPROPERTY()
+	int MaxFailNotePossible = 5;
+
 	// Tolerance for the player to play the QTE.
 	float TimeTolerance = 0.2f;
 
@@ -53,6 +69,12 @@ public:
 
 	// When you're not at the right time for the QTE.
 	void LostQTE();
+
+	void LostMelody();
+
+	void SetNoteFeedbackMusic(FLinearColor NewColor) const;
+
+	EMelodyType GetMelodyType() const;
 	
 	#pragma endregion
 
@@ -108,12 +130,15 @@ private:
 	// Tempo handle all the music rythm.
 	float Tempo = 0.f;
 	
-	void FinishMelody();
+	void SucceedMelody();
 
 	float PitchTolerance = 0.2f;
 
 	bool HasAchievedQte();
 
+	EMelodyType MelodyState = EMelodyType::NONE;
+
+	bool HasLostMelody = false;
 
 	#pragma endregion
 

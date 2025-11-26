@@ -16,6 +16,8 @@ AVillageBorder::AVillageBorder()
     Trigger->SetBoxExtent(BoxExtent, false);
     Trigger->SetHiddenInGame(true);
 
+    Trigger->SetCollisionObjectType(ECC_GameTraceChannel4);
+
     Tags.AddUnique(FName("VillageBorder"));
 
 #if WITH_EDITORONLY_DATA
@@ -42,3 +44,4 @@ void AVillageBorder::PostEditChangeProperty(FPropertyChangedEvent& PropertyChang
     }
 }
 #endif
+

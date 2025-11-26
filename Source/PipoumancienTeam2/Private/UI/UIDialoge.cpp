@@ -6,7 +6,7 @@
 #include "Components/TextBlock.h"
 #include "TimerManager.h"
 #include "Data/F_Skeleton.h"
-
+#include "Game/GlobalGameSubsystem.h"
 
 
 void UUIDialoge::NativeConstruct()
@@ -14,7 +14,10 @@ void UUIDialoge::NativeConstruct()
 	Super::NativeConstruct();
 	CurrentCharIndex = 0;
 	bIsFocusable = true;
-	Name->SetText(FText::FromString(CurrentName));
+
+	if (Name)
+		Name->SetText(FText::FromString(CurrentName));
+	
 	// Donne le focus clavier au widget
 	if (APlayerController* PC = GetOwningPlayer())
 	{
@@ -59,12 +62,45 @@ void UUIDialoge::SetDialogue(F_Skeleton* Skeleton , int Valut)
 		}
 	
 
-		if (CurrentDialogue.Num() > 0)
+		if (CurrentDialogue.Num() > 0 && (CurrentDialogueIndex <= CurrentDialogue.Num()-1))
 			FullText = CurrentDialogue[CurrentDialogueIndex];
 
 		AddToViewport();
 	}
 	
+}
+
+void UUIDialoge::GoToNextDialogue()
+{
+	// Passer à la phrase suivante
+	CurrentDialogueIndex++;
+
+	// Plus de phrases → fin
+	if (CurrentDialogueIndex >= CurrentDialogue.Num() - 1)
+	{
+		RemoveFromParent();
+		UE_LOG(LogTemp, Warning, TEXT("✔ Fin du dialogue"));
+
+		// fin du dialogue state => retour au monde normal
+		GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>()->SetWorldFreeState();
+
+		return ; 
+	}
+
+	// Charger la nouvelle phrase
+	FullText = CurrentDialogue[CurrentDialogueIndex];
+	CurrentCharIndex = 0;
+
+	// Redémarrer l’affichage des lettres
+	GetWorld()->GetTimerManager().ClearTimer(TextTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(
+		TextTimerHandle,
+		this,
+		&UUIDialoge::ShowNextCharacter,
+		TextSpeed,
+		true
+	);
+
 }
 
 FReply UUIDialoge::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
@@ -80,6 +116,10 @@ FReply UUIDialoge::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent&
 		{
 			RemoveFromParent();
 			UE_LOG(LogTemp, Warning, TEXT("✔ Fin du dialogue"));
+
+			// fin du dialogue state => retour au monde normal
+			GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>()->SetWorldFreeState();
+			
 			return FReply::Handled();
 		}
 
