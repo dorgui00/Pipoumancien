@@ -15,15 +15,24 @@ class PIPOUMANCIENTEAM2_API UPipouCharacterStateWalk : public UPipouCharacterSta
 	GENERATED_BODY()
 
 public:
+	// ---- STATE DEFAULT FUNCTIONS ----
 	virtual EPipouCharacterStateID GetStateID() override;
 	virtual void StateEnter(EPipouCharacterStateID PreviousStateID) override;
 	virtual void StateTick(float Deltatime) override;
 	virtual void StateExit(EPipouCharacterStateID NextStateID) override;
 
+	// ---- ANIMATIONS ----
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animation")
 	UAnimationAsset* WalkAnim;
 
+	// ---- MOVEMENTS ----
+	UPROPERTY()
+	FVector MoveDir;
+	
 	UPROPERTY(EditAnywhere)
 	float MoveSpeed;
+
+	UFUNCTION(BlueprintCallable)
+	FVector GetMoveDirection() const;
 
 };

@@ -10,6 +10,7 @@
 #include "Character/PipouCharacterStateMachine.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
+// ---- STATE DEFAULT FUNCTIONS ----
 EPipouCharacterStateID UPipouCharacterStateWalk::GetStateID()
 {
 	return EPipouCharacterStateID::Walk;
@@ -44,7 +45,7 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 	}
 	else
 	{
-		FVector MoveDir = Character->CameraMain->GetForwardVector() * FMath::Sign(Character->GetInputMoveXY().Y);
+		MoveDir = Character->CameraMain->GetForwardVector() * FMath::Sign(Character->GetInputMoveXY().Y);
 		MoveDir += Character->CameraMain->GetRightVector() * FMath::Sign(Character->GetInputMoveXY().X);
 		MoveDir.Normalize();
 		Character->SetOrientXY(FVector2D(MoveDir.X, MoveDir.Y));
@@ -86,4 +87,10 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 void UPipouCharacterStateWalk::StateExit(EPipouCharacterStateID NextStateID)
 {
 	Super::StateExit(NextStateID);
+}
+
+// ---- MOVEMENTS ----
+FVector UPipouCharacterStateWalk::GetMoveDirection() const
+{
+	return MoveDir;
 }

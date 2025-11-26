@@ -75,6 +75,7 @@ void APipouCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	TickStateMachine(DeltaTime);
+	TickBlueprint();
 }
 
 #pragma endregion
