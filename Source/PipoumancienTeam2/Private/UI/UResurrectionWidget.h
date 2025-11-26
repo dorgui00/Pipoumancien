@@ -18,36 +18,45 @@ class PIPOUMANCIENTEAM2_API UResurrectionWidget : public UUserWidget
 public:
 	virtual void NativeConstruct() override;
 	
-	// Music
-	void SetSliderPitch(float NewPitch) const;
+	// ---- NOTES ----
+	UPROPERTY(meta = (BindWidget))
+	UCanvasPanel* NotesBox;
 
-	UPROPERTY()
-	TMap<float, UUserWidget*> SpawnPointFromInputPitch;
 
-	UUserWidget* GetSpawnPointFromInputPitch(float InputPitch);
+	// ---- PARTITION ----
+	UPROPERTY(meta= (BindWidget))
+	UCanvasPanel* PartitionBox;
 
+	
+	// ---- FEEDBACK NOTES UI ----
 	UPROPERTY()
 	TMap<float, UImage*> FeedbackPosFromInputPitch;
 
 	UImage* GetFeedbackPosFromInputPitch(float InputPitch);
 
-	UPROPERTY(meta = (BindWidget))
-	UCanvasPanel* SlotSpawnPoints;
-
-	UPROPERTY(meta = (BindWidget))
-	UCanvasPanel* NotesBox;
-
-	UPROPERTY(meta= (BindWidget))
-	UCanvasPanel* PartitionBox;
-
+	
+	// ---- SLIDER ----
 	UPROPERTY(meta = (BindWidget))
 	UCanvasPanel* SliderBox;
 	
 	UPROPERTY(meta = (BindWidget))
 	USlider* PitchSlider;
 
+	void SetSliderPitch(float NewPitch) const;
+
+
+	// ---- NOTES SPAWN POINTS ----
+	UPROPERTY(meta = (BindWidget))
+	UCanvasPanel* SlotSpawnPoints;
+	
+	UPROPERTY()
+	TMap<float, UUserWidget*> SpawnPointFromInputPitch;
+
+	UUserWidget* GetSpawnPointFromInputPitch(float InputPitch);
+	
+
 private:
-	// Music
+	// ---- NOTES SPAWN POINTS ----
 	UPROPERTY(meta = (BindWidget))
 	UUserWidget* SpawnPoint_1;
 
@@ -63,7 +72,7 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UUserWidget* SpawnPoint_5;
 
-	// Feedback
+	// ---- FEEDBACK NOTES UI ----
 	UPROPERTY(meta = (BindWidget))
 	UImage* NoteFeedBackOne;
 
