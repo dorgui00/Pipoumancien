@@ -48,6 +48,13 @@ UInputMappingContext* APipouGameMode::LoadInputMappingContextFromConfig()
 	return CharacterSettings->InputMappingContext.LoadSynchronous();
 }
 
+UInputSoundData* APipouGameMode::LoadInputSoundDataFromConfig()
+{
+	const UPipouCharacterSettings* CharacterSettings = GetDefault<UPipouCharacterSettings>();
+	if (CharacterSettings == nullptr) return nullptr;
+	return CharacterSettings->InputSoundData.LoadSynchronous();
+}
+
 
 void APipouGameMode::FindPlayerStartActorsInScene(TArray<APlayerStart*>& ResultActors)
 {
@@ -65,8 +72,9 @@ void APipouGameMode::FindPlayerStartActorsInScene(TArray<APlayerStart*>& ResultA
 
 void APipouGameMode::SpawnCharacters(const TArray<APlayerStart*>& SpawnPoints)
 {
-	UPipouCharacterInputData* InputData = LoadInputDataFromConfig();
+	TObjectPtr<UPipouCharacterInputData> InputData = LoadInputDataFromConfig();
 	// UInputMappingContext* InputMappingContext = LoadInputMappingContextFromConfig();
+	TObjectPtr<UInputSoundData> InputSoundData = LoadInputSoundDataFromConfig();
 	
 	for (APlayerStart* SpawnPoint : SpawnPoints)
 	{
@@ -78,7 +86,14 @@ void APipouGameMode::SpawnCharacters(const TArray<APlayerStart*>& SpawnPoints)
 		if (NewCharacter == nullptr) continue;
 		
 		NewCharacter->CameraMain = CameraMain;
-		NewCharacter->InputData = InputData;
+		
+		// INPUTS
+		NewCharacter->InputData =  InputData; 
+
+		// SOUNDS
+		NewCharacter->InputSoundData = InputSoundData;  
+		NewCharacter->InitWorldSoundData();
+		
 		// NewCharacter->InputMappingContext = InputMappingContext;
 		NewCharacter->SetOrientXY(FVector2D(CameraMain->GetForwardVector().X, CameraMain->GetForwardVector().Y));
 		NewCharacter->AutoPossessPlayer = InputType;

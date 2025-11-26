@@ -4,11 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "InputActionValue.h"
+#include "PipouCharacterInputData.h"
 #include "Camera/CameraFollowTarget.h"
+#include "Data/InputSoundData.h"
 #include "GameFramework/Character.h"
 #include "UI/PipouHUD.h"
 #include "PipouCharacter.generated.h"
 
+class UInputSoundData;
 class UCameraComponent;
 class ASkeletonController;
 class IInteract;
@@ -81,6 +84,7 @@ public:
 	UPROPERTY()
 	TObjectPtr<UPipouCharacterInputData> InputData;
 	
+	
 	// Not Needed since the local multiplayer system.
 	// UPROPERTY()
 	// TObjectPtr<UInputMappingContext> InputMappingContext;
@@ -138,6 +142,18 @@ public:
 	// Current Skeleton overlap by the interaction collider.
 	UPROPERTY()
 	ASkeletonController* OverlapSkeleton;
+	
+	#pragma endregion
+
+	// SOUNDS
+	#pragma region Sounds
+
+	UPROPERTY()
+	TObjectPtr<UInputSoundData> InputSoundData;
+	
+	TObjectPtr<USoundBase> GetWorldSoundFromInput(TObjectPtr<UInputAction>) const ;
+
+	void InitWorldSoundData();
 	
 	#pragma endregion
 
@@ -226,6 +242,15 @@ private:
 	UFUNCTION()
 	void OnComponentEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	#pragma endregion
+
+	// SOUNDS
+	#pragma region Sounds
+	
+	// Map Sound From Input
+	UPROPERTY()
+	TMap<TObjectPtr<UInputAction>, TObjectPtr<USoundBase>> WorldSoundFromInput;
 
 	#pragma endregion
 };

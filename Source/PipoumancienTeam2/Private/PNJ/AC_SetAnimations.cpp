@@ -52,6 +52,7 @@ void UAC_SetAnimations::TickComponent(float DeltaTime, ELevelTick TickType, FAct
         const float DistanceMoved = FVector::Dist(CurrentLocation, LastLocation);
         Speed = DistanceMoved / DeltaTime;
     }
+
     LastLocation = CurrentLocation;
     bHasLastLocation = true;
 
