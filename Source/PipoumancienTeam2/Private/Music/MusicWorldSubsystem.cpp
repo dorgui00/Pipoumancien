@@ -33,7 +33,7 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
 	// Get GlobalHUDSubsystem.
 	GlobalHUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
-	GlobalHUDSubsystem->MusicWorldSubsystem = this;
+	GlobalHUDSubsystem->SetMusicWorldSubsystem(this);
 
 	// Init Subsystem Settings.
 	const USubsystemSettings* SubsystemSettings = GetDefault<USubsystemSettings>();
@@ -313,7 +313,7 @@ void UMusicWorldSubsystem::SetNoteFeedbackMusic(FLinearColor NewColor) const
 	if (!ResurrectionWidget) return;
 
 	UImage* CurrentNoteFeedback = ResurrectionWidget->GetFeedbackPosFromInputPitch(GetCurrentWaitingNote()->Pitch);
-	GlobalHUDSubsystem->SetObjectColor<UImage>(CurrentNoteFeedback, NewColor);
+	GlobalHUDSubsystem->SetImageColor(CurrentNoteFeedback, NewColor);
 }
 
 bool UMusicWorldSubsystem::HasAchievedQte()
@@ -455,7 +455,7 @@ void UMusicWorldSubsystem::IncreaseTimerLerpingOffset(float DeltaTime)
 
 bool UMusicWorldSubsystem::HasFinishedLerpingOffset() const
 {
-	return GetTimerLerpingOffset() >= (GlobalHUDSubsystem->UiOffset / GlobalHUDSubsystem->UISpeed) * MusicGlobalSpeed;
+	return GetTimerLerpingOffset() >= (GlobalHUDSubsystem->GetUIOffset() / GlobalHUDSubsystem->GetUISpeed()) * MusicGlobalSpeed;
 }
 
 

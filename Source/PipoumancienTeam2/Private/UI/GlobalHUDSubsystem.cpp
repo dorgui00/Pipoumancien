@@ -13,13 +13,16 @@
 #include "Data/F_Skeleton.h"
 #include "Editor/PipouCharacterSettings.h"
 #include "Game/GlobalGameSubsystem.h"
+#include "Logging/StructuredLog.h"
 #include "Music/MusicWorldSubsystem.h"
 #include "PNJ/SkeletonController.h"
 #include "Settings/SubsystemSettings.h"
 #include "UI/UMusicNote.h"
 #include "UI/PartitionFinish.h"
 
-#pragma region GameInstanceSubsystem
+
+
+// ---- GAME INSTANCE SUBSYSTEM ---- 
 void UGlobalHUDSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
@@ -28,21 +31,20 @@ void UGlobalHUDSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UGlobalHUDSubsystem::Tick(float DeltaTime)
 {
-	if (TimerForResetingColor > 0)
+	if (TimerBeforeResetingColor > 0)
 	{
-		TimerForResetingColor -= DeltaTime;
+		TimerBeforeResetingColor -= DeltaTime;
 
-		if (TimerForResetingColor >= 0.2f)
+		if (TimerBeforeResetingColor >= 0.2f)
 		{
 			
-			TimerForResetingColor = 0;
+			TimerBeforeResetingColor = 0;
 		}
 	}
 }
 
-#pragma endregion 
 
-#pragma region Music
+// ---- MUSIC UI ----
 void UGlobalHUDSubsystem::DisplayResurrectionWidget()
 {
 	if (WBPResurrectionClass == nullptr) return;
@@ -67,7 +69,7 @@ void UGlobalHUDSubsystem::DisplayResurrectionWidget()
 		// How many 9,35 are in my slider (110px) = 11,8. I can put 11,8 of 9,35 in my slider.
 		float EffectiveSliderPartSize = (SliderBoxSlot->GetSize().X / PartitionInSliderRatio) / 2;
 		// UiOffset is all the partition size minus the size of the slider for it to time for the qte when the note is the middle of the circle of the slider.
-		UiOffset = PartitionInSliderRatio * (SliderBoxSlot->GetSize().X - EffectiveSliderPartSize);
+		UIOffset = PartitionInSliderRatio * (SliderBoxSlot->GetSize().X - EffectiveSliderPartSize);
 	}
 }
 
@@ -177,11 +179,11 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(const ASkeletonController* Current
 	if (!NotesBoxSlot) return;
 
 	// Set the size of the notes box slot. Size is set to all the frequencies + the UiOffset size.
-	NotesBoxSlot->SetSize(FVector2D(DistancePreviousFrequencies + UiOffset, NotesBoxSlot->GetSize().Y));
+	NotesBoxSlot->SetSize(FVector2D(DistancePreviousFrequencies + UIOffset, NotesBoxSlot->GetSize().Y));
 
 	// Set the start point of the lerp and the end point based on slot size and position.
 	MovementStartPoint = NotesBoxSlot->GetPosition().X;
-	MovementEndPoint = MovementStartPoint - NotesBoxSlot->GetSize().X - UiOffset;
+	MovementEndPoint = MovementStartPoint - NotesBoxSlot->GetSize().X - UIOffset;
 }
 
 void UGlobalHUDSubsystem::MovePartition(float DeltaTime)
@@ -192,10 +194,10 @@ void UGlobalHUDSubsystem::MovePartition(float DeltaTime)
 	float PreviousFrequenciesInRatioDist = DistancePreviousFrequencies / RatioDistance;
 
 	// The UiOffset in the ratio distance.
-	float UiOffsetInRatioDist = UiOffset / RatioDistance;
+	float UiOffsetInRatioDist = UIOffset / RatioDistance;
 
 	// UiSpeed = d / t
-	UISpeed = (DistancePreviousFrequencies + UiOffset) / ((PreviousFrequenciesInRatioDist + UiOffsetInRatioDist) * MusicWorldSubsystem->MusicGlobalSpeed);
+	UISpeed = (DistancePreviousFrequencies + UIOffset) / ((PreviousFrequenciesInRatioDist + UiOffsetInRatioDist) * MusicWorldSubsystem->MusicGlobalSpeed);
 	
 	if (NotesBoxSlot->GetPosition().X >= MovementEndPoint)
 	{
@@ -204,25 +206,18 @@ void UGlobalHUDSubsystem::MovePartition(float DeltaTime)
 	}
 }
 
-void UGlobalHUDSubsystem::RewindPartition(int CurrentNoteIndex, const F_Note& NewNote)
+float UGlobalHUDSubsystem::GetUISpeed() const
 {
-	// Current Note Widget.
-	UMusicNote* CurrentWidgetNote = NotesInstanciated[CurrentNoteIndex];
-	if (!CurrentWidgetNote) return;
-
-	UCanvasPanelSlot* CurrentWidgetNoteSlot = Cast<UCanvasPanelSlot>(CurrentWidgetNote->Slot);
-	if (!CurrentWidgetNoteSlot) return;
-
-	float PreviewDistance = UiOffset / 2;
-	PreviewTime = PreviewDistance / UISpeed;
-
-	float NewPartitionPosX = MovementStartPoint - CurrentWidgetNoteSlot->GetPosition().X - UiOffset + PreviewDistance;
-	NotesBoxSlot->SetPosition(FVector2D(NewPartitionPosX, NotesBoxSlot->GetPosition().Y));
+	return UISpeed;
 }
 
-#pragma endregion
+float UGlobalHUDSubsystem::GetUIOffset() const
+{
+	return UIOffset;
+}
 
-#pragma region Utilities
+
+// ---- UTILITIES ----
 void UGlobalHUDSubsystem::Init()
 {
 	// Init Global Game Subsystem.
@@ -259,9 +254,51 @@ void UGlobalHUDSubsystem::Init()
 	
 }
 
+float UGlobalHUDSubsystem::GetRatioDistance() const
+{
+	return RatioDistance;
+}
+
 EMusicNoteType UGlobalHUDSubsystem::GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const
 {
 	return MusicNoteFromInputAction[InputAction];
 }
 
-#pragma endregion
+void UGlobalHUDSubsystem::SetMusicWorldSubsystem(UMusicWorldSubsystem* NewMusicSubsystem)
+{
+	MusicWorldSubsystem = NewMusicSubsystem;
+}
+
+
+// ---- FEEDBACK COLORS NOTES ---- 
+void UGlobalHUDSubsystem::SetImageColor(UImage* CurrentImage, FLinearColor NewColor)
+{
+	Internal_SetImageColor(CurrentImage, NewColor);
+	
+	FTimerHandle Handle;
+	GetWorld()->GetTimerManager().ClearTimer(Handle);
+	GetWorld()->GetTimerManager().SetTimer(Handle,[this, CurrentImage, NewColor]()
+		{
+			Internal_SetImageColor(CurrentImage, FLinearColor::White);
+		},
+		0.2f,
+		false
+	);
+}
+
+void UGlobalHUDSubsystem::Internal_SetImageColor(UImage* CurrentImage, FLinearColor NewColor)
+{
+	if (!CurrentImage)
+	{
+		UE_LOGFMT(LogTemp, Warning, "Color can't be changed because CurrentObject is nullptr !");
+		return;
+	}
+	
+	if (UImage* Image = Cast<UImage>(CurrentImage))
+	{
+		FSlateBrush ImageBrush = Image->GetBrush();
+		ImageBrush.TintColor = FSlateColor(NewColor);
+		Image->SetBrush(ImageBrush);
+	}
+}
+
