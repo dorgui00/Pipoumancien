@@ -91,6 +91,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		else
 		{
 			IncreaseMusicTempo(DeltaTime);
+			TempoNoteUI += DeltaTime * MusicGlobalSpeed;
 
 			// Security Check: The Music Logic can't work if there is no skeleton. 
 			if (!CurrentSkeleton)
@@ -110,6 +111,18 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			{
 				IsAwaitingReply = true;
 			}
+
+			// Reach the frequency !
+			if (HasReachPitchSlider() && !HasReachFrequency)
+			{
+				HasReachFrequency = true;
+
+				if (CurrentWaitingNoteIndexUI < CurrentSkeleton->MySkeleton->Notes.Num() - 1)
+				{
+					CurrentWaitingNoteIndexUI++;
+					TempoNoteUI = 0;
+				}
+			}
 			
 			// Check for the exit of the window note, to check if the player HasAchievedQTE.
 			if (HasExitedWindowNote())
@@ -119,7 +132,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 				// success
 				if(HasAchievedQte())
 				{
-					if (HasReachEndOfPartition())
+					if (HasFinishedMelody())
 					{
 						SucceedMelody();
 					}
@@ -164,6 +177,17 @@ void UMusicWorldSubsystem::SetCurrentWaitingNoteIndex(int NewIndex)
 	CurrentWaitingNoteIndex = NewIndex;	
 }
 
+int UMusicWorldSubsystem::GetCurrentWaitingNoteIndexUI() const
+{
+	return CurrentWaitingNoteIndexUI;
+}
+
+F_Note* UMusicWorldSubsystem::GetCurrentWaitingNoteUI() const
+{
+	if (GetCurrentWaitingNoteIndexUI() > CurrentSkeleton->MySkeleton->Notes.Num() - 1) UE_LOGFMT(LogTemp, Error, "ERROR: Current waiting Note is out of range !");
+	return &CurrentSkeleton->MySkeleton->Notes[GetCurrentWaitingNoteIndexUI()];
+}
+
 void UMusicWorldSubsystem::ReceivedMusicianInput()
 {
 	if (HasMusicianReceivedInput) return;
@@ -173,6 +197,7 @@ void UMusicWorldSubsystem::ReceivedMusicianInput()
 void UMusicWorldSubsystem::ResetMusicianReply()
 {
 	HasMusicianReceivedInput = false;
+	HasReachFrequency = false;
 }
 
 
@@ -214,7 +239,7 @@ bool UMusicWorldSubsystem::HasExitedWindowNote() const
 	return Tempo >= (GetCurrentWaitingNote()->Frequency + TimeTolerance) * MusicGlobalSpeed;
 }
 
-bool UMusicWorldSubsystem::HasReachEndOfPartition() const
+bool UMusicWorldSubsystem::HasFinishedMelody() const
 {
 	return GetCurrentWaitingNoteIndex() == CurrentSkeleton->MySkeleton->Notes.Num() - 1;
 }
@@ -243,6 +268,7 @@ void UMusicWorldSubsystem::SucceedMelody()
 	IsInWorldStateMusic = false;
 	Tempo = 0.f;
 	CurrentWaitingNoteIndex = 0;
+	CurrentWaitingNoteIndexUI = 0;
 	
 	// UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
@@ -282,6 +308,7 @@ void UMusicWorldSubsystem::LostMelody()
 	IsInWorldStateMusic = false;
 	Tempo = 0.f;
 	CurrentWaitingNoteIndex = 0;
+	CurrentWaitingNoteIndexUI = 0;
 	
 	// UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
@@ -312,7 +339,7 @@ void UMusicWorldSubsystem::SetNoteFeedbackMusic(FLinearColor NewColor) const
 	UResurrectionWidget* ResurrectionWidget = GlobalHUDSubsystem->WBPResurrectionInstance;
 	if (!ResurrectionWidget) return;
 
-	UImage* CurrentNoteFeedback = ResurrectionWidget->GetFeedbackPosFromInputPitch(GetCurrentWaitingNote()->Pitch);
+	UImage* CurrentNoteFeedback = ResurrectionWidget->GetFeedbackPosFromInputPitch(GetCurrentWaitingNoteUI()->Pitch);
 	GlobalHUDSubsystem->SetImageColor(CurrentNoteFeedback, NewColor);
 }
 
@@ -337,8 +364,6 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 	
 	return false;
 }
-
-
 
 void UMusicWorldSubsystem::LostQTE()
 {
@@ -456,6 +481,22 @@ void UMusicWorldSubsystem::IncreaseTimerLerpingOffset(float DeltaTime)
 bool UMusicWorldSubsystem::HasFinishedLerpingOffset() const
 {
 	return GetTimerLerpingOffset() >= (GlobalHUDSubsystem->GetUIOffset() / GlobalHUDSubsystem->GetUISpeed()) * MusicGlobalSpeed;
+}
+
+bool UMusicWorldSubsystem::HasReachPitchSlider() const
+{
+	bool HasReachPitchSlider;
+	
+	if (GetCurrentWaitingNoteIndex() <= 0)
+	{
+		HasReachPitchSlider = TempoNoteUI >= (GlobalHUDSubsystem->GetUIOffset() / GlobalHUDSubsystem->GetUISpeed()) * MusicGlobalSpeed;
+	}
+	else
+	{
+		HasReachPitchSlider = TempoNoteUI >= GetCurrentWaitingNote()->Frequency * MusicGlobalSpeed;
+	}
+
+	return HasReachPitchSlider;
 }
 
 
