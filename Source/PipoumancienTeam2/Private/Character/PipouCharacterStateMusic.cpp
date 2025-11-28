@@ -11,6 +11,7 @@
 #include "Logging/StructuredLog.h"
 #include "Music/MusicWorldSubsystem.h"
 #include "Settings/SubsystemSettings.h"
+#include "Sound/SoundCue.h"
 #include "UI/GlobalHUDSubsystem.h"
 #include "UI/UResurrectionWidget.h"
 
@@ -141,9 +142,14 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 		{
 			HasPressedNotes = true;
 			
-			MusicWorldSubsystem->SetCurrentFailNotePossible(MusicWorldSubsystem->GetCurrentFailNotePossible() - 1);
+			// Negative feedback
+			UGameplayStatics::PlaySound2D(GetWorld(), MusicWorldSubsystem->FailedNoteSound);
 			MusicWorldSubsystem->SetNoteFeedbackMusic(FLinearColor::Red);
 
+			// FAILS
+			MusicWorldSubsystem->SetCurrentFailNotePossible(MusicWorldSubsystem->GetCurrentFailNotePossible() - 1);
+
+			// Defeat
 			if (MusicWorldSubsystem->HasLostAllFaileNotePossible())
 			{
 				MusicWorldSubsystem->SetCurrentFailNotePossible(0);

@@ -2,16 +2,20 @@
 
 
 #include "Music/MusicWorldSubsystem.h"
+
+#include "AssetTypeActions/AssetDefinition_SoundBase.h"
 #include "Camera/CameraWorldSubsystem.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Slider.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
+#include "Data/MusicGenericData.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Logging/StructuredLog.h"
 #include "PNJ/SkeletonController.h"
 #include "Settings/SubsystemSettings.h"
+#include "Sound/SoundCue.h"
 #include "UI/GlobalHUDSubsystem.h"
 #include "UI/UResurrectionWidget.h"
 
@@ -48,8 +52,84 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	// Initialize Pitch Tolerance.
 	PitchTolerance = SubsystemSettings->PitchTolerance;
 
-	// Initialize MaxFailNotePossible.
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+
+
+
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+	
+	
+	
+	
+	
+
+
+
+
+
+
+	
 	MaxFailNotePossible = SubsystemSettings->MaxFailNotePossible;
+
+	// Initialize FailedNoteSound.
+	TObjectPtr<UMusicGenericData> MusicGenericData = SubsystemSettings->MusicGenericData.LoadSynchronous();
+	FailedNoteSound = MusicGenericData->FailedNoteSound;
 }
 
 void UMusicWorldSubsystem::Tick(float DeltaTime)
@@ -246,6 +326,12 @@ bool UMusicWorldSubsystem::HasFinishedMelody() const
 
 void UMusicWorldSubsystem::SucceedQTE()
 {
+	// POSITIVE feedback
+	if (GetCurrentWaitingNote()->Sound)
+		UGameplayStatics::PlaySound2D(GetWorld(),GetCurrentWaitingNote()->Sound);
+	
+	
+	// POSSIBLE FAILS 
 	SetCurrentFailNotePossible(GetCurrentFailNotePossible() + 1);
 
 	if (HasCurrentFailNoteReachMaximumValue())
@@ -253,6 +339,7 @@ void UMusicWorldSubsystem::SucceedQTE()
 		SetCurrentFailNotePossible(MaxFailNotePossible);
 	}
 
+	// continue
 	GoNextNote();
 }
 
@@ -367,7 +454,10 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 
 void UMusicWorldSubsystem::LostQTE()
 {
+	// FAILS 
 	SetCurrentFailNotePossible(GetCurrentFailNotePossible() - 1);
+
+	// continue (to edit ? call after check HasLostAllFaileNotePossible() ?)
 	GoNextNote();
 	
 	// If the max note possible to fail has been achieved you go out of the music state without the skeletons.

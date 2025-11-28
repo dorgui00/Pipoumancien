@@ -70,6 +70,7 @@ public:
 	void LostQTE();
 	void LostMelody();
 	void SetNoteFeedbackMusic(FLinearColor NewColor) const;
+	USoundCue* FailedNoteSound;
 
 	// Fail Note possible -> Health Bar of the partition.
 	int GetCurrentFailNotePossible() const;
