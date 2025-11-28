@@ -156,29 +156,26 @@ public :
 private :
 	UPROPERTY()
 	TArray<UObject*> VisibleTargets;
-	
-	ECollisionChannel VisibilityChannel;
+	void SetVisibleTarget(UObject* VisibleTarget);
 	
 	void InitCameraVisibility();
 	void TickUpdateCameraVisibility(float DeltaTime);
 
+	void SetCloakingObjectBehaviour(const FHitResult& Hit); // object that hides visible traget
+	void MakeObjectVisibleAgain(TObjectPtr<AActor> InvisibleObject); // no more invisible
+	
+	void CompareCurrentFromPreviousInvisibleObjects();
+
+
 	UPROPERTY()
 	UMaterialInterface* InvisibleMaterial;
 
-	UPROPERTY()
-	//TMap<TSoftObjectPtr<AActor>,FString> CurrentInvisibleObjects;
-	TMap<TObjectPtr<AActor>, TObjectPtr<UMaterialInterface>> CurrentInvisibleObjects;
 	
 	UPROPERTY()
-	//TMap<TSoftObjectPtr<AActor>, FString> PreviousInvisibleObjects;
-	TMap<TObjectPtr<AActor>, TObjectPtr<UMaterialInterface>> PreviousInvisibleObjects;
-	//TArray<FTest> CurrentInvisibleObjects;
+	TMap<TObjectPtr<AActor>, TObjectPtr<UMaterialInterface>> InvisibleObjects;
 
-	// UPROPERTY()
-	// TArray<FInvisibleObject> CurrentInvisibleObjects;
-	//
-	// UPROPERTY()
-	// TArray<FInvisibleObject> PreviousInvisibleObjects;
+	UPROPERTY()
+	TArray<AActor*> CurrentCloakingObjects;
 
 
 	
