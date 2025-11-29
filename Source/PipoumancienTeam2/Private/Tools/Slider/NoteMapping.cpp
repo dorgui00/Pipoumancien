@@ -2,6 +2,7 @@
 #include "Tools/Slider/NoteMapping.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Modules/ModuleManager.h"
+#include "Sound/SoundCue.h"
 
 #if WITH_EDITOR
 
@@ -107,9 +108,9 @@ void UNoteMapping::AutoBuildFromFolder()
 #endif
 
 void UNoteMapping::GetNoteVariants(float Pitch, ENoteInput Input,
-    TArray<TSoftObjectPtr<USoundBase>>& OutVariants) const
+    TArray<USoundCue*>& OutCues) const
 {
-    OutVariants.Reset();
+    OutCues.Reset();
 
     const int32 Pitch10Int = FMath::RoundToInt(Pitch * 10.f);
 
@@ -123,8 +124,19 @@ void UNoteMapping::GetNoteVariants(float Pitch, ENoteInput Input,
             return S.Key == Key;
         });
 
-    if (Found)
+    if (!Found)
     {
-        OutVariants = Found->Variants;    // up to 3 entries
+        return;
+    }
+
+    for (const TSoftObjectPtr<USoundBase>& SoftSound : Found->Variants)
+    {
+        if (USoundBase* Base = SoftSound.LoadSynchronous())
+        {
+            if (USoundCue* Cue = Cast<USoundCue>(Base))
+            {
+                OutCues.Add(Cue);
+            }
+        }
     }
 }

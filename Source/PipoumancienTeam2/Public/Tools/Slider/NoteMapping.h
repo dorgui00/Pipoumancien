@@ -71,6 +71,5 @@ public:
 
     UFUNCTION(BlueprintPure, Category = "Note")
     void GetNoteVariants(float Pitch, ENoteInput Input,
-        TArray<TSoftObjectPtr<USoundBase>>& OutVariants) const;
-
+        TArray<USoundCue*>& OutCues) const;
 };
