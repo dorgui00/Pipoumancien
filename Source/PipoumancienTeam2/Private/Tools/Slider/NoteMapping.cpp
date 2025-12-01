@@ -15,7 +15,7 @@ static bool StringToInput(const FString& In, ENoteInput& OutInput)
     return false;
 }
 
-void UNoteMapping::AutoBuildFromFolder() 
+void UNoteMapping::AutoBuildFromFolder()
 {
     if (FolderPath.Path.IsEmpty())
     {
@@ -23,21 +23,23 @@ void UNoteMapping::AutoBuildFromFolder()
         return;
     }
 
-    FString GameRelativePath = FolderPath.Path;
+    FString GameRelativePath = FolderPath.Path;           // Pipoumancien/Sounds/Notes
+
     if (!GameRelativePath.StartsWith(TEXT("/Game")))
     {
-        UE_LOG(LogTemp, Warning, TEXT("AutoBuildFromFolder: Path should start with /Game."));
-        return;
+        GameRelativePath = TEXT("/Game/") + GameRelativePath;
     }
+
+    UE_LOG(LogTemp, Log, TEXT("AutoBuildFromFolder: Scanning path %s"), *GameRelativePath);
 
     FAssetRegistryModule& AssetRegistryModule =
         FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 
     TArray<FAssetData> AssetDataList;
     const bool bRecursive = true;
-    AssetRegistryModule.Get().GetAssetsByPath(*GameRelativePath, AssetDataList, bRecursive);
+    AssetRegistryModule.Get().GetAssetsByPath(FName(*GameRelativePath), AssetDataList, bRecursive);
 
-    TMap<FNoteKey, TArray<TSoftObjectPtr<USoundBase>>> TempMap; //provisionary path for each key structs in array
+    TMap<FNoteKey, TArray<TSoftObjectPtr<USoundBase>>> TempMap;
 
     for (const FAssetData& AssetData : AssetDataList)
     {
@@ -104,6 +106,7 @@ void UNoteMapping::AutoBuildFromFolder()
 
     MarkPackageDirty(); //asset changed, save it pls
 }
+
 
 #endif
 
