@@ -55,4 +55,8 @@ public:
 	virtual void OnCharacterPressedNote(UInputAction* InputAction) override;
 	virtual void OnCharacterPitch(FInputActionValue InputActionValue) override;
 	virtual void OnCharacterPitchCompleted() override;
+
+	// ANIMS
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animation")
+	UAnimationAsset* MusicAnim;
 };

@@ -20,7 +20,7 @@ struct F_Skeleton : public FTableRowBase
 	TArray<F_Note> Notes;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	USoundCue* SuccessMusic;
+	USoundCue* BackgroundMusic;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FString> Discution;

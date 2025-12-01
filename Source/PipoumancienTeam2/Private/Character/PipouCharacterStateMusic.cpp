@@ -5,6 +5,7 @@
 #include "InputActionValue.h"
 #include "Character/PipouCharacter.h"
 #include "Character/PipouCharacterInputData.h"
+#include "Character/PipouCharacterStateMachine.h"
 #include "Data/F_Note.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
@@ -36,6 +37,9 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 	Character->InputTriggeredNoteEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputPitchEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);
 	Character->InputPitchCompleted.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitchCompleted);
+
+	// ANIMS
+	Character->GetMesh()->PlayAnimation(MusicAnim,true);
 }
 
 void UPipouCharacterStateMusic::StateTick(float Deltatime)

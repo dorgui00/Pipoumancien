@@ -25,6 +25,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animation")
 	UAnimationAsset* WalkAnim;
 
+	// for now can't interact in state walk
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animation")
+	//UAnimationAsset* MusicWalkAnim;
+
 	// ---- MOVEMENTS ----
 	UPROPERTY()
 	FVector MoveDir;
@@ -34,5 +38,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FVector GetMoveDirection() const;
+
+	// --- MUSIC ---
+	virtual void OnCharacterPressedNote(UInputAction* InputAction) override;
 
 };

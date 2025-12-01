@@ -5,6 +5,7 @@
 
 #include "AssetTypeActions/AssetDefinition_SoundBase.h"
 #include "Camera/CameraWorldSubsystem.h"
+#include "Components/AudioComponent.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Slider.h"
 #include "Data/F_Note.h"
@@ -284,6 +285,7 @@ void UMusicWorldSubsystem::SucceedMelody()
 	Tempo = 0.f;
 	CurrentWaitingNoteIndex = 0;
 	CurrentWaitingNoteIndexUI = 0;
+	BackgroundAudioComponent->SetActive(false);
 	
 	// UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
@@ -324,6 +326,7 @@ void UMusicWorldSubsystem::LostMelody()
 	Tempo = 0.f;
 	CurrentWaitingNoteIndex = 0;
 	CurrentWaitingNoteIndexUI = 0;
+	BackgroundAudioComponent->SetActive(false);
 	
 	// UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
@@ -466,6 +469,10 @@ void UMusicWorldSubsystem::FinishCountDown()
 	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Finish CountDown")), true, FVector2D(2, 2));
 	IsInCountDown = false;
 	TimerCountDown = 3.f;
+
+	// Background Music
+	BackgroundAudioComponent = UGameplayStatics::SpawnSound2D(GetWorld(), CurrentSkeleton->MySkeleton->BackgroundMusic);
+	BackgroundAudioComponent->SetActive(true);
 }
 
 float UMusicWorldSubsystem::GetTimerCountdown() const

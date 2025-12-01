@@ -37,7 +37,7 @@ bool UMusicDT_BPLibrary::UpsertSkeletonRow(UDataTable* Table, FName RowName, FNa
 	Row.Name = DisplayName;
 	Row.ID = ID;
 	Row.Notes = Notes;
-	Row.SuccessMusic = SuccessMusic;
+	Row.BackgroundMusic = SuccessMusic;
 
 	//overwrite if row alr exists
 	Table->AddRow(RowName, Row);

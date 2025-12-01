@@ -70,7 +70,6 @@ public:
 	void LostQTE();
 	void LostMelody();
 	void SetNoteFeedbackMusic(FLinearColor NewColor) const;
-	USoundCue* FailedNoteSound;
 
 	// Fail Note possible -> Health Bar of the partition.
 	int GetCurrentFailNotePossible() const;
@@ -78,11 +77,15 @@ public:
 	bool HasLostAllFaileNotePossible() const;
 
 	EMelodyType GetMelodyType() const;
-
 	
 	// ---- UTILITIES ----
 	void InitMusic(ASkeletonController* Skeleton);
+
 	
+	// SOUND
+	UPROPERTY()
+	USoundCue* FailedNoteSound;
+
 protected:
 	// ---- SUBSYSTEM OVERRIDE ---- 
 	virtual void PostInitialize() override;
@@ -186,5 +189,11 @@ private:
 
 	UPROPERTY()
 	UGlobalHUDSubsystem* GlobalHUDSubsystem;
+
+	// SOUND
+	
+	UPROPERTY()
+	UAudioComponent* BackgroundAudioComponent;
+	
 
 };

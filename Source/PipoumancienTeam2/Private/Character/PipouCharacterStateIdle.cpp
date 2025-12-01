@@ -67,9 +67,12 @@ void UPipouCharacterStateIdle::StateExit(EPipouCharacterStateID NextStateID)
 void UPipouCharacterStateIdle::OnCharacterPressedNote(UInputAction* InputAction)
 {
 	Super::OnCharacterPressedNote(InputAction);
+
+	Character->GetMesh()->PlayAnimation(MusicIdleAnim,false);
 }
 
 void UPipouCharacterStateIdle::OnCharacterTriggeredNote(UInputAction* InputAction)
 {
-	Super::OnCharacterTriggeredNote(InputAction);
+	// No trigger for interaction (I think)
+	//Super::OnCharacterTriggeredNote(InputAction);
 }

@@ -20,6 +20,8 @@ void UPipouCharacterStateWalk::StateEnter(EPipouCharacterStateID PreviousStateID
 {
 	Super::StateEnter(PreviousStateID);
 	Character->GetMesh()->PlayAnimation(WalkAnim, true);
+
+	Character->InputPressedNoteEvent.AddDynamic(this, &UPipouCharacterStateWalk::OnCharacterPressedNote);
 }
 
 void UPipouCharacterStateWalk::StateTick(float Deltatime)
@@ -87,10 +89,20 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 void UPipouCharacterStateWalk::StateExit(EPipouCharacterStateID NextStateID)
 {
 	Super::StateExit(NextStateID);
+	
+	Character->InputPressedNoteEvent.RemoveDynamic(this, &UPipouCharacterStateWalk::OnCharacterPressedNote);
 }
 
 // ---- MOVEMENTS ----
 FVector UPipouCharacterStateWalk::GetMoveDirection() const
 {
 	return MoveDir;
+}
+
+void UPipouCharacterStateWalk::OnCharacterPressedNote(UInputAction* InputAction)
+{
+	// For now can't Interact in state walk
+	//Super::OnCharacterPressedNote(InputAction);
+
+	//Character->GetMesh()->PlayAnimation(MusicWalkAnim,false);
 }
