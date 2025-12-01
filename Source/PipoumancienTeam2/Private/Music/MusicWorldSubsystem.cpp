@@ -285,7 +285,7 @@ void UMusicWorldSubsystem::SucceedMelody()
 	Tempo = 0.f;
 	CurrentWaitingNoteIndex = 0;
 	CurrentWaitingNoteIndexUI = 0;
-	BackgroundAudioComponent->SetActive(false);
+	// BackgroundAudioComponent->SetActive(false);
 	
 	// UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
@@ -326,7 +326,7 @@ void UMusicWorldSubsystem::LostMelody()
 	Tempo = 0.f;
 	CurrentWaitingNoteIndex = 0;
 	CurrentWaitingNoteIndexUI = 0;
-	BackgroundAudioComponent->SetActive(false);
+	// BackgroundAudioComponent->SetActive(false);
 	
 	// UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
@@ -471,8 +471,8 @@ void UMusicWorldSubsystem::FinishCountDown()
 	TimerCountDown = 3.f;
 
 	// Background Music
-	BackgroundAudioComponent = UGameplayStatics::SpawnSound2D(GetWorld(), CurrentSkeleton->MySkeleton->BackgroundMusic);
-	BackgroundAudioComponent->SetActive(true);
+	// BackgroundAudioComponent = UGameplayStatics::SpawnSound2D(GetWorld(), CurrentSkeleton->MySkeleton->BackgroundMusic);
+	// BackgroundAudioComponent->SetActive(true);
 }
 
 float UMusicWorldSubsystem::GetTimerCountdown() const

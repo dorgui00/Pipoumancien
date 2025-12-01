@@ -4,6 +4,7 @@
 #include "UResurrectionWidget.h"
 #include "Components/Slider.h"
 
+// ---- USER WIDGET FUNCTIONS ----
 void UResurrectionWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -27,18 +28,31 @@ void UResurrectionWidget::NativeConstruct()
 	};
 }
 
-// Music
-void UResurrectionWidget::SetSliderPitch(float NewPitch) const
+void UResurrectionWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
 	if (PitchSlider == nullptr) return;
-	PitchSlider->SetValue(NewPitch);
+	CurrentPitch = FMath::FInterpTo(CurrentPitch, TargetPitch, InDeltaTime, InterSpeed);
+	PitchSlider->SetValue(CurrentPitch);
 }
 
+
+// ---- SLIDER MUSIC ----
+void UResurrectionWidget::SetSliderPitch(float NewPitch)
+{
+	TargetPitch = NewPitch;
+}
+
+
+// ---- NOTES SPAWN POINTS ----
 UUserWidget* UResurrectionWidget::GetSpawnPointFromInputPitch(float InputPitch)
 {
 	return SpawnPointFromInputPitch[InputPitch];
 }
 
+
+// ---- FEEDBACK NOTES UI ----
 UImage* UResurrectionWidget::GetFeedbackPosFromInputPitch(float InputPitch)
 {
 	return FeedbackPosFromInputPitch[InputPitch];

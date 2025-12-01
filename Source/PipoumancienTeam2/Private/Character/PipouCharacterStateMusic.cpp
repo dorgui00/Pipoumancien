@@ -89,9 +89,9 @@ void UPipouCharacterStateMusic::InitSliderPitchSpeed()
 {
 	const USubsystemSettings* SubsystemSettings = GetDefault<USubsystemSettings>();
 	if (!SubsystemSettings) return;
-	
-	MaxPitchSpeed = SubsystemSettings->MaxSpeedPitch;
-	AccelerationPitchSpeed = SubsystemSettings->AccelerationPitchSpeed;
+	//
+	// MaxPitchSpeed = SubsystemSettings->MaxSpeedPitch;
+	// AccelerationPitchSpeed = SubsystemSettings->AccelerationPitchSpeed;
 }
 
 void UPipouCharacterStateMusic::SetMusicManager()
@@ -107,17 +107,34 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 		if (InputActionValue.Get<float>() >= -0.1f && InputActionValue.Get<float>() <= 0.1f) return;
 
 		// Increase SliderSpped by the acceleration
-		SliderPitchSpeed += AccelerationPitchSpeed;
-
-		if (SliderPitchSpeed >= MaxPitchSpeed)
-		{
-			SliderPitchSpeed = MaxPitchSpeed;
-		}
+		// SliderPitchSpeed += AccelerationPitchSpeed;
+		//
+		// if (SliderPitchSpeed >= MaxPitchSpeed)
+		// {
+		// 	SliderPitchSpeed = MaxPitchSpeed;
+		// }
 		
-		MusicWorldSubsystem->SetCurrentPitchCursorValue(FMath::Clamp(MusicWorldSubsystem->GetCurrentPitchCursorValue() + InputActionValue.Get<float>() * SliderPitchSpeed, -1.f, 1.0f)); 
+		// MusicWorldSubsystem->SetCurrentPitchCursorValue(FMath::Clamp(InputActionValue.Get<float>(), -1.f, 1.0f));
 
 		UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
 		if (!HUDSubsystem || !HUDSubsystem->WBPResurrectionInstance) return;
+
+		if (InputActionValue.Get<float>() >= 0.1f && InputActionValue.Get<float>() <= 0.8f)
+		{
+			MusicWorldSubsystem->SetCurrentPitchCursorValue(0.5f);
+		}
+		else if (InputActionValue.Get<float>() >= 0.8f)
+		{
+			MusicWorldSubsystem->SetCurrentPitchCursorValue(1.f);
+		}
+		else if (InputActionValue.Get<float>() <= -0.1f && InputActionValue.Get<float>() >= -0.8f)
+		{
+			MusicWorldSubsystem->SetCurrentPitchCursorValue(-0.5f);
+		}
+		else if (InputActionValue.Get<float>() <= -0.8f)
+		{
+			MusicWorldSubsystem->SetCurrentPitchCursorValue(-1.f);
+		}
 
 		HUDSubsystem->WBPResurrectionInstance->SetSliderPitch(MusicWorldSubsystem->GetCurrentPitchCursorValue());
 	}
@@ -126,6 +143,10 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 void UPipouCharacterStateMusic::OnCharacterPitchCompleted()
 {
 	SliderPitchSpeed = InitPitchSpeedValue;
+	
+	UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
+	if (!HUDSubsystem || !HUDSubsystem->WBPResurrectionInstance) return;
+	HUDSubsystem->WBPResurrectionInstance->SetSliderPitch(0);
 }
 
 void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction)

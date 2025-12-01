@@ -38,7 +38,7 @@ public:
 	UInputAction* InputPitch;
 
 	UPROPERTY()
-	float InitPitchSpeedValue = 0.02f;
+	float InitPitchSpeedValue = 1.f;
 	
 	UPROPERTY()
 	float SliderPitchSpeed = 0.02f;

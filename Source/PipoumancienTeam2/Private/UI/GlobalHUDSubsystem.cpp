@@ -178,6 +178,11 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(const ASkeletonController* Current
 	NotesBoxSlot = Cast<UCanvasPanelSlot>(WBPResurrectionInstance->NotesBox->Slot);
 	if (!NotesBoxSlot) return;
 
+	UCanvasPanelSlot* TopLineSlot = Cast<UCanvasPanelSlot>(WBPResurrectionInstance->PitchMinusOne->Slot);
+	if (!TopLineSlot) return;
+	
+	NotesBoxSlot->SetPosition(FVector2D(NotesBoxSlot->GetPosition().X + TopLineSlot->GetSize().X, NotesBoxSlot->GetPosition().Y));
+	
 	// Set the size of the notes box slot. Size is set to all the frequencies + the UiOffset size.
 	NotesBoxSlot->SetSize(FVector2D(DistancePreviousFrequencies + UIOffset, NotesBoxSlot->GetSize().Y));
 

@@ -16,7 +16,10 @@ class PIPOUMANCIENTEAM2_API UResurrectionWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	// ---- USER WIDGET FUNCTIONS ----
 	virtual void NativeConstruct() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+	
 	
 	// ---- NOTES ----
 	UPROPERTY(meta = (BindWidget))
@@ -27,6 +30,9 @@ public:
 	UPROPERTY(meta= (BindWidget))
 	UCanvasPanel* PartitionBox;
 
+	UPROPERTY(meta= (BindWidget))
+	UImage* PitchMinusOne;
+
 	
 	// ---- FEEDBACK NOTES UI ----
 	UPROPERTY()
@@ -35,14 +41,20 @@ public:
 	UImage* GetFeedbackPosFromInputPitch(float InputPitch);
 
 	
-	// ---- SLIDER ----
+	// ---- SLIDE MUSIC ----
 	UPROPERTY(meta = (BindWidget))
 	UCanvasPanel* SliderBox;
 	
 	UPROPERTY(meta = (BindWidget))
 	USlider* PitchSlider;
 
-	void SetSliderPitch(float NewPitch) const;
+	float TargetPitch = 0.f;
+	float CurrentPitch = 0.f;
+
+	UPROPERTY()
+	float InterSpeed = 8.f;
+
+	void SetSliderPitch(float NewPitch);
 
 
 	// ---- NOTES SPAWN POINTS ----
