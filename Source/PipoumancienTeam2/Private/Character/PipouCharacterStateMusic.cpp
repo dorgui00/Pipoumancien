@@ -5,11 +5,9 @@
 #include "InputActionValue.h"
 #include "Character/PipouCharacter.h"
 #include "Character/PipouCharacterInputData.h"
-#include "Character/PipouCharacterStateMachine.h"
 #include "Data/F_Note.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
-#include "Logging/StructuredLog.h"
 #include "Music/MusicWorldSubsystem.h"
 #include "Settings/SubsystemSettings.h"
 #include "Sound/SoundCue.h"
@@ -30,8 +28,6 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 	InitInputPitch();
 	InitSliderPitchSpeed();
 	SetMusicManager();
-
-	// UE_LOG(LogTemp, Display, TEXT("Entre dans le state music"));
 
 	Character->InputPressedNoteEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputTriggeredNoteEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
@@ -104,17 +100,8 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 {
 	if (CurrentRole == EPipouCharacterRoles::Conductor)
 	{
+		// Dead Zone
 		if (InputActionValue.Get<float>() >= -0.1f && InputActionValue.Get<float>() <= 0.1f) return;
-
-		// Increase SliderSpped by the acceleration
-		// SliderPitchSpeed += AccelerationPitchSpeed;
-		//
-		// if (SliderPitchSpeed >= MaxPitchSpeed)
-		// {
-		// 	SliderPitchSpeed = MaxPitchSpeed;
-		// }
-		
-		// MusicWorldSubsystem->SetCurrentPitchCursorValue(FMath::Clamp(InputActionValue.Get<float>(), -1.f, 1.0f));
 
 		UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
 		if (!HUDSubsystem || !HUDSubsystem->WBPResurrectionInstance) return;
@@ -142,10 +129,9 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 
 void UPipouCharacterStateMusic::OnCharacterPitchCompleted()
 {
-	SliderPitchSpeed = InitPitchSpeedValue;
-	
 	UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
 	if (!HUDSubsystem || !HUDSubsystem->WBPResurrectionInstance) return;
+	
 	HUDSubsystem->WBPResurrectionInstance->SetSliderPitch(0);
 }
 

@@ -82,7 +82,7 @@ public:
 	void InitMusic(ASkeletonController* Skeleton);
 
 	
-	// SOUND
+	// ---- SOUND ----
 	UPROPERTY()
 	USoundCue* FailedNoteSound;
 
@@ -190,8 +190,8 @@ private:
 	UPROPERTY()
 	UGlobalHUDSubsystem* GlobalHUDSubsystem;
 
-	// SOUND
 	
+	// ---- SOUND ----
 	UPROPERTY()
 	UAudioComponent* BackgroundAudioComponent;
 	

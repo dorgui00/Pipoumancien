@@ -3,10 +3,6 @@
 
 #include "Music/MusicWorldSubsystem.h"
 
-#include "AssetTypeActions/AssetDefinition_SoundBase.h"
-#include "Camera/CameraWorldSubsystem.h"
-#include "Components/AudioComponent.h"
-#include "Components/CanvasPanelSlot.h"
 #include "Components/Slider.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
@@ -19,7 +15,6 @@
 #include "Sound/SoundCue.h"
 #include "UI/GlobalHUDSubsystem.h"
 #include "UI/UResurrectionWidget.h"
-
 
 
 // ---- SUBSYSTEM OVERRIDE ---- 
@@ -44,20 +39,23 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	const USubsystemSettings* SubsystemSettings = GetDefault<USubsystemSettings>();
 	if (!SubsystemSettings) return;
 
+	// Get the Music Generic Data.
+	TObjectPtr<UMusicGenericData> MusicGenericData = SubsystemSettings->MusicGenericData.LoadSynchronous();
+	if (!MusicGenericData) return;
+
 	// Initialize Global Music Speed.
-	MusicGlobalSpeed = SubsystemSettings->MusicGlobalSpeed;
+	MusicGlobalSpeed = MusicGenericData->MusicGlobalSpeed;
 
 	// Initialize TimeTolerance.
-	TimeTolerance = SubsystemSettings->TimeTolerance;
-
-	// Initialize Pitch Tolerance.
-	PitchTolerance = SubsystemSettings->PitchTolerance;
+	TimeTolerance = MusicGenericData->TimeTolerance;
 
 	// Initialize MaxFailNotePossible.
-	MaxFailNotePossible = SubsystemSettings->MaxFailNotePossible;
+	MaxFailNotePossible = MusicGenericData->MaxFailNotePossible;
+
+	// TO EDIT.
+	PitchTolerance = SubsystemSettings->PitchTolerance;
 
 	// Initialize FailedNoteSound.
-	TObjectPtr<UMusicGenericData> MusicGenericData = SubsystemSettings->MusicGenericData.LoadSynchronous();
 	FailedNoteSound = MusicGenericData->FailedNoteSound;
 }
 
@@ -372,8 +370,7 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 		return false;
 	}
 	
-	 IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch >= CurrentPitchCursorValue - PitchTolerance
-		&& GetCurrentWaitingNote()->Pitch <= CurrentPitchCursorValue + PitchTolerance;
+	 IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch == GetCurrentPitchCursorValue();
 
 	if (HasMusicianReceivedInput && IsConductorOnTheRightPitch)
 	{

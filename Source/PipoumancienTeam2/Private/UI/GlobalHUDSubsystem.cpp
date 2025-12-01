@@ -253,15 +253,6 @@ void UGlobalHUDSubsystem::Init()
 		{ InputData->InputNoteY, EMusicNoteType::Y },
 		{ InputData->InputNoteX, EMusicNoteType::X }
 	};
-
-	// Initialize RatioDistance from Subsystem Settings.
-	RatioDistance = SubsystemSettings->RatioDistance;
-	
-}
-
-float UGlobalHUDSubsystem::GetRatioDistance() const
-{
-	return RatioDistance;
 }
 
 EMusicNoteType UGlobalHUDSubsystem::GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const
@@ -282,7 +273,7 @@ void UGlobalHUDSubsystem::SetImageColor(UImage* CurrentImage, FLinearColor NewCo
 	
 	FTimerHandle Handle;
 	GetWorld()->GetTimerManager().ClearTimer(Handle);
-	GetWorld()->GetTimerManager().SetTimer(Handle,[this, CurrentImage, NewColor]()
+	GetWorld()->GetTimerManager().SetTimer(Handle,[this, CurrentImage]()
 		{
 			Internal_SetImageColor(CurrentImage, FLinearColor::White);
 		},

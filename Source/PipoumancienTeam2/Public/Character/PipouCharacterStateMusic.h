@@ -19,12 +19,13 @@ class PIPOUMANCIENTEAM2_API UPipouCharacterStateMusic : public UPipouCharacterSt
 	GENERATED_BODY()
 
 public:
+	// ---- DEFAULT STATE FUNCTIONS ----
 	virtual EPipouCharacterStateID GetStateID() override;
 	virtual void StateEnter(EPipouCharacterStateID PreviousStateID) override;
 	virtual void StateTick(float Deltatime) override;
 	virtual void StateExit(EPipouCharacterStateID NextStateID) override;
 
-	// Music
+	// ---- MUSIC ----
 	UPROPERTY()
 	EPipouCharacterRoles CurrentRole;
 
@@ -41,22 +42,13 @@ public:
 	float InitPitchSpeedValue = 1.f;
 	
 	UPROPERTY()
-	float SliderPitchSpeed = 0.02f;
-
-	UPROPERTY()
-	float AccelerationPitchSpeed = 0.02f;
-
-	UPROPERTY()
-	float MaxPitchSpeed = 0.5f;
-	
-	UPROPERTY()
 	UMusicWorldSubsystem* MusicWorldSubsystem;
 	
 	virtual void OnCharacterPressedNote(UInputAction* InputAction) override;
 	virtual void OnCharacterPitch(FInputActionValue InputActionValue) override;
 	virtual void OnCharacterPitchCompleted() override;
 
-	// ANIMS
+	// ---- ANIMATIONS ----
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animation")
 	UAnimationAsset* MusicAnim;
 };

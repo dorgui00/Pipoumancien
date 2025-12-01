@@ -128,7 +128,7 @@ private:
 	UMusicWorldSubsystem* MusicWorldSubsystem;
 
 	// Unit of Distance.
-	float RatioDistance = 0;
+	float RatioDistance = 150.f;
 	
 	// Map to associate an InputAction (Key of Controller) to a MusicNoteType (The notes in ENUM).
 	UPROPERTY()
@@ -136,8 +136,6 @@ private:
 
 	UPROPERTY()
 	UGlobalGameSubsystem* GlobalGameSubsystem;
-
-	float GetRatioDistance() const;
 	
 	// Initialize data for GlobalHUDSubsystem.
 	void Init();
