@@ -42,7 +42,9 @@ public:
 	UMusicNote* GetCurrentWaitingNoteWidget() const;
 
 	int GetCurrentWaitingNoteIndex() const;
-	void SetCurrentWaitingNoteIndex(int NewIndex);
+
+	int GetCurrentWaitingNoteIndexUI() const;
+	F_Note* GetCurrentWaitingNoteUI() const;
 
 	// Tell the Music Logic the player HAS pressed an input.
 	void ReceivedMusicianInput();
@@ -68,6 +70,7 @@ public:
 	void LostQTE();
 	void LostMelody();
 	void SetNoteFeedbackMusic(FLinearColor NewColor) const;
+	USoundCue* FailedNoteSound;
 
 	// Fail Note possible -> Health Bar of the partition.
 	int GetCurrentFailNotePossible() const;
@@ -91,8 +94,14 @@ private:
 	// ---- MUSIC UI TIMER ----
 	float TimerLerpingOffset = 0.f;
 	bool IsLerpingOffset = true;
+
+	UPROPERTY()
+	int CurrentWaitingNoteIndexUI = 0;
+	bool HasReachFrequency = false;
 	
 	bool HasFinishedLerpingOffset() const;
+
+	bool HasReachPitchSlider() const;
 
 	
 	// ---- MUSIC COUNTDOWN ---- 
@@ -117,10 +126,13 @@ private:
 
 	// Tell the Music Logic the player HAS NOT pressed an input.
 	void ResetMusicianReply();
-		
+	
+	void SetCurrentWaitingNoteIndex(int NewIndex);
 
+	
 	// ---- MUSIC LOGIC ----
 	float Tempo = 0.f;
+	float TempoNoteUI = 0.f;
 
 	// The slider value accepted 
 	float PitchTolerance = 0.2f;
@@ -157,7 +169,7 @@ private:
 	bool HasExitedWindowNote() const;
 
 	// Has the player play all the notes in the current Notes Array.
-	bool HasReachEndOfPartition() const;
+	bool HasFinishedMelody() const;
 
 	// Called when the player pressed input during the time of the QTE.
 	void SucceedQTE();

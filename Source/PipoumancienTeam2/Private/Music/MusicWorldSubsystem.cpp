@@ -2,16 +2,20 @@
 
 
 #include "Music/MusicWorldSubsystem.h"
+
+#include "AssetTypeActions/AssetDefinition_SoundBase.h"
 #include "Camera/CameraWorldSubsystem.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Slider.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
+#include "Data/MusicGenericData.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Logging/StructuredLog.h"
 #include "PNJ/SkeletonController.h"
 #include "Settings/SubsystemSettings.h"
+#include "Sound/SoundCue.h"
 #include "UI/GlobalHUDSubsystem.h"
 #include "UI/UResurrectionWidget.h"
 
@@ -50,6 +54,10 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
 	// Initialize MaxFailNotePossible.
 	MaxFailNotePossible = SubsystemSettings->MaxFailNotePossible;
+
+	// Initialize FailedNoteSound.
+	TObjectPtr<UMusicGenericData> MusicGenericData = SubsystemSettings->MusicGenericData.LoadSynchronous();
+	FailedNoteSound = MusicGenericData->FailedNoteSound;
 }
 
 void UMusicWorldSubsystem::Tick(float DeltaTime)
@@ -91,6 +99,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		else
 		{
 			IncreaseMusicTempo(DeltaTime);
+			TempoNoteUI += DeltaTime * MusicGlobalSpeed;
 
 			// Security Check: The Music Logic can't work if there is no skeleton. 
 			if (!CurrentSkeleton)
@@ -110,6 +119,18 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			{
 				IsAwaitingReply = true;
 			}
+
+			// Reach the frequency !
+			if (HasReachPitchSlider() && !HasReachFrequency)
+			{
+				HasReachFrequency = true;
+
+				if (CurrentWaitingNoteIndexUI < CurrentSkeleton->MySkeleton->Notes.Num() - 1)
+				{
+					CurrentWaitingNoteIndexUI++;
+					TempoNoteUI = 0;
+				}
+			}
 			
 			// Check for the exit of the window note, to check if the player HasAchievedQTE.
 			if (HasExitedWindowNote())
@@ -119,7 +140,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 				// success
 				if(HasAchievedQte())
 				{
-					if (HasReachEndOfPartition())
+					if (HasFinishedMelody())
 					{
 						SucceedMelody();
 					}
@@ -164,6 +185,17 @@ void UMusicWorldSubsystem::SetCurrentWaitingNoteIndex(int NewIndex)
 	CurrentWaitingNoteIndex = NewIndex;	
 }
 
+int UMusicWorldSubsystem::GetCurrentWaitingNoteIndexUI() const
+{
+	return CurrentWaitingNoteIndexUI;
+}
+
+F_Note* UMusicWorldSubsystem::GetCurrentWaitingNoteUI() const
+{
+	if (GetCurrentWaitingNoteIndexUI() > CurrentSkeleton->MySkeleton->Notes.Num() - 1) UE_LOGFMT(LogTemp, Error, "ERROR: Current waiting Note is out of range !");
+	return &CurrentSkeleton->MySkeleton->Notes[GetCurrentWaitingNoteIndexUI()];
+}
+
 void UMusicWorldSubsystem::ReceivedMusicianInput()
 {
 	if (HasMusicianReceivedInput) return;
@@ -173,6 +205,7 @@ void UMusicWorldSubsystem::ReceivedMusicianInput()
 void UMusicWorldSubsystem::ResetMusicianReply()
 {
 	HasMusicianReceivedInput = false;
+	HasReachFrequency = false;
 }
 
 
@@ -214,13 +247,19 @@ bool UMusicWorldSubsystem::HasExitedWindowNote() const
 	return Tempo >= (GetCurrentWaitingNote()->Frequency + TimeTolerance) * MusicGlobalSpeed;
 }
 
-bool UMusicWorldSubsystem::HasReachEndOfPartition() const
+bool UMusicWorldSubsystem::HasFinishedMelody() const
 {
 	return GetCurrentWaitingNoteIndex() == CurrentSkeleton->MySkeleton->Notes.Num() - 1;
 }
 
 void UMusicWorldSubsystem::SucceedQTE()
 {
+	// POSITIVE feedback
+	if (GetCurrentWaitingNote()->Sound)
+		UGameplayStatics::PlaySound2D(GetWorld(),GetCurrentWaitingNote()->Sound);
+	
+	
+	// POSSIBLE FAILS 
 	SetCurrentFailNotePossible(GetCurrentFailNotePossible() + 1);
 
 	if (HasCurrentFailNoteReachMaximumValue())
@@ -228,6 +267,7 @@ void UMusicWorldSubsystem::SucceedQTE()
 		SetCurrentFailNotePossible(MaxFailNotePossible);
 	}
 
+	// continue
 	GoNextNote();
 }
 
@@ -243,6 +283,7 @@ void UMusicWorldSubsystem::SucceedMelody()
 	IsInWorldStateMusic = false;
 	Tempo = 0.f;
 	CurrentWaitingNoteIndex = 0;
+	CurrentWaitingNoteIndexUI = 0;
 	
 	// UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
@@ -282,6 +323,7 @@ void UMusicWorldSubsystem::LostMelody()
 	IsInWorldStateMusic = false;
 	Tempo = 0.f;
 	CurrentWaitingNoteIndex = 0;
+	CurrentWaitingNoteIndexUI = 0;
 	
 	// UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
@@ -312,7 +354,7 @@ void UMusicWorldSubsystem::SetNoteFeedbackMusic(FLinearColor NewColor) const
 	UResurrectionWidget* ResurrectionWidget = GlobalHUDSubsystem->WBPResurrectionInstance;
 	if (!ResurrectionWidget) return;
 
-	UImage* CurrentNoteFeedback = ResurrectionWidget->GetFeedbackPosFromInputPitch(GetCurrentWaitingNote()->Pitch);
+	UImage* CurrentNoteFeedback = ResurrectionWidget->GetFeedbackPosFromInputPitch(GetCurrentWaitingNoteUI()->Pitch);
 	GlobalHUDSubsystem->SetImageColor(CurrentNoteFeedback, NewColor);
 }
 
@@ -338,11 +380,12 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 	return false;
 }
 
-
-
 void UMusicWorldSubsystem::LostQTE()
 {
+	// FAILS 
 	SetCurrentFailNotePossible(GetCurrentFailNotePossible() - 1);
+
+	// continue (to edit ? call after check HasLostAllFaileNotePossible() ?)
 	GoNextNote();
 	
 	// If the max note possible to fail has been achieved you go out of the music state without the skeletons.
@@ -456,6 +499,22 @@ void UMusicWorldSubsystem::IncreaseTimerLerpingOffset(float DeltaTime)
 bool UMusicWorldSubsystem::HasFinishedLerpingOffset() const
 {
 	return GetTimerLerpingOffset() >= (GlobalHUDSubsystem->GetUIOffset() / GlobalHUDSubsystem->GetUISpeed()) * MusicGlobalSpeed;
+}
+
+bool UMusicWorldSubsystem::HasReachPitchSlider() const
+{
+	bool HasReachPitchSlider;
+	
+	if (GetCurrentWaitingNoteIndex() <= 0)
+	{
+		HasReachPitchSlider = TempoNoteUI >= (GlobalHUDSubsystem->GetUIOffset() / GlobalHUDSubsystem->GetUISpeed()) * MusicGlobalSpeed;
+	}
+	else
+	{
+		HasReachPitchSlider = TempoNoteUI >= GetCurrentWaitingNote()->Frequency * MusicGlobalSpeed;
+	}
+
+	return HasReachPitchSlider;
 }
 
 

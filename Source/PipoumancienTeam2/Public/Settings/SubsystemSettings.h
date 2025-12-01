@@ -7,6 +7,7 @@
 #include "UI/UResurrectionWidget.h"
 #include "SubsystemSettings.generated.h"
 
+class UMusicGenericData;
 class UPartitionFinish;
 class UMusicNote;
 
@@ -49,6 +50,9 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
 	float AccelerationPitchSpeed = 0.01f;
+
+	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
+	TSoftObjectPtr<UMusicGenericData> MusicGenericData;
 	
 	#pragma endregion
 
