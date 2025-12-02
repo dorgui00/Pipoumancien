@@ -30,9 +30,6 @@ public:
 	
 	// ---- MUSIC DATA ----
 	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
-	float PitchTolerance = 0.2f;
-
-	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
 	TSoftObjectPtr<UMusicGenericData> MusicGenericData;
 	
 

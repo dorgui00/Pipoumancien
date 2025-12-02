@@ -63,13 +63,16 @@ void UGlobalHUDSubsystem::DisplayResurrectionWidget()
 
 		UCanvasPanelSlot* SliderBoxSlot = Cast<UCanvasPanelSlot>(WBPResurrectionInstance->SliderBox->Slot);
 		if (!SliderBoxSlot) return;
-		
-		// How many of my slider I can put in the partition : 110 * 9,35px (result of PartitionSlot->GetSize().X / SliderSlot->GetSize().X).
-		float PartitionInSliderRatio = PartitionSlot->GetSize().X / SliderBoxSlot->GetSize().X;
-		// How many 9,35 are in my slider (110px) = 11,8. I can put 11,8 of 9,35 in my slider.
-		float EffectiveSliderPartSize = (SliderBoxSlot->GetSize().X / PartitionInSliderRatio) / 2;
-		// UiOffset is all the partition size minus the size of the slider for it to time for the qte when the note is the middle of the circle of the slider.
-		UIOffset = PartitionInSliderRatio * (SliderBoxSlot->GetSize().X - EffectiveSliderPartSize);
+
+		float MiddleOfPitchSliderPosX = SliderBoxSlot->GetPosition().X + (SliderBoxSlot->GetSize().X / 2);
+		float BoundsXMaxPartitionBox = PartitionSlot->GetSize().X;
+		// // How many of my slider I can put in the partition : 110 * 9,35px (result of PartitionSlot->GetSize().X / SliderSlot->GetSize().X).
+		// float PartitionInSliderRatio = PartitionSlot->GetSize().X / SliderBoxSlot->GetSize().X;
+		// // How many 9,35 are in my slider (110px) = 11,8. I can put 11,8 of 9,35 in my slider.
+		// float EffectiveSliderPartSize = (SliderBoxSlot->GetSize().X / MiddleOfPitchSliderPosX);
+		// // UiOffset is all the partition size minus the size of the slider for it to time for the qte when the note is the middle of the circle of the slider.
+		// UIOffset = PartitionInSliderRatio * (SliderBoxSlot->GetSize().X - EffectiveSliderPartSize);
+		UIOffset = (BoundsXMaxPartitionBox - MiddleOfPitchSliderPosX);
 	}
 }
 
@@ -195,14 +198,20 @@ void UGlobalHUDSubsystem::MovePartition(float DeltaTime)
 {
 	if (!WBPNoteInstance) return;
 
-	// All our frequencies in the ratio distance. 
-	float PreviousFrequenciesInRatioDist = DistancePreviousFrequencies / RatioDistance;
+	// All our frequencies in the ratio distance.
+	float PreviousFrequenciesInTime = DistancePreviousFrequencies / RatioDistance;
+	// float PreviousFrequenciesInTime = (DistancePreviousFrequencies / RatioDistance);
 
 	// The UiOffset in the ratio distance.
-	float UiOffsetInRatioDist = UIOffset / RatioDistance;
+	float UiOffsetInTime = UIOffset / RatioDistance;
+	// float UiOffsetInTime = (UIOffset / RatioDistance);
+
+	UCanvasPanelSlot* SliderBoxSlot = Cast<UCanvasPanelSlot>(WBPResurrectionInstance->SliderBox->Slot);
+	if (!SliderBoxSlot) return;
 
 	// UiSpeed = d / t
-	UISpeed = (DistancePreviousFrequencies + UIOffset) / ((PreviousFrequenciesInRatioDist + UiOffsetInRatioDist) * MusicWorldSubsystem->MusicGlobalSpeed);
+	UISpeed = ((DistancePreviousFrequencies + UIOffset) + (SliderBoxSlot->GetSize().X / 2)) / ((PreviousFrequenciesInTime + UiOffsetInTime));
+	// UISpeed = (DistancePreviousFrequencies + UIOffset) / (PreviousFrequenciesInTime + UiOffsetInTime);
 	
 	if (NotesBoxSlot->GetPosition().X >= MovementEndPoint)
 	{

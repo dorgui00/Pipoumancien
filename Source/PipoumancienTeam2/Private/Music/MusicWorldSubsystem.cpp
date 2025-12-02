@@ -10,6 +10,7 @@
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Logging/StructuredLog.h"
+#include "Math/UnitConversion.h"
 #include "PNJ/SkeletonController.h"
 #include "Settings/SubsystemSettings.h"
 #include "Sound/SoundCue.h"
@@ -52,8 +53,8 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	// Initialize MaxFailNotePossible.
 	MaxFailNotePossible = MusicGenericData->MaxFailNotePossible;
 
-	// TO EDIT.
-	PitchTolerance = SubsystemSettings->PitchTolerance;
+	// Initialize PitchTolerance.
+	PitchTolerance = MusicGenericData->PitchTolerance;
 
 	// Initialize FailedNoteSound.
 	FailedNoteSound = MusicGenericData->FailedNoteSound;
@@ -85,6 +86,9 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		}
 
 		GlobalHUDSubsystem->MovePartition(DeltaTime);
+
+		// UE_LOGFMT(LogTemp, Error, "{0}", GlobalHUDSubsystem->GetUISpeed());
+		UE_LOGFMT(LogTemp, Warning, "{0}", TimeTolerance);
 		
 		if (IsLerpingOffset)
 		{
@@ -98,7 +102,10 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		else
 		{
 			IncreaseMusicTempo(DeltaTime);
-			TempoNoteUI += DeltaTime * MusicGlobalSpeed;
+			TempoNoteUI = (TempoNoteUI + DeltaTime);
+
+			// UE_LOGFMT(LogTemp, Log, "Tempo {0}", Tempo);
+			// UE_LOGFMT(LogTemp, Log, "CurrentNoteFrequency {0}", GetCurrentWaitingNote()->Frequency);
 
 			// Security Check: The Music Logic can't work if there is no skeleton. 
 			if (!CurrentSkeleton)
@@ -117,6 +124,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			if (HasEnteredWindowNote())
 			{
 				IsAwaitingReply = true;
+				GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FColor::Yellow);
 			}
 
 			// Reach the frequency !
@@ -136,6 +144,8 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			{
 				IsAwaitingReply = false;
 
+				GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FColor::Blue);
+				
 				// success
 				if(HasAchievedQte())
 				{
@@ -233,17 +243,17 @@ void UMusicWorldSubsystem::InitMusic(ASkeletonController* Skeleton)
 
 bool UMusicWorldSubsystem::IsBeforeWindowNote() const
 {
-	return Tempo < (GetCurrentWaitingNote()->Frequency - TimeTolerance) * MusicGlobalSpeed;
+	return Tempo < (GetCurrentWaitingNote()->Frequency - TimeTolerance);
 }
 
 bool UMusicWorldSubsystem::HasEnteredWindowNote() const
 {
-	return Tempo >= (GetCurrentWaitingNote()->Frequency - TimeTolerance) * MusicGlobalSpeed;
+	return Tempo >= (GetCurrentWaitingNote()->Frequency - TimeTolerance);
 }
 
 bool UMusicWorldSubsystem::HasExitedWindowNote() const
 {
-	return Tempo >= (GetCurrentWaitingNote()->Frequency + TimeTolerance) * MusicGlobalSpeed;
+	return Tempo >= (GetCurrentWaitingNote()->Frequency + TimeTolerance);
 }
 
 bool UMusicWorldSubsystem::HasFinishedMelody() const
@@ -256,7 +266,8 @@ void UMusicWorldSubsystem::SucceedQTE()
 	// POSITIVE feedback
 	if (GetCurrentWaitingNote()->Sound)
 		UGameplayStatics::PlaySound2D(GetWorld(),GetCurrentWaitingNote()->Sound);
-	
+
+	UE_LOGFMT(LogTemp, Warning, "Reussi QTE");
 	
 	// POSSIBLE FAILS 
 	SetCurrentFailNotePossible(GetCurrentFailNotePossible() + 1);
@@ -273,7 +284,7 @@ void UMusicWorldSubsystem::SucceedQTE()
 void UMusicWorldSubsystem::SucceedMelody()
 {
 	// DEBUG
-	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")), true, FVector2D(2, 2));
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")), true, FVector2D(2, 2));
 
 	// SUCCEED
 	MelodyState = EMelodyType::SUCCEED;
@@ -370,7 +381,8 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 		return false;
 	}
 	
-	 IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch == GetCurrentPitchCursorValue();
+	IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch >= CurrentPitchCursorValue - PitchTolerance
+	   && GetCurrentWaitingNote()->Pitch <= CurrentPitchCursorValue + PitchTolerance;
 
 	if (HasMusicianReceivedInput && IsConductorOnTheRightPitch)
 	{
@@ -418,13 +430,13 @@ bool UMusicWorldSubsystem::HasLostAllFaileNotePossible() const
 
 void UMusicWorldSubsystem::IncreaseMusicTempo(float DeltaTime)
 {
-	Tempo += DeltaTime * MusicGlobalSpeed;
+	Tempo += DeltaTime;
 }
 
 void UMusicWorldSubsystem::GoNextNote()
 {
 	if (GetCurrentWaitingNoteIndex() >= CurrentSkeleton->MySkeleton->Notes.Num() - 1) return;
-	Tempo = TimeTolerance * MusicGlobalSpeed;
+	Tempo = TimeTolerance;
 	SetCurrentWaitingNoteIndex(GetCurrentWaitingNoteIndex() + 1);
 }
 
@@ -497,12 +509,12 @@ float UMusicWorldSubsystem::GetTimerLerpingOffset() const
 
 void UMusicWorldSubsystem::IncreaseTimerLerpingOffset(float DeltaTime)
 {
-	TimerLerpingOffset += DeltaTime * MusicGlobalSpeed;
+	TimerLerpingOffset += DeltaTime;
 }
 
 bool UMusicWorldSubsystem::HasFinishedLerpingOffset() const
 {
-	return GetTimerLerpingOffset() >= (GlobalHUDSubsystem->GetUIOffset() / GlobalHUDSubsystem->GetUISpeed()) * MusicGlobalSpeed;
+	return GetTimerLerpingOffset() >= (GlobalHUDSubsystem->GetUIOffset() / GlobalHUDSubsystem->GetUISpeed());
 }
 
 bool UMusicWorldSubsystem::HasReachPitchSlider() const
@@ -511,11 +523,11 @@ bool UMusicWorldSubsystem::HasReachPitchSlider() const
 	
 	if (GetCurrentWaitingNoteIndex() <= 0)
 	{
-		HasReachPitchSlider = TempoNoteUI >= (GlobalHUDSubsystem->GetUIOffset() / GlobalHUDSubsystem->GetUISpeed()) * MusicGlobalSpeed;
+		HasReachPitchSlider = TempoNoteUI >= (GlobalHUDSubsystem->GetUIOffset() / GlobalHUDSubsystem->GetUISpeed());
 	}
 	else
 	{
-		HasReachPitchSlider = TempoNoteUI >= GetCurrentWaitingNote()->Frequency * MusicGlobalSpeed;
+		HasReachPitchSlider = TempoNoteUI >= GetCurrentWaitingNote()->Frequency;
 	}
 
 	return HasReachPitchSlider;

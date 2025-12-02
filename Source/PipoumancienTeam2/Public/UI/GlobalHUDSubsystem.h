@@ -63,6 +63,8 @@ public:
 	// Store the distance of all the frequencies when spawning notes.
 	float DistancePreviousFrequencies;
 
+	float TimePreviousFrequencies;
+
 	// Canvas Panel Slot of the Note Instance. 
 	UPROPERTY()
 	UCanvasPanelSlot* NotesBoxSlot;
@@ -128,7 +130,7 @@ private:
 	UMusicWorldSubsystem* MusicWorldSubsystem;
 
 	// Unit of Distance.
-	float RatioDistance = 150.f;
+	float RatioDistance = 300.f;
 	
 	// Map to associate an InputAction (Key of Controller) to a MusicNoteType (The notes in ENUM).
 	UPROPERTY()

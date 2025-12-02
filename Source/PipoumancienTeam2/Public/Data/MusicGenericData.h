@@ -22,6 +22,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	float TimeTolerance = 0.2;
 
+	UPROPERTY(EditAnywhere)
+	float PitchTolerance = 0.2f;
+
 	
 	// ---- SOUNDS ----
 	UPROPERTY(EditAnywhere, Category="Sound")

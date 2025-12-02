@@ -350,7 +350,7 @@ void UCameraWorldSubsystem::TickUpdateCameraVisibility(float DeltaTime)
 			// Hit visible target 
 			if (Hit.GetActor() && Hit.GetActor()->Implements<UCameraVisibleTarget>()) // BLOCK IS VISIBLE TARGET
 			{
-				UE_LOG(LogTemp,Display,TEXT("Hit Player %s"),*Hit.GetActor()->GetName());
+				// UE_LOG(LogTemp,Display,TEXT("Hit Player %s"),*Hit.GetActor()->GetName());
 				
 				//return ;
 			}
