@@ -66,6 +66,19 @@ public:
 	UPROPERTY()
 	UUIDialoge* PlayerWidget;
 
+	//ANIM
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
+	UAnimationAsset* IdleAnimation = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
+	UAnimationAsset* WalkAnimation = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
+	UAnimationAsset* WaitAnimation = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
+	USkeletalMeshComponent* TargetMesh = nullptr;
+
 
 protected:
 	// Called when the game starts or when spawned
@@ -107,21 +120,6 @@ private :
 	TObjectPtr<UAC_SkeletonFollower> FollowComponent;
 
 	// ANIM
-	// ANIM
-
-	// Animation assets
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
-	UAnimationAsset* IdleAnimation = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
-	UAnimationAsset* WalkAnimation = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
-	UAnimationAsset* WaitAnimation = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
-	USkeletalMeshComponent* TargetMesh = nullptr;
-
 	FVector LastLocation = FVector::ZeroVector;
 	bool bHasLastLocation = false;
 	bool bWasMoving = false;
