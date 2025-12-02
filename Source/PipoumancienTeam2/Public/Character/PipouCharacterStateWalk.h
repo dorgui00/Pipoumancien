@@ -8,6 +8,8 @@
 
 enum class EPipouCharacterStateID : uint8;
 class UAnimationAsset;
+class USoundBase;
+class UAudioComponent;
 
 UCLASS(ClassGroup=(PipouCharacterState), meta=(BlueprintSpawnableComponent))
 class PIPOUMANCIENTEAM2_API UPipouCharacterStateWalk : public UPipouCharacterState
@@ -34,5 +36,16 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FVector GetMoveDirection() const;
+
+	//AUDIO
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
+	USoundBase* WalkLoopSoundNecro;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
+	USoundBase* WalkLoopSoundDog;
+
+	UPROPERTY(Transient)
+	UAudioComponent* WalkLoopComponent;
 
 };
