@@ -15,6 +15,8 @@ class UUIDialoge;
 class UGlobalDataTableSubsystem;
 class UDataTableGameInstanceSubsystem;
 class ADB_Manager;
+class UAnimationAsset;
+class USkeletalMeshComponent;
 struct F_Skeleton;
 
 
@@ -64,6 +66,7 @@ public:
 	UPROPERTY()
 	UUIDialoge* PlayerWidget;
 
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -104,18 +107,29 @@ private :
 	TObjectPtr<UAC_SkeletonFollower> FollowComponent;
 
 	// ANIM
-	UPROPERTY()
-	TObjectPtr<UAC_SetAnimations> AnimComponent;
+	// ANIM
 
-	UPROPERTY(EditAnywhere, Category = "Animations")
-	FComponentReference TargetMesh;
+	// Animation assets
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
+	UAnimationAsset* IdleAnimation = nullptr;
 
-	UPROPERTY(EditAnywhere, Category = "Animations")
-	UAnimSequence* IdleAnim;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
+	UAnimationAsset* WalkAnimation = nullptr;
 
-	UPROPERTY(EditAnywhere, Category = "Animations")
-	UAnimSequence* WalkAnim;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
+	UAnimationAsset* WaitAnimation = nullptr;
 
-	UPROPERTY(EditAnywhere, Category = "Animations")
-	UAnimSequence* WaitAnim;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
+	USkeletalMeshComponent* TargetMesh = nullptr;
+
+	FVector LastLocation = FVector::ZeroVector;
+	bool bHasLastLocation = false;
+	bool bWasMoving = false;
+	bool bWasFollowing = false;
+
+	void PlayIdle();
+	void PlayWalk();
+	void PlayWait();
+	void UpdateAnimation(float DeltaTime);
+
 };

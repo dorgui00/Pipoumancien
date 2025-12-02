@@ -27,7 +27,6 @@ void UAC_SetAnimations::BeginPlay()
     }
 
     SkeletonFollower = Owner->FindComponentByClass<UAC_SkeletonFollower>();
-
     LastLocation = Owner->GetActorLocation();
     bHasLastLocation = true;
 
@@ -35,6 +34,7 @@ void UAC_SetAnimations::BeginPlay()
     {
         TargetMesh->PlayAnimation(IdleAnimation, true);
     }
+
 }
 
 
