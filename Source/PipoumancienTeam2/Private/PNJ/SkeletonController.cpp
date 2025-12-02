@@ -7,6 +7,7 @@
 #include "Data/GlobalDataTableSubsystem.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "PNJ/AC_SkeletonFollower.h"
+#include "PNJ/AC_SetAnimations.h"
 #include "UI/UIDialoge.h"
 
 
@@ -88,6 +89,21 @@ void ASkeletonController::SetSkeletonForTransport()
 	
 	
 	// ANIMS
+	AnimComponent = Cast<UAC_SetAnimations>(AddComponentByClass(UAC_SetAnimations::StaticClass(), true, GetTransform(), false));
+
+	if (AnimComponent)
+	{
+		AnimComponent->SetReference(TargetMesh);
+
+		AnimComponent->SetAnimations(IdleAnim, WalkAnim, WaitAnim);
+
+		UE_LOG(LogTemp, Display, TEXT("mama mia"));
+
+
+	} else {
+	
+		UE_LOG(LogTemp, Display, TEXT("ALEEEEEED"));
+	}
 }
 
 void ASkeletonController::OnEnterVillage()

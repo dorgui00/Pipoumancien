@@ -55,4 +55,6 @@ public:
 		float SnapStep,
 		const TMap<FName, UInputAction*>& ActionByKey);
 
+	UFUNCTION(BlueprintCallable, Category = "MusicDT")
+	static bool UpdateSkeletonRowNotes(UDataTable* Table, FName RowName, const TArray<USoundCue*>& NewCues, bool bSaveAsset = true);
 };

@@ -6,9 +6,11 @@
 #include "GameFramework/Actor.h"
 #include "Components/SphereComponent.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "Engine/EngineTypes.h"
 #include "SkeletonController.generated.h"
 
 class UAC_SkeletonFollower;
+class UAC_SetAnimations;
 class UUIDialoge;
 class UGlobalDataTableSubsystem;
 class UDataTableGameInstanceSubsystem;
@@ -99,5 +101,21 @@ private :
 
 	// FOLLOW
 	UPROPERTY()
-	TObjectPtr<UAC_SkeletonFollower> FollowComponent ;
+	TObjectPtr<UAC_SkeletonFollower> FollowComponent;
+
+	// ANIM
+	UPROPERTY()
+	TObjectPtr<UAC_SetAnimations> AnimComponent;
+
+	UPROPERTY(EditAnywhere, Category = "Animations")
+	FComponentReference TargetMesh;
+
+	UPROPERTY(EditAnywhere, Category = "Animations")
+	UAnimSequence* IdleAnim;
+
+	UPROPERTY(EditAnywhere, Category = "Animations")
+	UAnimSequence* WalkAnim;
+
+	UPROPERTY(EditAnywhere, Category = "Animations")
+	UAnimSequence* WaitAnim;
 };
