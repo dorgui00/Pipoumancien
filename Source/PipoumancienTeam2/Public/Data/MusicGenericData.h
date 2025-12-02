@@ -6,6 +6,8 @@
 #include "Engine/DataAsset.h"
 #include "MusicGenericData.generated.h"
 
+class USoundCue;
+
 UCLASS()
 class PIPOUMANCIENTEAM2_API UMusicGenericData : public UDataAsset
 {
