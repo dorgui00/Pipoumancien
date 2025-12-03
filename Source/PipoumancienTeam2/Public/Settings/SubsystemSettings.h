@@ -7,6 +7,7 @@
 #include "UI/UResurrectionWidget.h"
 #include "SubsystemSettings.generated.h"
 
+class UHUDData;
 class USkeletonInteractionWidget;
 class UMusicGenericData;
 class UPartitionFinish;

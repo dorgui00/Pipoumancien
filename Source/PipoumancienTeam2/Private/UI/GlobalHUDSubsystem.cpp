@@ -54,7 +54,7 @@ void UGlobalHUDSubsystem::SpawnSkeletonInteractionWidget()
 	WidgetComponent->SetupAttachment(Root); // middle of player
 
 	WidgetComponent->SetWidgetClass(USkeletonInteractionWidget::StaticClass());
-	
+		
 	// if (USkeletonInteractionWidget* SkeletonInteractionWidget = Cast<USkeletonInteractionWidget>(WidgetComponent->GetUserWidgetObject()))
 	// {
 	// 	

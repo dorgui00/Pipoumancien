@@ -2,12 +2,3 @@
 
 
 #include "UI/SkeletonInteractionWidget.h"
-
-void USkeletonInteractionWidget::NativeConstruct()
-{
-	Super::NativeConstruct();
-
-	ImageFromNoteInput = {
-		
-	};
-}
