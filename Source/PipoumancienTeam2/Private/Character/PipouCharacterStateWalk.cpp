@@ -9,6 +9,9 @@
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
+
 
 // ---- STATE DEFAULT FUNCTIONS ----
 EPipouCharacterStateID UPipouCharacterStateWalk::GetStateID()
@@ -20,7 +23,27 @@ void UPipouCharacterStateWalk::StateEnter(EPipouCharacterStateID PreviousStateID
 {
 	Super::StateEnter(PreviousStateID);
 	Character->GetMesh()->PlayAnimation(WalkAnim, true);
+	// -------------- AUDIO -----------------
+	//walk steps audio start
+	if (WalkLoopSoundNecro && WalkLoopSoundDog)
+	{
+		if (AActor* Owner = GetOwner())
+		{
+			if (Owner->GetName() == TEXT("BP_NecroCharacter0")) //verify if its necromancer or dog
+			{
+				WalkLoopComponent = UGameplayStatics::SpawnSoundAttached(
+					WalkLoopSoundNecro,
+					Character->GetRootComponent());
 
+			}
+			else {
+
+				WalkLoopComponent = UGameplayStatics::SpawnSoundAttached(
+					WalkLoopSoundDog,
+					Character->GetRootComponent());
+			}
+		}
+	}
 	Character->InputPressedNoteEvent.AddDynamic(this, &UPipouCharacterStateWalk::OnCharacterPressedNote);
 }
 
@@ -89,7 +112,13 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 void UPipouCharacterStateWalk::StateExit(EPipouCharacterStateID NextStateID)
 {
 	Super::StateExit(NextStateID);
-	
+	//walk steps audio stop
+	if (WalkLoopComponent)
+	{
+		WalkLoopComponent->FadeOut(0.5f, 0.f);
+		WalkLoopComponent = nullptr;
+	}
+
 	Character->InputPressedNoteEvent.RemoveDynamic(this, &UPipouCharacterStateWalk::OnCharacterPressedNote);
 }
 
