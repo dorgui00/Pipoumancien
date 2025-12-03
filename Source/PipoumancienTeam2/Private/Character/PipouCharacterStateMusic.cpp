@@ -8,9 +8,9 @@
 #include "Data/F_Note.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
-#include "Logging/StructuredLog.h"
 #include "Music/MusicWorldSubsystem.h"
 #include "Settings/SubsystemSettings.h"
+#include "Sound/SoundCue.h"
 #include "UI/GlobalHUDSubsystem.h"
 #include "UI/UResurrectionWidget.h"
 
@@ -29,12 +29,13 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 	InitSliderPitchSpeed();
 	SetMusicManager();
 
-	// UE_LOG(LogTemp, Display, TEXT("Entre dans le state music"));
-
 	Character->InputPressedNoteEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputTriggeredNoteEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputPitchEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);
 	Character->InputPitchCompleted.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitchCompleted);
+
+	// ANIMS
+	Character->GetMesh()->PlayAnimation(MusicAnim,true);
 }
 
 void UPipouCharacterStateMusic::StateTick(float Deltatime)
@@ -84,9 +85,9 @@ void UPipouCharacterStateMusic::InitSliderPitchSpeed()
 {
 	const USubsystemSettings* SubsystemSettings = GetDefault<USubsystemSettings>();
 	if (!SubsystemSettings) return;
-	
-	MaxPitchSpeed = SubsystemSettings->MaxSpeedPitch;
-	AccelerationPitchSpeed = SubsystemSettings->AccelerationPitchSpeed;
+	//
+	// MaxPitchSpeed = SubsystemSettings->MaxSpeedPitch;
+	// AccelerationPitchSpeed = SubsystemSettings->AccelerationPitchSpeed;
 }
 
 void UPipouCharacterStateMusic::SetMusicManager()
@@ -99,51 +100,70 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 {
 	if (CurrentRole == EPipouCharacterRoles::Conductor)
 	{
+		// Dead Zone
 		if (InputActionValue.Get<float>() >= -0.1f && InputActionValue.Get<float>() <= 0.1f) return;
-
-		// Increase SliderSpped by the acceleration
-		SliderPitchSpeed += AccelerationPitchSpeed;
-
-		if (SliderPitchSpeed >= MaxPitchSpeed)
-		{
-			SliderPitchSpeed = MaxPitchSpeed;
-		}
-		
-		MusicWorldSubsystem->CurrentCursorValue = FMath::Clamp(MusicWorldSubsystem->CurrentCursorValue + InputActionValue.Get<float>() * SliderPitchSpeed,
-			-1.f, 1.0f);
 
 		UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
 		if (!HUDSubsystem || !HUDSubsystem->WBPResurrectionInstance) return;
 
-		HUDSubsystem->WBPResurrectionInstance->SetSliderPitch(MusicWorldSubsystem->CurrentCursorValue);
+		if (InputActionValue.Get<float>() >= 0.1f && InputActionValue.Get<float>() <= 0.8f)
+		{
+			MusicWorldSubsystem->SetCurrentPitchCursorValue(0.5f);
+		}
+		else if (InputActionValue.Get<float>() >= 0.8f)
+		{
+			MusicWorldSubsystem->SetCurrentPitchCursorValue(1.f);
+		}
+		else if (InputActionValue.Get<float>() <= -0.1f && InputActionValue.Get<float>() >= -0.8f)
+		{
+			MusicWorldSubsystem->SetCurrentPitchCursorValue(-0.5f);
+		}
+		else if (InputActionValue.Get<float>() <= -0.8f)
+		{
+			MusicWorldSubsystem->SetCurrentPitchCursorValue(-1.f);
+		}
+
+		HUDSubsystem->WBPResurrectionInstance->SetSliderPitch(MusicWorldSubsystem->GetCurrentPitchCursorValue());
 	}
 }
 
 void UPipouCharacterStateMusic::OnCharacterPitchCompleted()
 {
-	SliderPitchSpeed = InitPitchSpeedValue;
+	UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
+	if (!HUDSubsystem || !HUDSubsystem->WBPResurrectionInstance) return;
+	
+	HUDSubsystem->WBPResurrectionInstance->SetSliderPitch(0);
 }
 
 void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction)
 {
 	if (CurrentRole == EPipouCharacterRoles::Musician)
 	{
-		if (MusicWorldSubsystem->IsAwaitingReply && MusicWorldSubsystem->GetCurrentWaitingNote()->InputAction == InputAction)
+		if (MusicWorldSubsystem->GetIsAwatingReply() && MusicWorldSubsystem->GetCurrentWaitingNote()->InputAction == InputAction)
 		{
 			HasPressedNotes = true;
 			MusicWorldSubsystem->ReceivedMusicianInput();
 			MusicWorldSubsystem->SetNoteFeedbackMusic(FLinearColor::Green);
+			
+			// Set invisibility for the notes.
+			MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor(0.f, 0.f, 0.f,0.f));
+			MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->LetterText->SetColorAndOpacity(FLinearColor(0.f, 0.f, 0.f,0.f));
 		}
-		else if (!MusicWorldSubsystem->IsAwaitingReply && !MusicWorldSubsystem->IsInCountDown && !HasPressedNotes)
+		else if (!MusicWorldSubsystem->GetIsAwatingReply() && !MusicWorldSubsystem->IsInCountDown && !HasPressedNotes)
 		{
 			HasPressedNotes = true;
 			
-			MusicWorldSubsystem->CurrentFailNotePossible--;
+			// Negative feedback
+			UGameplayStatics::PlaySound2D(GetWorld(), MusicWorldSubsystem->FailedNoteSound);
 			MusicWorldSubsystem->SetNoteFeedbackMusic(FLinearColor::Red);
 
-			if (MusicWorldSubsystem->CurrentFailNotePossible <= 0)
+			// FAILS
+			MusicWorldSubsystem->SetCurrentFailNotePossible(MusicWorldSubsystem->GetCurrentFailNotePossible() - 1);
+
+			// Defeat
+			if (MusicWorldSubsystem->HasLostAllFaileNotePossible())
 			{
-				MusicWorldSubsystem->CurrentFailNotePossible = 0;
+				MusicWorldSubsystem->SetCurrentFailNotePossible(0);
 				MusicWorldSubsystem->LostMelody();
 			}
 		}

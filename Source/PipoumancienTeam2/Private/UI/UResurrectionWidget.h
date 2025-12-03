@@ -16,38 +16,59 @@ class PIPOUMANCIENTEAM2_API UResurrectionWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	// ---- USER WIDGET FUNCTIONS ----
 	virtual void NativeConstruct() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	
-	// Music
-	void SetSliderPitch(float NewPitch) const;
+	
+	// ---- NOTES ----
+	UPROPERTY(meta = (BindWidget))
+	UCanvasPanel* NotesBox;
 
-	UPROPERTY()
-	TMap<float, UUserWidget*> SpawnPointFromInputPitch;
 
-	UUserWidget* GetSpawnPointFromInputPitch(float InputPitch);
+	// ---- PARTITION ----
+	UPROPERTY(meta= (BindWidget))
+	UCanvasPanel* PartitionBox;
 
+	UPROPERTY(meta= (BindWidget))
+	UImage* PitchMinusOne;
+
+	
+	// ---- FEEDBACK NOTES UI ----
 	UPROPERTY()
 	TMap<float, UImage*> FeedbackPosFromInputPitch;
 
 	UImage* GetFeedbackPosFromInputPitch(float InputPitch);
 
-	UPROPERTY(meta = (BindWidget))
-	UCanvasPanel* SlotSpawnPoints;
-
-	UPROPERTY(meta = (BindWidget))
-	UCanvasPanel* NotesBox;
-
-	UPROPERTY(meta= (BindWidget))
-	UCanvasPanel* PartitionBox;
-
+	
+	// ---- SLIDE MUSIC ----
 	UPROPERTY(meta = (BindWidget))
 	UCanvasPanel* SliderBox;
 	
 	UPROPERTY(meta = (BindWidget))
 	USlider* PitchSlider;
 
+	float TargetPitch = 0.f;
+	float CurrentPitch = 0.f;
+
+	UPROPERTY()
+	float InterSpeed = 8.f;
+
+	void SetSliderPitch(float NewPitch);
+
+
+	// ---- NOTES SPAWN POINTS ----
+	UPROPERTY(meta = (BindWidget))
+	UCanvasPanel* SlotSpawnPoints;
+	
+	UPROPERTY()
+	TMap<float, UUserWidget*> SpawnPointFromInputPitch;
+
+	UUserWidget* GetSpawnPointFromInputPitch(float InputPitch);
+	
+
 private:
-	// Music
+	// ---- NOTES SPAWN POINTS ----
 	UPROPERTY(meta = (BindWidget))
 	UUserWidget* SpawnPoint_1;
 
@@ -63,7 +84,7 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UUserWidget* SpawnPoint_5;
 
-	// Feedback
+	// ---- FEEDBACK NOTES UI ----
 	UPROPERTY(meta = (BindWidget))
 	UImage* NoteFeedBackOne;
 

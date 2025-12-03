@@ -21,6 +21,21 @@ enum class ECameraState : uint8{
 	DialogueCamera = 3,
 };
 
+
+// USTRUCT()
+// struct FInvisibleObject
+// {
+// 	GENERATED_USTRUCT_BODY()
+//
+// 	FInvisibleObject();
+//
+// 	UPROPERTY()
+// 	AActor* Actor;
+//
+// 	FString MaterialPath;
+// 	//UMaterialInterface Material;
+// };
+
 UCLASS()
 class PIPOUMANCIENTEAM2_API UCameraWorldSubsystem : public UTickableWorldSubsystem
 {
@@ -141,11 +156,28 @@ public :
 private :
 	UPROPERTY()
 	TArray<UObject*> VisibleTargets;
-	
-	ECollisionChannel VisibilityChannel;
+	void SetVisibleTarget(UObject* VisibleTarget);
 	
 	void InitCameraVisibility();
 	void TickUpdateCameraVisibility(float DeltaTime);
+
+	void SetCloakingObjectBehaviour(const FHitResult& Hit); // object that hides visible traget
+	void MakeObjectVisibleAgain(TObjectPtr<AActor> InvisibleObject); // no more invisible
+	
+	void CompareCurrentFromPreviousInvisibleObjects();
+
+
+	UPROPERTY()
+	UMaterialInterface* InvisibleMaterial;
+
+	
+	UPROPERTY()
+	TMap<TObjectPtr<AActor>, TObjectPtr<UMaterialInterface>> InvisibleObjects;
+
+	UPROPERTY()
+	TArray<AActor*> CurrentCloakingObjects;
+
+
 	
 #pragma endregion
 
@@ -235,3 +267,7 @@ private :
 	
 # pragma endregion
 };
+
+
+
+

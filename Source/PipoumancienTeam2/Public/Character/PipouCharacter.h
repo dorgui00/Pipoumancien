@@ -49,6 +49,9 @@ public:
 	#pragma region Default Unreal ACharacter Functions
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void TickBlueprint();
 	
 	#pragma endregion
 

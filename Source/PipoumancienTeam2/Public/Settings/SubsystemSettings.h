@@ -7,6 +7,7 @@
 #include "UI/UResurrectionWidget.h"
 #include "SubsystemSettings.generated.h"
 
+class UMusicGenericData;
 class UPartitionFinish;
 class UMusicNote;
 
@@ -16,7 +17,7 @@ class PIPOUMANCIENTEAM2_API USubsystemSettings : public UDeveloperSettings
 	GENERATED_BODY()
 
 public:
-	#pragma region HUDSubsystem
+	// ---- HUD DATA ----
 	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
 	TSubclassOf<UResurrectionWidget> WBPResurrectionClass;
 
@@ -25,36 +26,20 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
 	TSubclassOf<UPartitionFinish> WBPPartitionFinishClass;
+
 	
-	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
-	float RatioDistance = 100.f;
-
-	#pragma endregion
-
-	#pragma region MusicSubsystem
+	// ---- MUSIC DATA ----
 	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
-	float MusicGlobalSpeed = 1.f;
-
-	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
-	int MaxFailNotePossible = 5;
-
-	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
-	float TimeTolerance = 0.3f;
-
-	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
-	float PitchTolerance = 0.2f;
-
-	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
-	float MaxSpeedPitch = 0.1f;
-
-	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
-	float AccelerationPitchSpeed = 0.01f;
+	TSoftObjectPtr<UMusicGenericData> MusicGenericData;
 	
-	#pragma endregion
 
-	#pragma region DataManager
-	UPROPERTY(Config, EditAnywhere, Category="GlobalDatatableManager")
+	// ---- DATATABLE MANAGER ----
+	UPROPERTY(Config, EditAnywhere, Category="MusicDatatableManager")
 	TSoftObjectPtr<UDataTable> DT_Music;
 
-	#pragma endregion
+
+	// ---- CAMERA SUBSYSTEM ----
+	UPROPERTY(Config, EditAnywhere, Category="GlobalDatatableManager")
+	TSoftObjectPtr<UMaterialInterface> InvisibleMaterial;
+	
 };

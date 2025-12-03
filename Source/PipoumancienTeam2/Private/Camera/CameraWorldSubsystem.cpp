@@ -9,9 +9,10 @@
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Music/MusicWorldSubsystem.h"
 #include "PipoumancienTeam2/Public/Camera/CameraFollowTarget.h"
 #include "PNJ/SkeletonController.h"
+#include "Settings/SubsystemSettings.h"
+#include "Enums/CollisionChannel.h"
 
 
 void UCameraWorldSubsystem::PostInitialize()
@@ -31,7 +32,9 @@ void UCameraWorldSubsystem::InitCameraSubsystem()
 {
 	AssignAllCameras();
 	
-	InitMainCamera(); 
+	InitMainCamera();
+	
+	InitCameraVisibility();
 
 }
 
@@ -98,6 +101,8 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 	else if (CameraState == ECameraState::GlobalCamera)
 	{
 		TickUpdateCameraPosition(DeltaTime);
+		
+		TickUpdateCameraVisibility(DeltaTime);
 	}
 }
 
@@ -263,59 +268,175 @@ void UCameraWorldSubsystem::TickUpdateCameraZoom(float DeltaTime)
 	CameraMain->SetWorldLocation(pos);
 }
 
+
+void UCameraWorldSubsystem::AddVisibleTarget(UObject* VisibleTarget)
+{
+	VisibleTargets.Add(VisibleTarget);
+	
+	SetVisibleTarget(VisibleTarget);
+}
+
+void UCameraWorldSubsystem::RemoveVisibleTarget(UObject* VisibleTarget)
+{
+	VisibleTargets.Remove(VisibleTarget);
+}
+
+
+void UCameraWorldSubsystem::SetVisibleTarget(UObject* VisibleTarget)
+{
+// 	if (AActor* test = Cast<AActor>(VisibleTarget))
+// 	{
+// 		test->GetComponentsCollisionResponseToChannel(COLLISION_CLOAK)
+// 	}
+}
+
 void UCameraWorldSubsystem::InitCameraVisibility()
 {
-	// recuperer le ec channel de la visibility
-	//VisibilityChannel
+	const USubsystemSettings* SubsystemSettings = GetDefault<USubsystemSettings>();
+	InvisibleMaterial =  SubsystemSettings->InvisibleMaterial.LoadSynchronous() ;
 	
-	// recuperer le necromancien
+}
+
+
+void UCameraWorldSubsystem::TickUpdateCameraVisibility(float DeltaTime)
+{
+	// TO EDIT => CLEANING
+	// Viewport center
+	FVector2D ViewportBoundsMin, ViewportBoundsMax;
+	GetViewportBounds(ViewportBoundsMin,ViewportBoundsMax);
+
+	float ViewportCenterX = (ViewportBoundsMin.X + ViewportBoundsMax.X)/2;
+	float ViewportCenterY = (ViewportBoundsMin.Y + ViewportBoundsMax.Y)/2;
+	FVector2D ViewportCenter = FVector2D(ViewportCenterX,ViewportCenterY);
+	//FVector ViewportCenterToWorld = CalculateWorldPositionFromViewportPosition(ViewportCenter);
+
+	APlayerController* PlayerController= UGameplayStatics::GetPlayerController(GetWorld(),0);
+	if (PlayerController==nullptr) return;
+	
+	FVector CameraWorldProjectDir;
+	FVector WorldPosition;
+	UGameplayStatics::DeprojectScreenToWorld(
+		PlayerController,
+		ViewportCenter,
+		WorldPosition,
+		CameraWorldProjectDir
+		);
+	
 	
 	// foreach target multiple line trace
 	FVector Pos;
 
-	// TO EDIT : DEBUG
+	// // TO EDIT : DEBUG
 	for (auto Target : VisibleTargets)
 	{
 		//Uniquement si l’objet dans la liste implémente l’interface 
 		if (Target !=nullptr && Target->Implements<UCameraVisibleTarget>())
 		{
-			if (ICameraVisibleTarget* VisibleTarget = Cast<ICameraVisibleTarget>(Target))
-			{
-					Pos = VisibleTarget->GetVisiblePosition();
-			}
+			Pos = ICameraVisibleTarget::Execute_GetVisiblePosition(Target);
+
+			// DEBUG
+			//DrawDebugLine(GetWorld(), WorldPosition, Pos, FColor::Blue, false, 2.f, 0, 2.f);
 		};
 	}
-
-	// Viewport center
-	FVector2D ViewportBoundsMin, ViewportBoundsMax;
-	GetViewportBounds(ViewportBoundsMin,ViewportBoundsMax);
-
-	FVector2D ViewportCenter = (ViewportBoundsMin + ViewportBoundsMax) / 2;
-	FVector ViewportCenterToWorld = CalculateWorldPositionFromViewportPosition(ViewportCenter);
 	
-	DrawDebugLine(GetWorld(), ViewportCenterToWorld, Pos, FColor::Blue, false, 2.f, 0, 2.f);
+	CurrentCloakingObjects.Empty();
+	TArray<struct FHitResult> OutHits;
+	
+	// PASS COLL EN OVERLAP EXCEPT TARGET
+	if (GetWorld()->LineTraceMultiByChannel(OutHits,WorldPosition,Pos, COLLISION_CLOAK)) 
+	{
+		for (auto Hit : OutHits)
+		{
+			// Hit visible target 
+			if (Hit.GetActor() && Hit.GetActor()->Implements<UCameraVisibleTarget>()) // BLOCK IS VISIBLE TARGET
+			{
+				// UE_LOG(LogTemp,Display,TEXT("Hit Player %s"),*Hit.GetActor()->GetName());
+				
+				//return ;
+			}
+			// Overlap Something
+			else
+			{
+				SetCloakingObjectBehaviour(Hit);
+			}
+		}
+	};
+
+	// check if previous cloaking objet are no more cloaking
+	CompareCurrentFromPreviousInvisibleObjects();
+	
 }
 
-void UCameraWorldSubsystem::AddVisibleTarget(UObject* VisibleTarget)
+void UCameraWorldSubsystem::SetCloakingObjectBehaviour(const FHitResult& Hit)
 {
-	FollowTargets.Add(VisibleTarget);
+	// DEBUG 
+	//UE_LOG(LogTemp,Display,TEXT("Hit %s avant la visible target "), *Hit.GetActor()->GetName());
+			
+	if (UMeshComponent* MeshComponent = Cast<UMeshComponent>(Hit.GetActor()->GetComponentByClass(UMeshComponent::StaticClass())))
+	{
+		// Add to currently cloaking object list
+		CurrentCloakingObjects.Add(Hit.GetActor());
+
+		// already invisible
+		if (InvisibleObjects.Contains(Hit.GetActor()))
+		{
+			// do nothing
+		}
+		// Not invisible 
+		else
+		{
+			// update invisible object list
+			InvisibleObjects.Add(Hit.GetActor(), MeshComponent->GetMaterial(0));
+			
+			// Set invisibility
+			MeshComponent->SetMaterial(0,InvisibleMaterial); 
+
+		}
+	}
+	
 }
 
-void UCameraWorldSubsystem::RemoveVisibleTarget(UObject* VisibleTarget)
+void UCameraWorldSubsystem::MakeObjectVisibleAgain(TObjectPtr<AActor> InvisibleObject)
 {
-	FollowTargets.Remove(VisibleTarget);
+	// DEBUG 
+	// UE_LOG(LogTemp, Display, TEXT("Plus invisible"));
+	
+	// Set origin material
+	UMeshComponent* Mesh = Cast<UMeshComponent>(InvisibleObject->GetComponentByClass(UMeshComponent::StaticClass()));
+	UMaterialInterface* M = InvisibleObjects[InvisibleObject];
+	Mesh->SetMaterial(0,M);
+
+	// Update list
+	InvisibleObjects.Remove(InvisibleObject);
 }
 
-void UCameraWorldSubsystem::TickUpdateCameraVisibility(float DeltaTime)
+void UCameraWorldSubsystem::CompareCurrentFromPreviousInvisibleObjects()
 {
-	// TO EDIT => to complete
-	
-	// tirer un multiple line trace
-	// du milieu du screen
-	// au necromancien
 
-	// debug
+	TArray<AActor*> ObjectsToRemove;
 	
+	// Compare Current From Previous Invisible Objects
+	for (auto PreviousInvisibleObject : InvisibleObjects)
+	{
+		// Invisible again
+		if (CurrentCloakingObjects.Contains(PreviousInvisibleObject.Key))
+		{
+			
+		}
+		// no more invisible
+		else
+		{
+			// remove from list
+			ObjectsToRemove.Add(PreviousInvisibleObject.Key);
+		}
+	}
+
+	for (auto ObjectToRemove : ObjectsToRemove)
+	{
+		MakeObjectVisibleAgain(ObjectToRemove);
+	}
+
+	ObjectsToRemove.Empty();
 }
 
 void UCameraWorldSubsystem::TickUpdateCameraPosition(float DeltaTime)

@@ -37,7 +37,7 @@ bool UMusicDT_BPLibrary::UpsertSkeletonRow(UDataTable* Table, FName RowName, FNa
 	Row.Name = DisplayName;
 	Row.ID = ID;
 	Row.Notes = Notes;
-	Row.SuccessMusic = SuccessMusic;
+	Row.BackgroundMusic = SuccessMusic;
 
 	//overwrite if row alr exists
 	Table->AddRow(RowName, Row);
@@ -191,5 +191,51 @@ void UMusicDT_BPLibrary::BuildNotesFromHandles_Lane01Map(
 		OutNotes.Add(Note);
 	}
 }
+
+bool UMusicDT_BPLibrary::UpdateSkeletonRowNotes(UDataTable* Table, FName RowName, const TArray<USoundCue*>& NewCues, bool bSaveAsset)
+{
+	if (!Table)
+	{
+		return false;
+	}
+
+	F_Skeleton* RowPtr = Table->FindRow<F_Skeleton>(RowName, TEXT("UpdateSkeletonRowNotes"));
+	if (!RowPtr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UpdateSkeletonRowNotes: Row %s not found"), *RowName.ToString());
+		return false;
+	}
+
+	F_Skeleton& Row = *RowPtr;
+
+	if (Row.Notes.Num() != NewCues.Num())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UpdateSkeletonRowNotes: Size mismatch)"));
+	}
+
+	const int32 Count = FMath::Min(Row.Notes.Num(), NewCues.Num());
+
+	for (int32 i = 0; i < Count; ++i)
+	{
+		if (NewCues[i])
+		{
+			Row.Notes[i].Sound = NewCues[i];
+		}
+	}
+
+#if WITH_EDITOR
+
+	Table->Modify();
+
+#endif
+
+	Table->AddRow(RowName, Row); // re-add
+
+	SaveIf(Table, bSaveAsset);
+
+	UE_LOG(LogTemp, Log, TEXT("UpdateSkeletonRowNotes: Updated %d notes in row %s"), Count, *RowName.ToString());
+	return true;
+}
+
 
 
