@@ -92,6 +92,7 @@ void ASkeletonController::SetSkeletonForTransport()
 
 void ASkeletonController::OnEnterVillage()
 {
+	
 	// MY STATE
 	MyState = ESkeletonState::BackToHome;
 
@@ -121,3 +122,4 @@ void ASkeletonController::OpenDialogue()
 		ValutFrase = 1;	
 	}
 }
+
