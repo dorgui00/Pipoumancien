@@ -7,6 +7,7 @@
 #include "Components/SphereComponent.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Engine/EngineTypes.h"
+#include "Components/WidgetComponent.h"
 #include "SkeletonController.generated.h"
 
 class UAC_SkeletonFollower;
@@ -63,6 +64,8 @@ public:
 	void OnReachHome();
 
 	void OpenDialogue();
+
+	void InterationDialogue();
 	
 	UPROPERTY()
 	UUIDialoge* PlayerWidget;
@@ -79,6 +82,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
 	USkeletalMeshComponent* TargetMesh = nullptr;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ZoneVictoir")
+	UWidgetComponent* WidgetComponent;
 
 
 protected:

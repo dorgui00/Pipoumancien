@@ -27,6 +27,9 @@ ASkeletonController::ASkeletonController()
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	SphereComponent->SetupAttachment(RootComponent);
 	SphereComponent->SetSphereRadius(500);
+
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
+	WidgetComponent->SetupAttachment(RootComponent);
 	
 	//SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ASkeletonController::ASkeletonController::BeginOverlaps);
 	//SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ASkeletonController::EndOverlaps);
@@ -146,6 +149,15 @@ void ASkeletonController::OpenDialogue()
 		ValutFrase = 1;	
 	}
 }
+
+void ASkeletonController::InterationDialogue()
+{
+	if (!WidgetComponent->IsVisible())
+	{
+		WidgetComponent->SetVisibility(true);			
+	}
+}
+
 
 //ANIMATION
 
