@@ -4,6 +4,7 @@
 
 #include "Camera/CameraComponent.h"
 #include "Camera/CameraVisibleTarget.h"
+#include "Camera/FInvisibleObject.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
 #include "Game/GlobalGameSubsystem.h"
@@ -327,7 +328,7 @@ void UCameraWorldSubsystem::TickUpdateCameraVisibility(float DeltaTime)
 	FVector Pos;
 
 	// // TO EDIT : DEBUG
-	for (auto Target : VisibleTargets)
+	for (const auto& Target : VisibleTargets)
 	{
 		//Uniquement si l’objet dans la liste implémente l’interface 
 		if (Target !=nullptr && Target->Implements<UCameraVisibleTarget>())
@@ -338,29 +339,25 @@ void UCameraWorldSubsystem::TickUpdateCameraVisibility(float DeltaTime)
 			//DrawDebugLine(GetWorld(), WorldPosition, Pos, FColor::Blue, false, 2.f, 0, 2.f);
 		};
 	}
-	
-	CurrentCloakingObjects.Empty();
+
+	// Reset
 	TArray<struct FHitResult> OutHits;
+	CurrentCloakingObjects.Empty();
 	
-	// PASS COLL EN OVERLAP EXCEPT TARGET
-	if (GetWorld()->LineTraceMultiByChannel(OutHits,WorldPosition,Pos, COLLISION_CLOAK)) 
+	GetWorld()->LineTraceMultiByChannel(OutHits,WorldPosition,Pos, COLLISION_CLOAK);
+	
+	for (const auto& Hit : OutHits)
 	{
-		for (auto Hit : OutHits)
+		AActor* Actor = Hit.GetActor();
+		if (!Actor) continue;
+
+		if (Actor->Implements<UCameraVisibleTarget>()) // BLOCK IS VISIBLE TARGET
 		{
-			// Hit visible target 
-			if (Hit.GetActor() && Hit.GetActor()->Implements<UCameraVisibleTarget>()) // BLOCK IS VISIBLE TARGET
-			{
-				UE_LOG(LogTemp,Display,TEXT("Hit Player %s"),*Hit.GetActor()->GetName());
-				
-				//return ;
-			}
-			// Overlap Something
-			else
-			{
-				SetCloakingObjectBehaviour(Hit);
-			}
+			break; // stop at target
 		}
-	};
+
+		SetCloakingObjectBehaviour(Hit);
+	}
 
 	// check if previous cloaking objet are no more cloaking
 	CompareCurrentFromPreviousInvisibleObjects();
@@ -377,20 +374,36 @@ void UCameraWorldSubsystem::SetCloakingObjectBehaviour(const FHitResult& Hit)
 		// Add to currently cloaking object list
 		CurrentCloakingObjects.Add(Hit.GetActor());
 
+		// Contains Actor
+		bool ContainsActor = false;
+		for (const auto& InvisibleObject : InvisibleObjects)
+		{
+			if (InvisibleObject.Actor == Hit.GetActor())
+			{
+				ContainsActor = true;
+				break;
+			}
+		}
+		
 		// already invisible
-		if (InvisibleObjects.Contains(Hit.GetActor()))
+		if (ContainsActor)
 		{
 			// do nothing
 		}
 		// Not invisible 
 		else
 		{
-			// update invisible object list
-			InvisibleObjects.Add(Hit.GetActor(), MeshComponent->GetMaterial(0));
+			const TArray<UMaterialInterface*> Materials = MeshComponent->GetMaterials();
 			
-			// Set invisibility
-			MeshComponent->SetMaterial(0,InvisibleMaterial); 
-
+			// update invisible object list
+			InvisibleObjects.AddUnique(FInvisibleObject(Hit.GetActor(), Materials));
+			
+			// Set invisibility on each mat of the actor
+			for (int i=0;i<Materials.Num();i++)
+			{
+				MeshComponent->SetMaterial(i,InvisibleMaterial); 
+			}
+		
 		}
 	}
 	
@@ -401,13 +414,31 @@ void UCameraWorldSubsystem::MakeObjectVisibleAgain(TObjectPtr<AActor> InvisibleO
 	// DEBUG 
 	// UE_LOG(LogTemp, Display, TEXT("Plus invisible"));
 	
-	// Set origin material
+	// Reset origin materials
 	UMeshComponent* Mesh = Cast<UMeshComponent>(InvisibleObject->GetComponentByClass(UMeshComponent::StaticClass()));
-	UMaterialInterface* M = InvisibleObjects[InvisibleObject];
-	Mesh->SetMaterial(0,M);
+	if (!Mesh) return;
+	
+	// for each material reset origin material
+	//FInvisibleObject* VisibleItemSoon =  InvisibleObjects.FindByKey(*InvisibleObject);
 
-	// Update list
-	InvisibleObjects.Remove(InvisibleObject);
+	for (int i=0;i<InvisibleObjects.Num();i++)
+	{
+		if (InvisibleObjects[i].Actor == InvisibleObject)
+		{
+	
+			for (int j = 0; j < InvisibleObjects[i].Materials.Num() ; j++ )
+			{
+				UMaterialInterface* M = InvisibleObjects[i].Materials[j];
+				Mesh->SetMaterial(j,M);
+			}
+	
+			// Update list
+			//InvisibleObjects.Remove(InvisibleObject);
+			InvisibleObjects.RemoveAt(i);
+	
+			break;
+		}
+	}
 }
 
 void UCameraWorldSubsystem::CompareCurrentFromPreviousInvisibleObjects()
@@ -416,22 +447,17 @@ void UCameraWorldSubsystem::CompareCurrentFromPreviousInvisibleObjects()
 	TArray<AActor*> ObjectsToRemove;
 	
 	// Compare Current From Previous Invisible Objects
-	for (auto PreviousInvisibleObject : InvisibleObjects)
+	for (const FInvisibleObject& PreviousInvisibleObject : InvisibleObjects)
 	{
-		// Invisible again
-		if (CurrentCloakingObjects.Contains(PreviousInvisibleObject.Key))
-		{
-			
-		}
-		// no more invisible
-		else
+		// no longer invisible
+		if (!CurrentCloakingObjects.Contains(PreviousInvisibleObject.Actor))
 		{
 			// remove from list
-			ObjectsToRemove.Add(PreviousInvisibleObject.Key);
+			ObjectsToRemove.AddUnique(PreviousInvisibleObject.Actor);
 		}
 	}
 
-	for (auto ObjectToRemove : ObjectsToRemove)
+	for (const auto& ObjectToRemove : ObjectsToRemove)
 	{
 		MakeObjectVisibleAgain(ObjectToRemove);
 	}

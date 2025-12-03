@@ -6,6 +6,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "CameraWorldSubsystem.generated.h"
 
+struct FInvisibleObject;
 class APipouCharacter;
 class ASkeletonController;
 class UCameraComponent;
@@ -161,7 +162,7 @@ private :
 	void InitCameraVisibility();
 	void TickUpdateCameraVisibility(float DeltaTime);
 
-	void SetCloakingObjectBehaviour(const FHitResult& Hit); // object that hides visible traget
+	void SetCloakingObjectBehaviour(const FHitResult& Hit); // object that hides visible target
 	void MakeObjectVisibleAgain(TObjectPtr<AActor> InvisibleObject); // no more invisible
 	
 	void CompareCurrentFromPreviousInvisibleObjects();
@@ -169,10 +170,10 @@ private :
 
 	UPROPERTY()
 	UMaterialInterface* InvisibleMaterial;
-
 	
 	UPROPERTY()
-	TMap<TObjectPtr<AActor>, TObjectPtr<UMaterialInterface>> InvisibleObjects;
+	TArray<FInvisibleObject> InvisibleObjects;
+	//TMap<TObjectPtr<AActor>, TObjectPtr<UMaterialInterface>> InvisibleObjects;
 
 	UPROPERTY()
 	TArray<AActor*> CurrentCloakingObjects;
