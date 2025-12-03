@@ -104,7 +104,7 @@ public:
 	// UI WORLD
 	void DisplayNotesForSkeletonInteraction(UInputAction* InputAction);
 
-	void SpawnSkeletonInteractionWidget();
+	void SpawnSkeletonInteractionWidget(TArray<APipouCharacter*> Characters);
 	
 protected:
 	// ---- GAME INSTANCE SUBSYSTEM ----

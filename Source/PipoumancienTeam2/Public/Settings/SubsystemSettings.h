@@ -7,6 +7,7 @@
 #include "UI/UResurrectionWidget.h"
 #include "SubsystemSettings.generated.h"
 
+class UBirdWidget;
 class UHUDData;
 class USkeletonInteractionWidget;
 class UMusicGenericData;
@@ -31,6 +32,9 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
 	TSubclassOf<USkeletonInteractionWidget> WBPSkeletonInteractionClass;
+
+	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
+	TSubclassOf<UBirdWidget> WBPBirdWidget;
 
 	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
 	TSoftObjectPtr<UHUDData> HUDData; // data asset
