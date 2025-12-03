@@ -46,19 +46,27 @@ void UGlobalHUDSubsystem::Tick(float DeltaTime)
 }
 
 // ---- WORLD UI ---
-void UGlobalHUDSubsystem::SpawnSkeletonInteractionWidget()
+void UGlobalHUDSubsystem::SpawnSkeletonInteractionWidget(TArray<APipouCharacter*> Characters)
 {
-	USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	
-	UWidgetComponent* WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
-	WidgetComponent->SetupAttachment(Root); // middle of player
+	FVector Tot;
+	for (auto Target : Characters)
+	{
+		Tot += Target->GetActorLocation();
+	}
+	FVector Moy = Tot/Characters.Num();
 
-	WidgetComponent->SetWidgetClass(USkeletonInteractionWidget::StaticClass());
-		
-	// if (USkeletonInteractionWidget* SkeletonInteractionWidget = Cast<USkeletonInteractionWidget>(WidgetComponent->GetUserWidgetObject()))
-	// {
-	// 	
-	// }
+	
+// 	USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+// 	
+// 	UWidgetComponent* WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
+// 	WidgetComponent->SetupAttachment(Root); // middle of player
+//
+// 	WidgetComponent->SetWidgetClass(USkeletonInteractionWidget::StaticClass());
+// 		
+// 	// if (USkeletonInteractionWidget* SkeletonInteractionWidget = Cast<USkeletonInteractionWidget>(WidgetComponent->GetUserWidgetObject()))
+// 	// {
+// 	// 	
+// 	// }
 	
 }
 
