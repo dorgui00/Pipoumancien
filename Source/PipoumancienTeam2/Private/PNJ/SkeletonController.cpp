@@ -11,6 +11,7 @@
 #include "UI/UIDialoge.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimationAsset.h"
+#include "BP/Fog.h"
 
 
 // Sets default values
@@ -115,6 +116,7 @@ void ASkeletonController::SetSkeletonForTransport()
 
 void ASkeletonController::OnEnterVillage()
 {
+	FogDilet();
 	// MY STATE
 	MyState = ESkeletonState::BackToHome;
 
@@ -211,6 +213,17 @@ void ASkeletonController::UpdateAnimation(float DeltaTime)
 	}
 
 	LastLocation = CurrentLocation;
+}
+
+void ASkeletonController::FogDilet()
+{
+	for (AFog* Fog : FogList)
+	{
+		if (Fog)
+		{
+			Fog->SupprimerFog(MySkeleton);  // Appel sur chaque élément
+		}
+	}
 }
 
 void ASkeletonController::PlayIdle()

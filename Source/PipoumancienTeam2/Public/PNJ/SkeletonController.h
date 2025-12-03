@@ -18,6 +18,7 @@ class ADB_Manager;
 class UAnimationAsset;
 class USkeletalMeshComponent;
 struct F_Skeleton;
+class AFog;
 
 
 enum class ESkeletonState : uint8{
@@ -109,6 +110,10 @@ protected:
 		UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
 
 	int ValutFrase = 0;
+
+	// Liste de Fog (équivalent du tableau dans le Blueprint)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Références")
+	TArray<AFog*> FogList; 
 	
 private :
 	
@@ -129,5 +134,6 @@ private :
 	void PlayWalk();
 	void PlayWait();
 	void UpdateAnimation(float DeltaTime);
+	void FogDilet();
 
 };
