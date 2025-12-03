@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "UBirdWidget.generated.h"
+#include "BirdWidget.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PIPOUMANCIENTEAM2_API UUBirdWidget : public UUserWidget
+class PIPOUMANCIENTEAM2_API UBirdWidget : public UUserWidget
 {
 	GENERATED_BODY()
 };

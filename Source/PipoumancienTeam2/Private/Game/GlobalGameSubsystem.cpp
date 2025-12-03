@@ -30,6 +30,9 @@ ASkeletonController* UGlobalGameSubsystem::GetCurrentSkeleton() const
 void UGlobalGameSubsystem::SetCurrentSkeleton(ASkeletonController* Skeleton)
 {
 	CurrentSkeleton = Skeleton;
+
+	// TO EDIT TEST
+	//GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>()->SpawnSkeletonInteractionWidget(PipouCharacters);
 }
 
 // Music
