@@ -99,7 +99,8 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 	{
 		LerpCamera(DeltaTime);
 	}
-	else if (CameraState == ECameraState::GlobalCamera)
+	
+	if (CameraState == ECameraState::GlobalCamera)
 	{
 		TickUpdateCameraPosition(DeltaTime);
 		
@@ -267,6 +268,50 @@ void UCameraWorldSubsystem::TickUpdateCameraZoom(float DeltaTime)
 	
 	FVector pos = FVector(CameraMain->GetOwner()->GetActorLocation().X,posY,CameraMain->GetOwner()->GetActorLocation().Z);
 	CameraMain->SetWorldLocation(pos);
+}
+
+void UCameraWorldSubsystem::Zoom(float Value)
+{
+	ResetLerp();
+	
+	IsZoomed = true;
+
+	// default actor pos / rot
+	CanLerpActor = false;
+
+	// Component Pos / Rot
+	CanLerpComponent = true;
+	
+	StartComponentTransform = CameraMain->GetRelativeTransform();
+	
+	EndComponentTransform = FTransform(StartComponentTransform);
+	FVector EndPos = CameraMain->GetRelativeTransform().GetLocation() + CameraMain->GetForwardVector() * Value;
+	EndComponentTransform.SetLocation(EndPos);
+
+	// start Lerping
+	IsSettingCamera = true;
+}
+
+void UCameraWorldSubsystem::Dezoom(float Value)
+{
+	ResetLerp();
+	
+	IsZoomed = false;
+
+	// default actor pos / rot
+	CanLerpActor = false;
+
+	// Component Pos / Rot
+	CanLerpComponent = true;
+
+	StartComponentTransform = CameraMain->GetRelativeTransform();
+	
+	EndComponentTransform = FTransform(StartComponentTransform);
+	FVector EndPos = CameraMain->GetRelativeTransform().GetLocation() - CameraMain->GetForwardVector() * Value;
+	EndComponentTransform.SetLocation(EndPos);
+
+	// start Lerping
+	IsSettingCamera = true;
 }
 
 
@@ -598,7 +643,7 @@ void UCameraWorldSubsystem::SetGlobalCamera()
 
 
 // camera moves closer, places itself between the two interlocutors but targets the speaker
-void UCameraWorldSubsystem::SetDialogueCamera(APipouCharacter* Interactor, ASkeletonController* Speaker)
+void UCameraWorldSubsystem::SetDialogueCamera(const APipouCharacter* Interactor, ASkeletonController* Speaker)
 {
 	// Speaker look at interactor
 	// forward = target - look at

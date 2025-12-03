@@ -128,7 +128,7 @@ private :
 #pragma region Zoom
 	
 private  :
-	
+	// Zoom according to distance
 	UPROPERTY()
 	float CameraZoomYMin = 0.f;
 
@@ -145,6 +145,13 @@ private  :
 	void InitCameraZoomParameters();
 	
 	void TickUpdateCameraZoom(float DeltaTime);
+
+	// zoom / dezoom
+public :
+	bool IsZoomed = false;
+	
+	void Zoom(float Value);
+	void Dezoom(float Value);
 	
 #pragma endregion
 
@@ -257,7 +264,7 @@ private :
 #pragma region Dialogue Camera
 public :
 
-	void SetDialogueCamera(APipouCharacter* Interactor, ASkeletonController* Speaker);
+	void SetDialogueCamera(const APipouCharacter* Interactor, ASkeletonController* Speaker);
 
 private :
 	
