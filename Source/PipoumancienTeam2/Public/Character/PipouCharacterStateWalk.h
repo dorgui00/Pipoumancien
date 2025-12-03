@@ -40,12 +40,34 @@ public:
 	//AUDIO
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
-	USoundBase* WalkLoopSoundNecro;
+	USoundBase* WalkSoundBase;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio/IterateOnGround")
+	USoundBase* GrassFootstepSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio/IterateOnGround")
+	USoundBase* DirtFootstepSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio/IterateOnGround")
+	USoundBase* TownRoadFootstepSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio/IterateOnGround")
+	USoundBase* SnowFootstepSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
-	USoundBase* WalkLoopSoundDog;
+	bool IterateOnGround = false;
+
+	void PlayFootstepsSound(UPhysicalMaterial* PhysMat);
+
+	// ----- //
 
 	UPROPERTY(Transient)
 	UAudioComponent* WalkLoopComponent;
 
+private:
+
+	//AUDIO
+	float FootstepTimer = 0.f;
+	float FootstepInterval = 1.f; // default step rate
+	// --- //
 };

@@ -27,22 +27,13 @@ void UPipouCharacterStateWalk::StateEnter(EPipouCharacterStateID PreviousStateID
 
 	// -------------- AUDIO -----------------
 	//walk steps audio start
-	if (WalkLoopSoundNecro && WalkLoopSoundDog)
+	if (WalkSoundBase)
 	{
-		if (AActor* Owner = GetOwner())
+		if (!IterateOnGround) //check if we're doing different sounds
 		{
-			if (Owner->GetName() == TEXT("BP_NecroCharacter0")) //verify if its necromancer or dog
-			{
-				WalkLoopComponent = UGameplayStatics::SpawnSoundAttached(
-					WalkLoopSoundNecro,
-					Character->GetRootComponent());
-
-			} else {
-				
-				WalkLoopComponent = UGameplayStatics::SpawnSoundAttached(
-					WalkLoopSoundDog,
-					Character->GetRootComponent());
-			}
+			WalkLoopComponent = UGameplayStatics::SpawnSoundAttached(
+				WalkSoundBase,
+				Character->GetRootComponent());
 		}
 	}
 }
@@ -107,6 +98,54 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 		}
 	}
 
+	//AUDIO
+	if (IterateOnGround)
+	{
+		bool bIsMoving = (Character->GetInputMoveXY().SquaredLength() > Character->DeadZone * Character->DeadZone);
+
+		if (bIsMoving) // only walk if actually moving
+		{
+			FootstepTimer += Deltatime;
+
+			if (FootstepTimer >= FootstepInterval)
+			{
+				FootstepTimer = 0.f;
+
+				FHitResult Hit;
+				FCollisionQueryParams Params;
+				Params.AddIgnoredActor(Character);
+
+				FVector Start = Character->GetActorLocation();
+				FVector End = Start - FVector(0, 0, 200.f);
+
+				if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_WorldStatic, Params))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Hit actor: %s"), *Hit.GetActor()->GetName());
+
+					if (UPhysicalMaterial* PhysMat = Hit.PhysMaterial.Get())
+					{
+						UE_LOG(LogTemp, Warning, TEXT("found a match, playing sound"));
+
+						PlayFootstepsSound(PhysMat);
+					}
+
+					if (Hit.PhysMaterial.IsValid())
+					{
+						UE_LOG(LogTemp, Warning, TEXT("PhysMat: %s"), *Hit.PhysMaterial.Get()->GetName());
+					}
+					else
+					{
+						UE_LOG(LogTemp, Error, TEXT("PHYSICAL MATERIAL IS NULL HERE!"));
+					}
+				}
+			}
+		}
+		else
+		{
+			// standing still
+			FootstepTimer = 0.f;
+		}
+	}
 }
 
 void UPipouCharacterStateWalk::StateExit(EPipouCharacterStateID NextStateID)
@@ -125,4 +164,30 @@ void UPipouCharacterStateWalk::StateExit(EPipouCharacterStateID NextStateID)
 FVector UPipouCharacterStateWalk::GetMoveDirection() const
 {
 	return MoveDir;
+}
+
+
+// ------- AUDIO --------
+void UPipouCharacterStateWalk::PlayFootstepsSound(UPhysicalMaterial* PhysMat)
+{
+	if (PhysMat->SurfaceType == SurfaceType1) // grass
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, GrassFootstepSound, Character->GetActorLocation());
+	}
+	else if (PhysMat->SurfaceType == SurfaceType2) // dirt
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, DirtFootstepSound, Character->GetActorLocation());
+	}
+	else if (PhysMat->SurfaceType == SurfaceType3) // townRoad
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, TownRoadFootstepSound, Character->GetActorLocation());
+	}
+	else if (PhysMat->SurfaceType == SurfaceType4) // snow
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, SnowFootstepSound, Character->GetActorLocation());
+
+	} else {
+
+		return;
+	}
 }
