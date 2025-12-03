@@ -85,8 +85,7 @@ public:
 	UPROPERTY()
 	TObjectPtr<UHUDData> HUDData;
 
-	UPROPERTY()
-	TMap<UInputAction*, UImage*> ImageFromNoteInput;
+	UTexture2D* GetImageTextureFromNoteInput(const UInputAction* NoteInput) const;
 
 	void SetMusicWorldSubsystem(UMusicWorldSubsystem* NewMusicSubsystem);
 
@@ -145,16 +144,16 @@ private:
 	float RatioDistance = 150.f;
 	
 	// Map to associate an InputAction (Key of Controller) to a MusicNoteType (The notes in ENUM).
+	// UPROPERTY()
+	// TMap<UInputAction*, EMusicNoteType> MusicNoteFromInputAction;
+
 	UPROPERTY()
-	TMap<UInputAction*, EMusicNoteType> MusicNoteFromInputAction;
+	TMap<UInputAction*, UTexture2D*> TextureFromNoteInput;
 
 	UPROPERTY()
 	UGlobalGameSubsystem* GlobalGameSubsystem;
 	
 	// Initialize data for GlobalHUDSubsystem.
 	void Init();
-	
-	// Get the MusicNoteType with a key input action based on the map.
-	EMusicNoteType GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const;
 
 };
