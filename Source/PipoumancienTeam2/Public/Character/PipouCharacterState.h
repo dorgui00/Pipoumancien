@@ -49,7 +49,7 @@ protected:
 
 	UPROPERTY()
 	ASkeletonController* Skeleton = nullptr;
-
+	
 	UFUNCTION()
 	virtual void OnCharacterPressedNote(UInputAction* InputAction);
 
@@ -58,8 +58,11 @@ protected:
 
 	UFUNCTION()
 	virtual void OnCharacterPitch(FInputActionValue InputActionValue);
+
+	UFUNCTION()
+	virtual void OnCharacterPitchCompleted();
 	
-	//World Interaction
+	// World Interaction
 	int WorldNotesToPlay = 3; // check 3 world notes to interact
 	int CurrentWorldNotes = 0;
 	float WorldNotesInterval = 2.f;
@@ -67,6 +70,7 @@ protected:
 	bool IsTryingToInteractWithWorld = false;
 	
 	void AddNoteForWorldInteraction();
+
 public :
 	void ResetWorldInteraction();
 };

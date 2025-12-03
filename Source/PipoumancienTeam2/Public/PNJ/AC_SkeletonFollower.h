@@ -20,7 +20,7 @@ public:
     TArray<AActor*> PipouPlayers;
     AActor* ParentActor = nullptr;
 
-    const float FollowRange = 600.f;
+    const float FollowRange = 500.f;
 
     UPROPERTY(EditAnywhere, Category = "Follow|Players", meta = (ClampMin = "0"))
     float MoveSpeed = 10.f;
@@ -34,11 +34,14 @@ public:
     UPROPERTY(EditAnywhere, Category = "Follow|Spline")
     bool bOrientToSpline = true;
 
+    UFUNCTION(BlueprintCallable, Category = "Follow")
+    bool IsStartFollowing() const { return bStartFollowing; }
+
     UPROPERTY(EditAnywhere, Category = "PathGen|Circles", meta = (ClampMin = "0"))
     float PlayerCircleRadius = 300.f;
 
     UPROPERTY(EditAnywhere, Category = "PathGen|Timing", meta = (ClampMin = "0.01"))
-    float SegmentDelay = 2.5f;
+    float SegmentDelay = 1.5f;
 
     UPROPERTY(EditAnywhere, Category = "PathGen|Debug")
     bool bDrawDebug = true;
@@ -69,26 +72,66 @@ public:
     float GroundTraceDown = 1200.f;
 
     UPROPERTY(EditAnywhere, Category = "Follow|Ground")
-    float GroundOffset = 50.f;
+    float GroundOffset = 0.f;
 
 
     UPROPERTY(EditAnywhere, Category = "Follow|Spline")
     bool bYawOnly = true;
 
+    // DELEGATES
+    
+    // On Enter Village
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnterVillage);
+    
+    UPROPERTY()
+    FOnEnterVillage OnEnterVillage;
+    
+    // DON'T FORGET TO BROADCAST
+    // On Reach Home
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnReachHome);
+    
+    UPROPERTY()
+    FOnReachHome OnReachHome;
 
 protected:
     virtual void BeginPlay() override;
 
     bool bPlayer1InRange = false;
     bool bPlayer2InRange = false;
-    FVector Player1Location;
-    FVector Player2Location;
+    FVector Player1Location = FVector::ZeroVector;
+    FVector Player2Location = FVector::ZeroVector;
 
     bool bStartFollowing = false;
     bool bFollowingSpline = false;
 
+    bool bOnVillageSpline = false;
+    bool bHasReachedHome = false;
+
+    bool bCanFollowPlayers = true;
+
     float CurrentDistance = 0.f;
     float TargetDistance = 0.f;
+
+    UPROPERTY(EditAnywhere, Category = "Follow|Players", meta = (ClampMin = "0"))
+    float PlayerMovingSpeedThreshold = .5f;
+
+    UPROPERTY(EditAnywhere, Category = "Follow|Players", meta = (ClampMin = "0"))
+    float PlayerMovingDistanceThreshold = .5f;
+
+    UPROPERTY(Transient)
+    TArray<FVector> PreviousPlayerLocations;
+
+    UPROPERTY(Transient)
+    bool bHasPreviousPlayerLocations = false;
+
+    UPROPERTY(Transient)
+    bool bAnyPlayerMoving = false;
+
+    UFUNCTION(BlueprintCallable, Category = "Follow|Players")
+    bool IsAnyPlayerMoving() const { return bAnyPlayerMoving; }
+
+    void UpdatePlayerMovement(float DeltaTime);
+
 
     UFUNCTION()
     void OnParentHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit);

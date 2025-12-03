@@ -94,11 +94,15 @@ void UGlobalGameSubsystem::CheckIfPlayersOverlapSameSkeleton()
 	SetCurrentSkeleton(CurrentSkeletonIn);
 }
 
+EWorldState UGlobalGameSubsystem::GetWorldState() const
+{
+	return WorldState;
+}
 
 void UGlobalGameSubsystem::SetWorldMusicState()
 {
-	WorldState = EWorldState::WorldMusic; // TO EDIT
-
+	WorldState = EWorldState::WorldMusic; 
+	
 	//change state for players
 	for (auto Character : PipouCharacters) 
 	{
@@ -108,7 +112,8 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 		}
 	}
 
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CallCamera(ECameraType::MusicCamera); // SetCameraMusic()
+	// CAMERA
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetMusicCamera() ;
 	
 	UGlobalHUDSubsystem* HUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
 	if (!HUDSubsystem) return;
@@ -118,5 +123,57 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 	
 	GetWorld()->GetSubsystem<UMusicWorldSubsystem>()->InitMusic(CurrentSkeleton);
 }
+
+void UGlobalGameSubsystem::SetWorldTransportState()
+{
+	UE_LOG(LogTemp, Display, TEXT("World State Transport"));
+	
+	// WORLD STATE
+	WorldState = EWorldState::WorldTransport;
+
+	// Add Follow Component
+	GetCurrentSkeleton()->SetSkeletonForTransport();
+
+	// Camera
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
+}
+
+// called when current skeleton reached village
+void UGlobalGameSubsystem::SetWorldFreeState()
+{
+	UE_LOG(LogTemp, Display, TEXT("World State Free"));
+	
+	// WORLD STATE
+	WorldState = EWorldState::WorldFree;
+	
+	// CAMERA
+	UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
+	if (CameraWorldSubsystem->GetState() == ECameraState::GlobalCamera) return;
+
+	CameraWorldSubsystem->SetGlobalCamera(); // set characters in idle at the end of the lerp
+	
+}
+
+void UGlobalGameSubsystem::SetWorldDialogueState(APipouCharacter* Interactor, ASkeletonController* Speaker)
+{
+	UE_LOG(LogTemp, Display, TEXT("World State Dialogue"));
+	
+	// WORLD STATE
+	WorldState = EWorldState::WorldDialogue;
+
+	// Pipou Dialogue
+	for (APipouCharacter* PipouCharacter : PipouCharacters)
+	{
+		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Dialogue);
+	}
+
+	// CAMERA
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetDialogueCamera(Interactor,Speaker) ;
+
+	// to edit (call in finish camera)
+	//Open dialogue
+	Speaker->OpenDialogue();
+}
+
 
 

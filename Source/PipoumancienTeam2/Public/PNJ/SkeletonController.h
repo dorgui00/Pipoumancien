@@ -4,11 +4,26 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/SphereComponent.h"
+#include "Subsystems/GameInstanceSubsystem.h"
 #include "SkeletonController.generated.h"
 
+class UAC_SkeletonFollower;
+class UUIDialoge;
 class UGlobalDataTableSubsystem;
+class UDataTableGameInstanceSubsystem;
 class ADB_Manager;
 struct F_Skeleton;
+
+
+enum class ESkeletonState : uint8{
+	None = 0,
+	Dead = 1,
+	Transport = 2,
+	BackToHome = 3, // follow spline to go back home
+	Dialogue = 3, // reached his home
+};
+
 
 UCLASS()
 class PIPOUMANCIENTEAM2_API ASkeletonController : public AActor
@@ -18,6 +33,34 @@ class PIPOUMANCIENTEAM2_API ASkeletonController : public AActor
 public:
 	// Sets default values for this actor's properties
 	ASkeletonController();
+	virtual ~ASkeletonController() override;
+	
+	// Override
+	virtual void Tick(float DeltaTime) override;
+
+	//Skeleton Controller
+	F_Skeleton* MySkeleton;
+
+	// STATE
+	ESkeletonState GetState() const;
+	
+	// Transport
+	void SetSkeletonForTransport();
+
+	//Village
+	UFUNCTION()
+	void OnEnterVillage();  // in BackToHome state
+	
+	// Dialogue
+	void SetSkeletonForDialogue(); // in dialogue state
+
+	UFUNCTION()
+	void OnReachHome();
+
+	void OpenDialogue();
+	
+	UPROPERTY()
+	UUIDialoge* PlayerWidget;
 
 protected:
 	// Called when the game starts or when spawned
@@ -26,12 +69,35 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Skeleton")
 	int ID = 0;
 
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	// Called when the game starts or when spawned
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ZoneVictoir")
+	UStaticMeshComponent* ZoneVictoirMesh;
 
-	F_Skeleton* MySkeleton;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ZoneVictoir")
+	USphereComponent* SphereComponent;
 
-	void SetSkeletonForTransport();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UUIDialoge> PlayerWidgetClass;
 	
+	UPROPERTY()
+	bool isDialoge = true;
+
+	UFUNCTION()
+	void BeginOverlaps(UPrimitiveComponent* OverlappedComp,AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,int32 OtherBodyIndex,bool bFromSweep,const FHitResult& SweepResult);
+	
+	UFUNCTION()
+	void EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
+
+	int ValutFrase = 0;
+	
+private :
+	
+	// STATE
+	ESkeletonState MyState = ESkeletonState::Dead;
+
+	// FOLLOW
+	UPROPERTY()
+	TObjectPtr<UAC_SkeletonFollower> FollowComponent ;
 };

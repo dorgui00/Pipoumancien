@@ -2,57 +2,49 @@
 
 
 #include "UI/GlobalHUDSubsystem.h"
+
 #include "UResurrectionWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Character/PipouCharacterInputData.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
+#include "Components/Slider.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
 #include "Editor/PipouCharacterSettings.h"
 #include "Game/GlobalGameSubsystem.h"
+#include "Logging/StructuredLog.h"
 #include "Music/MusicWorldSubsystem.h"
 #include "PNJ/SkeletonController.h"
 #include "Settings/SubsystemSettings.h"
-#include "UI/USlot.h"
+#include "UI/UMusicNote.h"
+#include "UI/PartitionFinish.h"
 
+
+
+// ---- GAME INSTANCE SUBSYSTEM ---- 
 void UGlobalHUDSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-
 	Init();
 }
 
-void UGlobalHUDSubsystem::Init()
+void UGlobalHUDSubsystem::Tick(float DeltaTime)
 {
-	//Init Global Game Subsystem
-	GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
-
-	// Get Subsystem Settings and PipouCharacterSettings
-	const USubsystemSettings* SubsystemSettings = GetDefault<USubsystemSettings>();
-	if (!SubsystemSettings) return;
-
-	const UPipouCharacterSettings* CharacterSettings = GetDefault<UPipouCharacterSettings>();
-	if (!CharacterSettings) return;
-
-	InputData = CharacterSettings->InputData.LoadSynchronous();
-	if (!InputData)
+	if (TimerBeforeResetingColor > 0)
 	{
-		UE_LOG(LogTemp,Fatal,TEXT("UGlobalHUDSubsystem::InputData is NULL"));
+		TimerBeforeResetingColor -= DeltaTime;
+
+		if (TimerBeforeResetingColor >= 0.2f)
+		{
+			
+			TimerBeforeResetingColor = 0;
+		}
 	}
-	
-	WBPResurrectionClass = SubsystemSettings->WBPResurrectionClass;
-	WBPNoteClass = SubsystemSettings->WBPNoteClass;
-	
-	MusicNoteFromInputAction =
-	{
-		{ InputData->InputNoteA, EMusicNoteType::A },
-		{ InputData->InputNoteB, EMusicNoteType::B },
-		{ InputData->InputNoteY, EMusicNoteType::Y },
-		{ InputData->InputNoteX, EMusicNoteType::X }
-	};
 }
 
+
+// ---- MUSIC UI ----
 void UGlobalHUDSubsystem::DisplayResurrectionWidget()
 {
 	if (WBPResurrectionClass == nullptr) return;
@@ -69,7 +61,18 @@ void UGlobalHUDSubsystem::DisplayResurrectionWidget()
 		UCanvasPanelSlot* PartitionSlot = Cast<UCanvasPanelSlot>(WBPResurrectionInstance->PartitionBox->Slot);
 		if (!PartitionSlot) return;
 
-		UiOffset = PartitionSlot->GetSize().X;
+		UCanvasPanelSlot* SliderBoxSlot = Cast<UCanvasPanelSlot>(WBPResurrectionInstance->SliderBox->Slot);
+		if (!SliderBoxSlot) return;
+
+		float MiddleOfPitchSliderPosX = SliderBoxSlot->GetPosition().X + (SliderBoxSlot->GetSize().X / 2);
+		float BoundsXMaxPartitionBox = PartitionSlot->GetSize().X;
+		// // How many of my slider I can put in the partition : 110 * 9,35px (result of PartitionSlot->GetSize().X / SliderSlot->GetSize().X).
+		// float PartitionInSliderRatio = PartitionSlot->GetSize().X / SliderBoxSlot->GetSize().X;
+		// // How many 9,35 are in my slider (110px) = 11,8. I can put 11,8 of 9,35 in my slider.
+		// float EffectiveSliderPartSize = (SliderBoxSlot->GetSize().X / MiddleOfPitchSliderPosX);
+		// // UiOffset is all the partition size minus the size of the slider for it to time for the qte when the note is the middle of the circle of the slider.
+		// UIOffset = PartitionInSliderRatio * (SliderBoxSlot->GetSize().X - EffectiveSliderPartSize);
+		UIOffset = (BoundsXMaxPartitionBox - MiddleOfPitchSliderPosX);
 	}
 }
 
@@ -79,6 +82,46 @@ void UGlobalHUDSubsystem::RemoveResurrectionWidget()
 	{
 		WBPResurrectionInstance->RemoveFromParent();
 		WBPResurrectionInstance = nullptr;
+
+		// Clear the array of notes spawned during the music.
+		NotesInstanciated.Empty();
+	}
+}
+
+void UGlobalHUDSubsystem::DisplayPartitionFinish(const FString& TextInThePartition)
+{
+	if (WBPPartitionFinishClass == nullptr) return;
+	
+	APlayerController* PC = Cast<APlayerController>(GlobalGameSubsystem->PipouCharacters[0]->GetController());
+	if (!PC) return;
+
+	WBPPartitionFinishInstance = CreateWidget<UPartitionFinish>(PC, WBPPartitionFinishClass);
+
+	if (WBPPartitionFinishInstance != nullptr)
+	{
+		WBPPartitionFinishInstance->AddToViewport();
+		WBPPartitionFinishInstance->SetWinLostText(TextInThePartition);
+		WBPPartitionFinishInstance->PlayAnimationPartitionFinishStart();
+	}
+}
+
+void UGlobalHUDSubsystem::RemovePartitionFinish() const
+{
+	if (WBPPartitionFinishInstance != nullptr)
+	{
+		WBPPartitionFinishInstance->PlayAnimationPartitionFinishExit();
+
+		FTimerHandle CanDestroy;
+		GetWorld()->GetTimerManager().ClearTimer(CanDestroy);
+
+		GetWorld()->GetTimerManager().SetTimer(
+			CanDestroy, [this]()
+			{
+				WBPPartitionFinishInstance->RemoveFromParent();
+			},
+			2.f,
+			false
+		);
 	}
 }
 
@@ -95,97 +138,172 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(const ASkeletonController* Current
 	{
 		if (!WBPResurrectionInstance) return;
 		
-		// Create Slot
-		WBPNoteInstance = CreateWidget<USlot>(PC, WBPNoteClass);
+		// Create Note Widget.
+		WBPNoteInstance = CreateWidget<UMusicNote>(PC, WBPNoteClass);
 		if (!WBPNoteInstance) return;
 
-		// Add the note to the parent spawn notes
+		// Add the note into the parent NotesBox.
 		WBPResurrectionInstance->NotesBox->AddChildToCanvas(WBPNoteInstance);
 		
-		// Get Note Slot
+		// Get Note Widget Slot.
 		UCanvasPanelSlot* NoteSlotInstance = Cast<UCanvasPanelSlot>(WBPNoteInstance->Slot);
 		if (!NoteSlotInstance) return;
 
-		// Get SpawnPoint
+		// Get SpawnPoint depending on the Pitch of the note. 
 		UUserWidget* SpawnPointFromPitch = WBPResurrectionInstance->GetSpawnPointFromInputPitch(Note.Pitch);
 		if (!SpawnPointFromPitch) return;
 
-		// Get SpawnPoint Slot
+		// Get SpawnPoint Slot.
 		UCanvasPanelSlot* SpawnPointSlot = Cast<UCanvasPanelSlot>(SpawnPointFromPitch->Slot);
 		if (!SpawnPointSlot) return;
 		
-		// Calculate Note Slot Pos Y
+		// Calculate Note Pos Y with SpawnPointSlot.
 		float PosY = SpawnPointSlot->GetPosition().Y;
 		
-		// Calculate Note Slot Pos X
+		// Calculate Note Pos X.
 		float PosX = (Note.Frequency * RatioDistance) + DistancePreviousFrequencies;
 		
-		// Set Slot Pos
+		// Set Note Pos with Note Slot.
 		FVector2D NotePos = FVector2D(PosX, PosY);
 		NoteSlotInstance->SetPosition(NotePos);
-		
-		// Set Slot Size
-		// if (!MusicWorldSubsystem) UE_LOG(LogTemp, Error, TEXT("UGlobalHUDSubsystem::MusicWorldSubsystem is NULL"));
-		//
-		// float SizeX = MusicWorldSubsystem->TimeTolerance*RatioDistance;
-		// NoteSlotInstance->SetSize(FVector2D(SizeX, NoteSlotInstance->GetSize().Y));
-		
-		// Set Music Note Type
+
+		// Set Music Note Type depending on the input action of the note.
 		WBPNoteInstance->SetSlotNote(GetMusicNoteTypeFromInputAction(Note.InputAction));
 
+		// Add the note instantiated to an array to use in the music mechanic.
 		NotesInstanciated.Add(WBPNoteInstance);
-		
+
+		// Increment the DistancePreviousFrequencies with the new frequency of the current note spawned.
 		DistancePreviousFrequencies += Note.Frequency * RatioDistance;
 	}
 
-	// Get NotesBoxSlot 
+	// Get NotesBoxSlot from NoteBox (Containers of the spawned note).
 	NotesBoxSlot = Cast<UCanvasPanelSlot>(WBPResurrectionInstance->NotesBox->Slot);
 	if (!NotesBoxSlot) return;
 
-	// Set the size of the notes box slot
-	NotesBoxSlot->SetSize(FVector2D(DistancePreviousFrequencies + UiOffset, NotesBoxSlot->GetSize().Y));
+	UCanvasPanelSlot* TopLineSlot = Cast<UCanvasPanelSlot>(WBPResurrectionInstance->PitchMinusOne->Slot);
+	if (!TopLineSlot) return;
+	
+	NotesBoxSlot->SetPosition(FVector2D(NotesBoxSlot->GetPosition().X + TopLineSlot->GetSize().X, NotesBoxSlot->GetPosition().Y));
+	
+	// Set the size of the notes box slot. Size is set to all the frequencies + the UiOffset size.
+	NotesBoxSlot->SetSize(FVector2D(DistancePreviousFrequencies + UIOffset, NotesBoxSlot->GetSize().Y));
 
-	// Set the start point of the lerp and the end point based on slot size and position
-	StartPointLerp = NotesBoxSlot->GetPosition().X;
-	EndPointLerp = StartPointLerp - NotesBoxSlot->GetSize().X;
+	// Set the start point of the lerp and the end point based on slot size and position.
+	MovementStartPoint = NotesBoxSlot->GetPosition().X;
+	MovementEndPoint = MovementStartPoint - NotesBoxSlot->GetSize().X - UIOffset;
 }
 
 void UGlobalHUDSubsystem::MovePartition(float DeltaTime)
 {
 	if (!WBPNoteInstance) return;
 
-	float PreviousFrequencies = DistancePreviousFrequencies / RatioDistance;
-	UiOffsetInTime = UiOffset / RatioDistance;
-	UISpeed = (DistancePreviousFrequencies + UiOffset) / ((PreviousFrequencies + UiOffsetInTime) * MusicWorldSubsystem->Speed);
+	// All our frequencies in the ratio distance.
+	float PreviousFrequenciesInTime = DistancePreviousFrequencies / RatioDistance;
+	// float PreviousFrequenciesInTime = (DistancePreviousFrequencies / RatioDistance);
+
+	// The UiOffset in the ratio distance.
+	float UiOffsetInTime = UIOffset / RatioDistance;
+	// float UiOffsetInTime = (UIOffset / RatioDistance);
+
+	UCanvasPanelSlot* SliderBoxSlot = Cast<UCanvasPanelSlot>(WBPResurrectionInstance->SliderBox->Slot);
+	if (!SliderBoxSlot) return;
+
+	// UiSpeed = d / t
+	UISpeed = ((DistancePreviousFrequencies + UIOffset) + (SliderBoxSlot->GetSize().X / 2)) / ((PreviousFrequenciesInTime + UiOffsetInTime));
+	// UISpeed = (DistancePreviousFrequencies + UIOffset) / (PreviousFrequenciesInTime + UiOffsetInTime);
 	
-	if (NotesBoxSlot->GetPosition().X >= EndPointLerp)
+	if (NotesBoxSlot->GetPosition().X >= MovementEndPoint)
 	{
-		PosXDeux = UISpeed * DeltaTime;
-		NotesBoxSlot->SetPosition(FVector2D(NotesBoxSlot->GetPosition().X - PosXDeux, NotesBoxSlot->GetPosition().Y));
+		float NewNoteBoxPosX = UISpeed * DeltaTime;
+		NotesBoxSlot->SetPosition(FVector2D(NotesBoxSlot->GetPosition().X - NewNoteBoxPosX, NotesBoxSlot->GetPosition().Y));
 	}
 }
 
-// Change Partition when losing
-void UGlobalHUDSubsystem::RewindPartition(int NoteIndex)
+float UGlobalHUDSubsystem::GetUISpeed() const
 {
-	if (NotesInstanciated.IsEmpty()) return;
-
-	USlot* Note = NotesInstanciated[NoteIndex];
-	if (!Note) return;
-
-	UCanvasPanelSlot* NoteSlot = Cast<UCanvasPanelSlot>(Note->Slot);
-	if (!NoteSlot) return;
-
-	float TargetPosX = NoteSlot->GetPosition().X;
-
-	float NewParitionPosX = (StartPointLerp - TargetPosX) - UiOffset;
-	
-	NotesBoxSlot->SetPosition(FVector2D(NewParitionPosX, NotesBoxSlot->GetPosition().Y));
+	return UISpeed;
 }
 
-// Utilities functions
+float UGlobalHUDSubsystem::GetUIOffset() const
+{
+	return UIOffset;
+}
+
+
+// ---- UTILITIES ----
+void UGlobalHUDSubsystem::Init()
+{
+	// Init Global Game Subsystem.
+	GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
+
+	// Init Subsystem Settings.
+	const USubsystemSettings* SubsystemSettings = GetDefault<USubsystemSettings>();
+	if (!SubsystemSettings) return;
+
+	// Init PipouCharacterSettings.
+	const UPipouCharacterSettings* CharacterSettings = GetDefault<UPipouCharacterSettings>();
+	if (!CharacterSettings) return;
+
+	// Load InputData.
+	InputData = CharacterSettings->InputData.LoadSynchronous();
+	if (!InputData) UE_LOG(LogTemp, Fatal, TEXT("UGlobalHUDSubsystem::InputData is NULL"));
+
+	// Initialize from SubsystemSettings Resurrection Widget class, Note Class and PartitionFinishClass.
+	WBPResurrectionClass = SubsystemSettings->WBPResurrectionClass;
+	WBPNoteClass = SubsystemSettings->WBPNoteClass;
+	WBPPartitionFinishClass = SubsystemSettings->WBPPartitionFinishClass;
+
+	// Initialize the association of InputAction to MusicNoteType.
+	MusicNoteFromInputAction =
+	{
+		{ InputData->InputNoteA, EMusicNoteType::A },
+		{ InputData->InputNoteB, EMusicNoteType::B },
+		{ InputData->InputNoteY, EMusicNoteType::Y },
+		{ InputData->InputNoteX, EMusicNoteType::X }
+	};
+}
+
 EMusicNoteType UGlobalHUDSubsystem::GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const
 {
 	return MusicNoteFromInputAction[InputAction];
+}
+
+void UGlobalHUDSubsystem::SetMusicWorldSubsystem(UMusicWorldSubsystem* NewMusicSubsystem)
+{
+	MusicWorldSubsystem = NewMusicSubsystem;
+}
+
+
+// ---- FEEDBACK COLORS NOTES ---- 
+void UGlobalHUDSubsystem::SetImageColor(UImage* CurrentImage, FLinearColor NewColor)
+{
+	Internal_SetImageColor(CurrentImage, NewColor);
+	
+	FTimerHandle Handle;
+	GetWorld()->GetTimerManager().ClearTimer(Handle);
+	GetWorld()->GetTimerManager().SetTimer(Handle,[this, CurrentImage]()
+		{
+			Internal_SetImageColor(CurrentImage, FLinearColor::White);
+		},
+		0.2f,
+		false
+	);
+}
+
+void UGlobalHUDSubsystem::Internal_SetImageColor(UImage* CurrentImage, FLinearColor NewColor)
+{
+	if (!CurrentImage)
+	{
+		UE_LOGFMT(LogTemp, Warning, "Color can't be changed because CurrentObject is nullptr !");
+		return;
+	}
+	
+	if (UImage* Image = Cast<UImage>(CurrentImage))
+	{
+		FSlateBrush ImageBrush = Image->GetBrush();
+		ImageBrush.TintColor = FSlateColor(NewColor);
+		Image->SetBrush(ImageBrush);
+	}
 }
 

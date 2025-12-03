@@ -10,5 +10,6 @@ enum class EPipouCharacterStateID : uint8
 	None = 0,
 	Idle,
 	Walk,
-	Music
+	Music,
+	Dialogue,
 };

@@ -56,20 +56,56 @@ void ASplinePathGenerator::ClearSplines()
 {
     Modify(); //undo
 
+#if WITH_EDITOR
+    BackupSplines.Empty();
+
     for (USplineComponent* Spline : GeneratedSplines)
     {
-        if (Spline)
+        if (!Spline) continue;
+
+        FSavedSplineData Data;
+        Data.bClosedLoop = Spline->IsClosedLoop();
+
+        const int32 NumPoints = Spline->GetNumberOfSplinePoints();
+        for (int32 i = 0; i < NumPoints; ++i)
         {
-            Spline->Modify(); //undo  
-            Spline->DestroyComponent();
+            Data.Points.Add(Spline->GetLocationAtSplinePoint(i, ESplineCoordinateSpace::World));
         }
+
+        BackupSplines.Add(Data);
+
+        Spline->DestroyComponent();
     }
+
     GeneratedSplines.Empty();
+
+#endif
 }
 
 void ASplinePathGenerator::RegenerateSplines()
 {
     Modify();
+
+#if WITH_EDITOR
+    BackupSplines.Empty();
+
+    for (USplineComponent* Spline : GeneratedSplines)
+    {
+        if (!Spline) continue;
+
+        FSavedSplineData Data;
+        Data.bClosedLoop = Spline->IsClosedLoop();
+
+        const int32 NumPoints = Spline->GetNumberOfSplinePoints();
+        for (int32 i = 0; i < NumPoints; ++i)
+        {
+            Data.Points.Add(Spline->GetLocationAtSplinePoint(i, ESplineCoordinateSpace::World));
+        }
+
+        BackupSplines.Add(Data);
+    }
+#endif
+
     ClearSplines();
 
     StartPoints.RemoveAll([](AActor* A) { return A == nullptr; });
@@ -194,6 +230,8 @@ void ASplinePathGenerator::UpdateDebugVisuals()
     {
         if (!Spline) continue;
 
+        FlushPersistentDebugLines(GetWorld());
+
         const int32 NumPoints = Spline->GetNumberOfSplinePoints();
         if (NumPoints < 2)
             continue;
@@ -208,12 +246,49 @@ void ASplinePathGenerator::UpdateDebugVisuals()
                 Start,
                 End,
                 FLinearColor::MakeRandomColor().ToFColor(true),
-                false,
-                10.f,
+                true,
+                -1.f,
                 0,
                 3.0f
             );
         }
     }
 }
+
+void ASplinePathGenerator::RestorePreviousSplines()
+{
+#if WITH_EDITOR
+    if (BackupSplines.Num() == 0)
+    {
+        return;
+    }
+
+    Modify();
+    ClearSplines();
+
+    UWorld* World = GetWorld();
+    if (!World) return;
+
+    for (const FSavedSplineData& Data : BackupSplines)
+    {
+        USplineComponent* NewSpline =
+            NewObject<USplineComponent>(this, USplineComponent::StaticClass(), NAME_None, RF_Transactional);
+
+        NewSpline->SetupAttachment(RootComponent);
+        NewSpline->RegisterComponent();
+        NewSpline->Modify();
+        NewSpline->SetClosedLoop(Data.bClosedLoop);
+
+        NewSpline->ClearSplinePoints(false);
+        for (const FVector& P : Data.Points)
+        {
+            NewSpline->AddSplinePoint(P, ESplineCoordinateSpace::World, false);
+        }
+        NewSpline->UpdateSpline();
+
+        GeneratedSplines.Add(NewSpline);
+    }
+#endif
+}
+
 #endif

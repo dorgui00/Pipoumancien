@@ -1,11 +1,18 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Camera/CameraWorldSubsystem.h"
+
 #include "Camera/CameraComponent.h"
-#include "GameFramework/Character.h"
+#include "Camera/CameraVisibleTarget.h"
+#include "Character/PipouCharacterStateID.h"
+#include "Character/PipouCharacterStateMachine.h"
+#include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
-#include "Logging/StructuredLog.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "PipoumancienTeam2/Public/Camera/CameraFollowTarget.h"
+#include "PNJ/SkeletonController.h"
+#include "Settings/SubsystemSettings.h"
+#include "Enums/CollisionChannel.h"
 
 
 void UCameraWorldSubsystem::PostInitialize()
@@ -19,37 +26,67 @@ void UCameraWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	
 }
 
-void UCameraWorldSubsystem::OnWorldComponentsUpdated(UWorld& World)
-{
-	Super::OnWorldComponentsUpdated(World);
-}
+
 
 void UCameraWorldSubsystem::InitCameraSubsystem()
 {
+	AssignAllCameras();
+	
+	InitMainCamera();
+	
+	InitCameraVisibility();
+
+}
+
+
+
+void UCameraWorldSubsystem::AssignAllCameras()
+{
 	// get/set main camera
-	CameraMain = FindCameraByTag(TEXT("CameraMain"));
+	AActor* CameraActor = FindCameraActorByTag(TEXT("CameraMain"));
+	
+	
+	CameraMain = FindCameraComponentByTag(CameraActor, ("CameraMain"));
 	if(!CameraMain)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Main Camera is null"));
-		return;
+		
 	}
+	
+	// Init Dialogue Camera
+	DialogueCamera = FindCameraComponentByTag(CameraActor, ("DialogueCamera"));
+	if(!DialogueCamera)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Dialogue Camera is null"));
+	}
+	
+	// Init Music Camera
+	MusicCamera = FindCameraComponentByTag(CameraActor, ("MusicCamera"));
+	if(!MusicCamera)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Music Camera is null"));
+	}
+	
+	// Init Global Camera
+	GlobalCamera = FindCameraComponentByTag(CameraActor, ("GlobalCamera"));
+	if(!GlobalCamera)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Global Camera is null"));
+	}
+}
+
+
+void UCameraWorldSubsystem::InitMainCamera()
+{
+	// // set init camera pos (main cam)
+	if (GlobalCamera)
+	CameraMain->SetRelativeLocation(GlobalCamera->GetRelativeLocation());
+	
 	// camera look at rotation
 	InitCameraRotationToPivot();
-	// set init camera pos (main cam)
-	InitMainCameraTransform = CameraMain->GetRelativeTransform();
-	
-	// get/set music camera 
-	// World Camera ? Component Camera in BP_Camera ?
-	
-	//bounds
-	// AActor* CameraBoundsActor = FindCameraBoundsActor();
-	// if (CameraBoundsActor != nullptr)
-	// {
-	// 	InitCameraBounds(CameraBoundsActor);
-	// }
 
-	//zoom
-	//InitCameraZoomParameters();
+	// is global camera
+	CameraState = ECameraState::GlobalCamera;
 }
 
 void UCameraWorldSubsystem::Tick(float DeltaTime)
@@ -59,12 +96,16 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 	
 	if (IsSettingCamera)
 	{
-		SetCamera(DeltaTime, IsWorldTransform);
-		return;
+		LerpCamera(DeltaTime);
 	}
-	
-	TickUpdateCameraPosition(DeltaTime);
+	else if (CameraState == ECameraState::GlobalCamera)
+	{
+		TickUpdateCameraPosition(DeltaTime);
+		
+		TickUpdateCameraVisibility(DeltaTime);
+	}
 }
+
 
 void UCameraWorldSubsystem::AddFollowTarget(UObject* FollowTarget)
 {
@@ -227,6 +268,177 @@ void UCameraWorldSubsystem::TickUpdateCameraZoom(float DeltaTime)
 	CameraMain->SetWorldLocation(pos);
 }
 
+
+void UCameraWorldSubsystem::AddVisibleTarget(UObject* VisibleTarget)
+{
+	VisibleTargets.Add(VisibleTarget);
+	
+	SetVisibleTarget(VisibleTarget);
+}
+
+void UCameraWorldSubsystem::RemoveVisibleTarget(UObject* VisibleTarget)
+{
+	VisibleTargets.Remove(VisibleTarget);
+}
+
+
+void UCameraWorldSubsystem::SetVisibleTarget(UObject* VisibleTarget)
+{
+// 	if (AActor* test = Cast<AActor>(VisibleTarget))
+// 	{
+// 		test->GetComponentsCollisionResponseToChannel(COLLISION_CLOAK)
+// 	}
+}
+
+void UCameraWorldSubsystem::InitCameraVisibility()
+{
+	const USubsystemSettings* SubsystemSettings = GetDefault<USubsystemSettings>();
+	InvisibleMaterial =  SubsystemSettings->InvisibleMaterial.LoadSynchronous() ;
+	
+}
+
+
+void UCameraWorldSubsystem::TickUpdateCameraVisibility(float DeltaTime)
+{
+	// TO EDIT => CLEANING
+	// Viewport center
+	FVector2D ViewportBoundsMin, ViewportBoundsMax;
+	GetViewportBounds(ViewportBoundsMin,ViewportBoundsMax);
+
+	float ViewportCenterX = (ViewportBoundsMin.X + ViewportBoundsMax.X)/2;
+	float ViewportCenterY = (ViewportBoundsMin.Y + ViewportBoundsMax.Y)/2;
+	FVector2D ViewportCenter = FVector2D(ViewportCenterX,ViewportCenterY);
+	//FVector ViewportCenterToWorld = CalculateWorldPositionFromViewportPosition(ViewportCenter);
+
+	APlayerController* PlayerController= UGameplayStatics::GetPlayerController(GetWorld(),0);
+	if (PlayerController==nullptr) return;
+	
+	FVector CameraWorldProjectDir;
+	FVector WorldPosition;
+	UGameplayStatics::DeprojectScreenToWorld(
+		PlayerController,
+		ViewportCenter,
+		WorldPosition,
+		CameraWorldProjectDir
+		);
+	
+	
+	// foreach target multiple line trace
+	FVector Pos;
+
+	// // TO EDIT : DEBUG
+	for (auto Target : VisibleTargets)
+	{
+		//Uniquement si l’objet dans la liste implémente l’interface 
+		if (Target !=nullptr && Target->Implements<UCameraVisibleTarget>())
+		{
+			Pos = ICameraVisibleTarget::Execute_GetVisiblePosition(Target);
+
+			// DEBUG
+			//DrawDebugLine(GetWorld(), WorldPosition, Pos, FColor::Blue, false, 2.f, 0, 2.f);
+		};
+	}
+	
+	CurrentCloakingObjects.Empty();
+	TArray<struct FHitResult> OutHits;
+	
+	// PASS COLL EN OVERLAP EXCEPT TARGET
+	if (GetWorld()->LineTraceMultiByChannel(OutHits,WorldPosition,Pos, COLLISION_CLOAK)) 
+	{
+		for (auto Hit : OutHits)
+		{
+			// Hit visible target 
+			if (Hit.GetActor() && Hit.GetActor()->Implements<UCameraVisibleTarget>()) // BLOCK IS VISIBLE TARGET
+			{
+				// UE_LOG(LogTemp,Display,TEXT("Hit Player %s"),*Hit.GetActor()->GetName());
+				
+				//return ;
+			}
+			// Overlap Something
+			else
+			{
+				SetCloakingObjectBehaviour(Hit);
+			}
+		}
+	};
+
+	// check if previous cloaking objet are no more cloaking
+	CompareCurrentFromPreviousInvisibleObjects();
+	
+}
+
+void UCameraWorldSubsystem::SetCloakingObjectBehaviour(const FHitResult& Hit)
+{
+	// DEBUG 
+	//UE_LOG(LogTemp,Display,TEXT("Hit %s avant la visible target "), *Hit.GetActor()->GetName());
+			
+	if (UMeshComponent* MeshComponent = Cast<UMeshComponent>(Hit.GetActor()->GetComponentByClass(UMeshComponent::StaticClass())))
+	{
+		// Add to currently cloaking object list
+		CurrentCloakingObjects.Add(Hit.GetActor());
+
+		// already invisible
+		if (InvisibleObjects.Contains(Hit.GetActor()))
+		{
+			// do nothing
+		}
+		// Not invisible 
+		else
+		{
+			// update invisible object list
+			InvisibleObjects.Add(Hit.GetActor(), MeshComponent->GetMaterial(0));
+			
+			// Set invisibility
+			MeshComponent->SetMaterial(0,InvisibleMaterial); 
+
+		}
+	}
+	
+}
+
+void UCameraWorldSubsystem::MakeObjectVisibleAgain(TObjectPtr<AActor> InvisibleObject)
+{
+	// DEBUG 
+	// UE_LOG(LogTemp, Display, TEXT("Plus invisible"));
+	
+	// Set origin material
+	UMeshComponent* Mesh = Cast<UMeshComponent>(InvisibleObject->GetComponentByClass(UMeshComponent::StaticClass()));
+	UMaterialInterface* M = InvisibleObjects[InvisibleObject];
+	Mesh->SetMaterial(0,M);
+
+	// Update list
+	InvisibleObjects.Remove(InvisibleObject);
+}
+
+void UCameraWorldSubsystem::CompareCurrentFromPreviousInvisibleObjects()
+{
+
+	TArray<AActor*> ObjectsToRemove;
+	
+	// Compare Current From Previous Invisible Objects
+	for (auto PreviousInvisibleObject : InvisibleObjects)
+	{
+		// Invisible again
+		if (CurrentCloakingObjects.Contains(PreviousInvisibleObject.Key))
+		{
+			
+		}
+		// no more invisible
+		else
+		{
+			// remove from list
+			ObjectsToRemove.Add(PreviousInvisibleObject.Key);
+		}
+	}
+
+	for (auto ObjectToRemove : ObjectsToRemove)
+	{
+		MakeObjectVisibleAgain(ObjectToRemove);
+	}
+
+	ObjectsToRemove.Empty();
+}
+
 void UCameraWorldSubsystem::TickUpdateCameraPosition(float DeltaTime)
 {
 	FVector AveragePosition = CalculateAveragePositionBetweenTargets();
@@ -293,116 +505,248 @@ float UCameraWorldSubsystem::CalculateGreatestDistanceBetweenTargets()
 void UCameraWorldSubsystem::InitCameraZoomParameters()
 {
 	//Find CameraDistanceMin (using tag) and Update CameraZoomYMin according to Y position if found
-	AActor* CameraDistanceMin = FindCameraByTag(TEXT("CameraDistanceMin"))->GetOwner();
+	AActor* CameraDistanceMin = FindCameraActorByTag(TEXT("CameraDistanceMin"))->GetOwner();
 	
 	if (CameraDistanceMin != nullptr)
 		CameraZoomYMin = CameraDistanceMin->GetActorLocation().Y;
 
 	//Find CameraDistanceMax (using tag) and Update CameraZoomYMax according to Y position if found
-	AActor* CameraDistanceMax = FindCameraByTag(TEXT("CameraDistanceMax"))->GetOwner();
+	AActor* CameraDistanceMax = FindCameraActorByTag(TEXT("CameraDistanceMax"))->GetOwner();
 	
 	if (CameraDistanceMax != nullptr)
 		CameraZoomYMax = CameraDistanceMax->GetActorLocation().Y;
 }
 
 
-void UCameraWorldSubsystem::CallCamera(const ECameraType CameraType)
+ECameraState UCameraWorldSubsystem::GetState() const
 {
-	switch (CameraType)
-	{
-		case ECameraType::GlobalCamera :
-				AimedCameraTransform = InitMainCameraTransform ; // relative transform
-				IsWorldTransform = false;
-			
-				break;
-			
-		case ECameraType::Dialogue:
-				// Set pos of Dialogue Cam (middle of the speaker && player)
-				//IsWorldTransform = ? 
-				break;
-			
-		case ECameraType::MusicCamera:
-			{
-				UCameraComponent* MusicCamera = nullptr;
+	return CameraState;
+}
 
-				//Find Music Camera in child components
-				TArray<UActorComponent*> Components =  CameraMain->GetOwner()->GetComponentsByTag(USceneComponent::StaticClass(),FName("MusicCamera"));
-				if (Components.Num() != 0)
-				{
-					MusicCamera = Cast<UCameraComponent>(Components[0]);
-
-					AimedCameraTransform = MusicCamera->GetComponentTransform();
-			
-					IsWorldTransform = true;
-				}
-			
-				break;
-			}
-		default :
-			UE_LOG(LogTemp, Warning, TEXT("SwitchCamera is not a valid"));
-			break;
-	}
-
+void UCameraWorldSubsystem::SetMusicCamera()
+{
+	// Actor Pos / Rot
+	CanLerpActor = false;
+	
+	// Component Pos / Rot
+	CanLerpComponent = true;
+	StartComponentTransform = CameraMain->GetRelativeTransform();
+	EndComponentTransform = MusicCamera->GetRelativeTransform();
+		
+	//Update State
+	PreviousState = CameraState;
+	CameraState = ECameraState::MusicCamera;
+	
 	IsSettingCamera = true;
 }
 
-// GET WORLD TRANSFORM 
-void UCameraWorldSubsystem::SetCamera(float DeltaTime, bool IsWorld)
+void UCameraWorldSubsystem::SetGlobalCamera()
 {
-	if (IsWorld)
-	{
-		FVector NewPos = FMath::Lerp(CameraMain->GetComponentLocation(),AimedCameraTransform.GetLocation(),DeltaTime*1.f);
-		FRotator NewRot = FMath::Lerp(CameraMain->GetComponentRotation(),AimedCameraTransform.Rotator(),DeltaTime*1.f);
-		
-		CameraMain->SetWorldLocationAndRotation(NewPos,NewRot);
-		
-		if (FMath::IsNearlyEqual(CameraMain->GetComponentLocation().Z,AimedCameraTransform.GetLocation().Z))
-		{
-			IsSettingCamera = false;
-			UE_LOG(LogTemp, Display, TEXT("Setting Camera world"));
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Display, TEXT("DS RELATIVE"));
-		
-		FVector NewPos = FMath::Lerp(CameraMain->GetRelativeLocation(),AimedCameraTransform.GetLocation(),DeltaTime*1.f);
-		FRotator NewRot = FMath::Lerp(CameraMain->GetRelativeRotation(),AimedCameraTransform.Rotator(),DeltaTime*1.f);
+	//Camera Actor pos
+	CanLerpActor = true;
+	StartActorTransform = CameraMain->GetOwner()->GetActorTransform();
+	FVector EndLocation = CalculateAveragePositionBetweenTargets();
+	EndActorTransform.SetLocation(EndLocation);
 
-		CameraMain->SetRelativeLocationAndRotation(NewPos,NewRot);
-		//UE_LOG(LogTemp, Display, TEXT( " MainPos : %s , AimedPos : %s"), CameraMain->GetRelativeLocation(), AimedCameraTransform.GetLocation());
-		//UE_LOGFMT(LogCore, Display," MainPos : {mainpos}, AimedPos : {aimedpos}", ("mainpos", CameraMain->GetRelativeLocation()), ("aimedpos", AimedCameraTransform.GetLocation()));
+	// Actor rotation
+	//FRotator EndRotation = FRotator(0,-90,0); // default
+	//EndActorTransform = FTransform(EndRotation,EndLocation, FVector(1,1,1));
+	
+	//Camera Component pos
+	CanLerpComponent = true;
+	StartComponentTransform = CameraMain->GetRelativeTransform();
+	EndComponentTransform = GlobalCamera->GetRelativeTransform();
 
-		FVector gdh = CameraMain->GetRelativeLocation();
-		FVector zhjh = AimedCameraTransform.GetLocation();
+	// Main camera looks at the middle of the bp
+	// target - look at
+	FVector Forward =  - EndComponentTransform.GetLocation(); //CameraMain->GetRelativeLocation() - EndComponentTransform.GetLocation();
+	FRotator Rot = UKismetMathLibrary::MakeRotFromXZ(Forward, FVector::UpVector);
+	EndComponentTransform.SetRotation(Rot.Quaternion());
 
-		float test = gdh.Z - zhjh.Z;
-		
-		if (test <= 0.01 && test >= -0.01)
-		{
-			IsSettingCamera = false;
-			UE_LOG(LogTemp, Display, TEXT("A FINI Camera relative"));
-		}
-		
-	}
+	//Update State
+	PreviousState = CameraState;
+	CameraState = ECameraState::GlobalCamera;
+	
+	IsSettingCamera = true;
+}
 
 
+// camera moves closer, places itself between the two interlocutors but targets the speaker
+void UCameraWorldSubsystem::SetDialogueCamera(APipouCharacter* Interactor, ASkeletonController* Speaker)
+{
+	// Speaker look at interactor
+	// forward = target - look at
+	FVector Forward1 = Interactor->GetActorLocation() - Speaker->GetActorLocation();
+	FRotator Rot1 = UKismetMathLibrary::MakeRotFromXZ(Forward1, FVector::UpVector);
+	FRotator Rot2 = FRotator(Speaker->GetActorRotation().Pitch, Rot1.Yaw, Speaker->GetActorRotation().Roll);	
+	Speaker->SetActorRotation(Rot2.Quaternion());
+	
+	// EndActorPos = BP Camera in the middle
+	CanLerpActor = true;
+	StartActorTransform = CameraMain->GetOwner()->GetActorTransform();
+	FVector EndActorPosition =  (Interactor->GetActorLocation()+Speaker->GetActorLocation())*0.5f; // places itself in the middle
+	EndActorTransform.SetLocation(EndActorPosition);
+
+	// End Actor Rotation
+	//FRotator EndRotation = FRotator(0,-90,0); // default
+	//EndActorTransform = FTransform(EndRotation,EndActorPosition, FVector(1,1,1));
+	
+	// Dialogue Camera Component
+	CanLerpComponent = true;
+    StartComponentTransform = CameraMain->GetRelativeTransform();
+    EndComponentTransform = DialogueCamera->GetRelativeTransform();
+	
+	// par rapport à sa finale position dans le monde
+	
+	// A : position world finale du bp = EndActorPosition
+	// B : relative pos (de dialogue cam) dans bp =
+	FVector DialogueCameraRelativePos = DialogueCamera->GetRelativeLocation();
+	// C : relative pos -> world pos par rapport à A
+	FVector LookAtLocation =  EndActorTransform.TransformPosition(DialogueCameraRelativePos);
+	
+	// on definit la rotation world voulue
+	// forward = target - look at
+	FVector Target = (EndActorPosition + Speaker->GetActorLocation())/2; // (middle + Speaker) / 2
+	FVector Forward = (Target - LookAtLocation).GetSafeNormal();
+	FRotator WorldRotation = Forward.Rotation(); // rot world
+	
+	// on convert rot world en relative au bp
+	FQuat RelativeRot = EndActorTransform.InverseTransformRotation(WorldRotation.Quaternion());
+	// on set relative rot au EndComponentTransform
+	EndComponentTransform.SetRotation(RelativeRot);
+	
+	// STATE
+	PreviousState = CameraState;
+    CameraState = ECameraState::DialogueCamera;
+
+	// Begin lerp in tick
+	IsSettingCamera = true;
 	
 }
 
-UCameraComponent* UCameraWorldSubsystem::FindCameraByTag(const FName& Tag) const
+
+void UCameraWorldSubsystem::LerpCamera(float DeltaTime)
 {
-	//Retourne un composant UCameraComponent en recherchant un actor dans la scène à l’aide de son tag.
+	LerpTimer += DeltaTime * 0.5f;
+
+	//Lerp Camera Actor
+	if (CanLerpActor)
+		LerpCameraActor(DeltaTime); // World
+
+	//Lerp Camera Component
+	if (CanLerpComponent)
+		LerpCameraComponent(DeltaTime); // relative to bp
+
+	// On finished lerp
+	if (LerpTimer>=1)
+	{
+		// DEBUG
+		//UE_LOG(LogTemp, Display, TEXT("Fini de lerp"));
+
+		FinishCameraLerp();
+		
+		ResetLerp();
+	}
+}
+
+void UCameraWorldSubsystem::LerpCameraComponent(float DeltaTime)
+{
+	// Lerp Camera Component
+	FVector NewPos = FMath::Lerp(StartComponentTransform.GetLocation(),EndComponentTransform.GetLocation(),LerpTimer);
+	FRotator NewRot = FMath::Lerp(StartComponentTransform.Rotator(),EndComponentTransform.Rotator(),LerpTimer);
+	CameraMain->SetRelativeLocationAndRotation(NewPos, NewRot);
+	//CameraMain->SetRelativeLocation(NewPos);
+}
+
+void UCameraWorldSubsystem::LerpCameraActor(float DeltaTime)
+{
+	// Lerp Camera Actor
+	FVector NewPos = FMath::Lerp(StartActorTransform.GetLocation(),EndActorTransform.GetLocation(),LerpTimer);
+	//FRotator NewRot = FMath::Lerp(StartActorTransform.Rotator(),EndActorTransform.Rotator(),LerpTimer);
+	//CameraMain->GetOwner()->SetActorLocationAndRotation(NewPos, NewRot);
+	CameraMain->GetOwner()->SetActorLocation(NewPos);
+}
+
+
+void UCameraWorldSubsystem::ResetLerp()
+{
+	IsSettingCamera = false; // stop lerp
+	
+	LerpTimer = 0; // reset timer
+}
+
+void UCameraWorldSubsystem::FinishCameraLerp()
+{
+	switch (CameraState)
+	{
+	case ECameraState::GlobalCamera :
+		FinishGlobalCameraLerp();
+		break;
+			
+	case ECameraState::DialogueCamera:
+		FinishDialogueCameraLerp();
+		break;
+			
+	case ECameraState::MusicCamera:
+		FinishMusicCameraLerp();
+		break;
+		
+	default :
+		UE_LOG(LogTemp, Warning, TEXT("SwitchCamera is not a valid"));
+		break;
+	}
+}
+
+void UCameraWorldSubsystem::FinishDialogueCameraLerp()
+{
+	
+}
+
+void UCameraWorldSubsystem::FinishMusicCameraLerp()
+{
+}
+
+void UCameraWorldSubsystem::FinishGlobalCameraLerp()
+{
+	UGlobalGameSubsystem* GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
+	
+	// Pipou IDLE
+	for (APipouCharacter* PipouCharacter : GlobalGameSubsystem->PipouCharacters)
+	{
+		PipouCharacter->StateMachine->ChangeState(EPipouCharacterStateID::Idle);
+	}
+}
+
+
+AActor* UCameraWorldSubsystem::FindCameraActorByTag(const FName& Tag) const
+{
+	//Return actor by tag
 
 	TArray<AActor*> Cameras;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), Tag,Cameras);
 	
-	UCameraComponent* CameraComponent = nullptr;
+	AActor* CameraActor = nullptr;
+
+	// Get Cam Actor 
 	if (Cameras.Num() > 0)
 	{
-		CameraComponent = Cameras[0]->FindComponentByClass<UCameraComponent>();
+		CameraActor =  Cameras[0];
 	}
+
+	return CameraActor;
+}
+
+UCameraComponent* UCameraWorldSubsystem::FindCameraComponentByTag(const AActor* Parent, const FName& Tag) const
+{
+	UCameraComponent* CameraComponent = nullptr;
 	
+	//Find Camera in child components
+	TArray<UActorComponent*> Components =  Parent->GetComponentsByTag(UCameraComponent::StaticClass(),Tag);
+	if (Components.Num() != 0)
+	{
+		CameraComponent = Cast<UCameraComponent>(Components[0]);
+	}
+		
 	return CameraComponent;
 }
 
@@ -462,7 +806,7 @@ void UCameraWorldSubsystem::ClampPositionIntoCameraBounds(FVector& Position)
 	Position = ClampVector(Position, WorldBoundsMin,WorldBoundsMax );
 }
 
-void UCameraWorldSubsystem::GetViewportBounds(FVector2D& OutViewportBoundsMin, FVector2D& OutViewportBoundsMax)
+void UCameraWorldSubsystem::GetViewportBounds(FVector2D& OutViewportBoundsMin, FVector2D& OutViewportBoundsMax) const
 {
 	// Find Viewport
 	UGameViewportClient* ViewportClient = GetWorld()->GetGameViewport();

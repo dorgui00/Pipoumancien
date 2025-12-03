@@ -8,6 +8,8 @@
 #include "Engine/DeveloperSettings.h"
 #include "PipouCharacterSettings.generated.h"
 
+class UInputSoundData;
+
 UCLASS(Config=Game, DefaultConfig, meta = (DisplayName = "Pipou Character Settings"))
 class PIPOUMANCIENTEAM2_API UPipouCharacterSettings : public UDeveloperSettings
 {
@@ -20,4 +22,9 @@ public:
 	
 	UPROPERTY(Config, EditAnywhere, Category="Inputs")
 	TSoftObjectPtr<UInputMappingContext> InputMappingContext;
+
+	// Sounds
+	UPROPERTY(Config, EditAnywhere, Category="Sounds")
+	TSoftObjectPtr<UInputSoundData> InputSoundData;
+
 };

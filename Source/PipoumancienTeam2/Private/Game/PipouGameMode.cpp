@@ -11,6 +11,7 @@
 #include "Editor/PipouCharacterSettings.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
+#include "Camera/CameraComponent.h"
 
 class AGameManager;
 
@@ -19,16 +20,19 @@ void APipouGameMode::BeginPlay()
 	Super::BeginPlay();
 
 	CreateAndInitPlayers();
-	TArray<APlayerStart*> PlayerStartsPoint;
 	FindPlayerStartActorsInScene(PlayerStartsPoint);
-	GetCameraByTag("CameraMain");
-	SpawnCharacters(PlayerStartsPoint);
 
+	// Init the camera main in the CameraWorldSubsystem.
 	if (UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
-	{
 		CameraWorldSubsystem->InitCameraSubsystem();
-	}
+
+	// Init the camera main variable in this script with the one in the CameraWorldSubsystem.
+	GetCamera();
+	
+	SpawnCharacters(PlayerStartsPoint);
+	
 }
+
 
 UPipouCharacterInputData* APipouGameMode::LoadInputDataFromConfig()
 {
@@ -43,6 +47,14 @@ UInputMappingContext* APipouGameMode::LoadInputMappingContextFromConfig()
 	if (CharacterSettings == nullptr) return nullptr;
 	return CharacterSettings->InputMappingContext.LoadSynchronous();
 }
+
+UInputSoundData* APipouGameMode::LoadInputSoundDataFromConfig()
+{
+	const UPipouCharacterSettings* CharacterSettings = GetDefault<UPipouCharacterSettings>();
+	if (CharacterSettings == nullptr) return nullptr;
+	return CharacterSettings->InputSoundData.LoadSynchronous();
+}
+
 
 void APipouGameMode::FindPlayerStartActorsInScene(TArray<APlayerStart*>& ResultActors)
 {
@@ -60,8 +72,9 @@ void APipouGameMode::FindPlayerStartActorsInScene(TArray<APlayerStart*>& ResultA
 
 void APipouGameMode::SpawnCharacters(const TArray<APlayerStart*>& SpawnPoints)
 {
-	UPipouCharacterInputData* InputData = LoadInputDataFromConfig();
+	TObjectPtr<UPipouCharacterInputData> InputData = LoadInputDataFromConfig();
 	// UInputMappingContext* InputMappingContext = LoadInputMappingContextFromConfig();
+	TObjectPtr<UInputSoundData> InputSoundData = LoadInputSoundDataFromConfig();
 	
 	for (APlayerStart* SpawnPoint : SpawnPoints)
 	{
@@ -72,10 +85,17 @@ void APipouGameMode::SpawnCharacters(const TArray<APlayerStart*>& SpawnPoints)
 		APipouCharacter* NewCharacter = GetWorld()->SpawnActorDeferred<APipouCharacter>(PipouCharacterClass, SpawnPoint->GetTransform());
 		if (NewCharacter == nullptr) continue;
 		
-		NewCharacter->CameraActor = CameraActor;
-		NewCharacter->InputData =  InputData;
+		NewCharacter->CameraMain = CameraMain;
+		
+		// INPUTS
+		NewCharacter->InputData =  InputData; 
+
+		// SOUNDS
+		NewCharacter->InputSoundData = InputSoundData;  
+		NewCharacter->InitWorldSoundData();
+		
 		// NewCharacter->InputMappingContext = InputMappingContext;
-		NewCharacter->SetOrientXY(FVector2D(CameraActor->GetActorForwardVector().X, CameraActor->GetActorForwardVector().Y));
+		NewCharacter->SetOrientXY(FVector2D(CameraMain->GetForwardVector().X, CameraMain->GetForwardVector().Y));
 		NewCharacter->AutoPossessPlayer = InputType;
 		
 		NewCharacter->FinishSpawning(SpawnPoint->GetTransform());
@@ -99,11 +119,11 @@ TSubclassOf<APipouCharacter> APipouGameMode::GetPipouCharacterFromInputType(EAut
 	}
 }
 
-void APipouGameMode::GetCameraByTag(const FName& CameraTag)
+void APipouGameMode::GetCamera()
 {
-	TArray<AActor*> FoundActors;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), CameraTag, FoundActors);
-	CameraActor = FoundActors[0];
+	TObjectPtr<UCameraWorldSubsystem> CameraSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
+	if (!CameraSubsystem) return;
+	CameraMain = CameraSubsystem->CameraMain;
 }
 
 void APipouGameMode::CreateAndInitPlayers()
