@@ -8,6 +8,7 @@
 #include "Components/TextBlock.h"
 #include "GlobalHUDSubsystem.generated.h"
 
+class UHUDData;
 class UPartitionFinish;
 struct F_Note;
 class USlider;
@@ -74,12 +75,18 @@ public:
 
 	// Move the partition at the same time of the main music mechanic in MusicWorldSubsystem.
 	void MovePartition(float DeltaTime);
-
+	
 	
 	// ---- UTILITIES ----
 	// Use to store the Input Data
 	UPROPERTY()
 	TObjectPtr<UPipouCharacterInputData> InputData;
+
+	UPROPERTY()
+	TObjectPtr<UHUDData> HUDData;
+
+	UPROPERTY()
+	TMap<UInputAction*, UImage*> ImageFromNoteInput;
 
 	void SetMusicWorldSubsystem(UMusicWorldSubsystem* NewMusicSubsystem);
 
@@ -94,6 +101,11 @@ public:
 	TMap<UObject*, FTimerHandle> ColorResetTimers;
 
 	void SetImageColor(UImage* CurrentImage, FLinearColor NewColor);
+
+	// UI WORLD
+	void DisplayNotesForSkeletonInteraction(UInputAction* InputAction);
+
+	void SpawnSkeletonInteractionWidget();
 	
 protected:
 	// ---- GAME INSTANCE SUBSYSTEM ----

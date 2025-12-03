@@ -9,8 +9,10 @@
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Slider.h"
+#include "Components/WidgetComponent.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
+#include "Data/HUDData.h"
 #include "Editor/PipouCharacterSettings.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Logging/StructuredLog.h"
@@ -19,7 +21,7 @@
 #include "Settings/SubsystemSettings.h"
 #include "UI/UMusicNote.h"
 #include "UI/PartitionFinish.h"
-
+#include "UI/SkeletonInteractionWidget.h"
 
 
 // ---- GAME INSTANCE SUBSYSTEM ---- 
@@ -43,6 +45,22 @@ void UGlobalHUDSubsystem::Tick(float DeltaTime)
 	}
 }
 
+// ---- WORLD UI ---
+void UGlobalHUDSubsystem::SpawnSkeletonInteractionWidget()
+{
+	USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+	
+	UWidgetComponent* WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
+	WidgetComponent->SetupAttachment(Root); // middle of player
+
+	WidgetComponent->SetWidgetClass(USkeletonInteractionWidget::StaticClass());
+	
+	// if (USkeletonInteractionWidget* SkeletonInteractionWidget = Cast<USkeletonInteractionWidget>(WidgetComponent->GetUserWidgetObject()))
+	// {
+	// 	
+	// }
+	
+}
 
 // ---- MUSIC UI ----
 void UGlobalHUDSubsystem::DisplayResurrectionWidget()
@@ -262,6 +280,17 @@ void UGlobalHUDSubsystem::Init()
 		{ InputData->InputNoteY, EMusicNoteType::Y },
 		{ InputData->InputNoteX, EMusicNoteType::X }
 	};
+
+	// Init HUD Data
+	HUDData = SubsystemSettings->HUDData.LoadSynchronous();
+
+	// init image from input
+	ImageFromNoteInput = {
+		{InputData->InputNoteY, HUDData->NoteUp },
+		{InputData->InputNoteB, HUDData->NoteRight },
+		{InputData->InputNoteA, HUDData->NoteDown },
+		{InputData->InputNoteX, HUDData->NoteLeft },
+	};
 }
 
 EMusicNoteType UGlobalHUDSubsystem::GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const
@@ -289,6 +318,10 @@ void UGlobalHUDSubsystem::SetImageColor(UImage* CurrentImage, FLinearColor NewCo
 		0.2f,
 		false
 	);
+}
+
+void UGlobalHUDSubsystem::DisplayNotesForSkeletonInteraction(UInputAction* InputAction)
+{
 }
 
 void UGlobalHUDSubsystem::Internal_SetImageColor(UImage* CurrentImage, FLinearColor NewColor)

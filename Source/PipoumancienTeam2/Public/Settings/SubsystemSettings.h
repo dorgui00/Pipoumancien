@@ -7,6 +7,7 @@
 #include "UI/UResurrectionWidget.h"
 #include "SubsystemSettings.generated.h"
 
+class USkeletonInteractionWidget;
 class UMusicGenericData;
 class UPartitionFinish;
 class UMusicNote;
@@ -27,6 +28,11 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
 	TSubclassOf<UPartitionFinish> WBPPartitionFinishClass;
 
+	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
+	TSubclassOf<USkeletonInteractionWidget> WBPSkeletonInteractionClass;
+
+	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
+	TSoftObjectPtr<UHUDData> HUDData; // data asset
 	
 	// ---- MUSIC DATA ----
 	UPROPERTY(Config, EditAnywhere, Category="MusicSubsystem")
