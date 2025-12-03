@@ -2,9 +2,11 @@
 
 #pragma once
 
+#include "Animation/AnimationAsset.h"
 #include "CoreMinimal.h"
 #include "PNJ/AC_SkeletonFollower.h"
 #include "Components/ActorComponent.h"
+#include "Engine/EngineTypes.h"
 #include "AC_SetAnimations.generated.h"
 
 class USkeletalMeshComponent;
@@ -18,6 +20,9 @@ class PIPOUMANCIENTEAM2_API UAC_SetAnimations : public UActorComponent
 public:
 	UAC_SetAnimations();
 
+	void SetAnimations(UAnimationAsset* IdleAnim, UAnimationAsset* WalkAnim, UAnimationAsset* WaitAnim);
+	void SetReference(FComponentReference TargetedMesh);
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -29,13 +34,13 @@ public:
 	FComponentReference TargetMeshRef;
 
 	UPROPERTY(EditAnywhere, Category = "Animations")
-	UAnimSequence* IdleAnim;
+	TObjectPtr<UAnimationAsset> IdleAnimation;
 
 	UPROPERTY(EditAnywhere, Category = "Animations")
-	UAnimSequence* WalkAnim;
+	TObjectPtr<UAnimationAsset> WalkAnimation;
 
 	UPROPERTY(EditAnywhere, Category = "Animations")
-	UAnimSequence* WaitAnim;
+	TObjectPtr<UAnimationAsset> WaitAnimation;
 
 	UPROPERTY(EditAnywhere, Category = "Animations")
 	float WalkSpeedThreshold = 5.f;

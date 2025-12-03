@@ -4,6 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimSequence.h"
+#include "Animation/AnimationAsset.h"
 #include "PNJ/AC_SkeletonFollower.h"
 
 UAC_SetAnimations::UAC_SetAnimations()
@@ -26,14 +27,14 @@ void UAC_SetAnimations::BeginPlay()
     }
 
     SkeletonFollower = Owner->FindComponentByClass<UAC_SkeletonFollower>();
-
     LastLocation = Owner->GetActorLocation();
     bHasLastLocation = true;
 
-    if (IdleAnim)
+    if (IdleAnimation)
     {
-        TargetMesh->PlayAnimation(IdleAnim, true);
+        TargetMesh->PlayAnimation(IdleAnimation, true);
     }
+
 }
 
 
@@ -65,21 +66,21 @@ void UAC_SetAnimations::TickComponent(float DeltaTime, ELevelTick TickType, FAct
     {
         if (bIsFollowing && bIsMoving) //moving & following
         {
-            if (WalkAnim)
+            if (WalkAnimation)
             {
                 PlayWalk();
             }
         }
         else if (bIsFollowing && !bIsMoving) //not moving & following
         {
-            if (WaitAnim)
+            if (WaitAnimation)
             {
                 PlayWait();
             }
         }
         else if (!bIsFollowing && !bIsMoving) //not moving & not following
         {
-            if (IdleAnim)
+            if (IdleAnimation)
             {
                 PlayIdle();
             }
@@ -93,27 +94,42 @@ void UAC_SetAnimations::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 
 #pragma region Animation Calls
 
+void UAC_SetAnimations::SetReference(FComponentReference TargetedMesh)
+{
+    TargetMeshRef = TargetedMesh;
+}
+
+void UAC_SetAnimations::SetAnimations(
+    UAnimationAsset* IdleAnim,
+    UAnimationAsset* WalkAnim,
+    UAnimationAsset* WaitAnim)
+{
+    IdleAnimation = IdleAnim;
+    WalkAnimation = WalkAnim;
+    WaitAnimation = WaitAnim;
+}
+
 void UAC_SetAnimations::PlayIdle()
 {
-	if (TargetMesh && IdleAnim)
+	if (TargetMesh && IdleAnimation)
 	{
-		TargetMesh->PlayAnimation(IdleAnim, true);
+		TargetMesh->PlayAnimation(IdleAnimation, true);
 	}
 }
 
 void UAC_SetAnimations::PlayWalk()
 {
-	if (TargetMesh && WalkAnim)
+	if (TargetMesh && WalkAnimation)
 	{
-		TargetMesh->PlayAnimation(WalkAnim, true);
+		TargetMesh->PlayAnimation(WalkAnimation, true);
 	}
 }
 
 void UAC_SetAnimations::PlayWait()
 {
-	if (TargetMesh && WaitAnim)
+	if (TargetMesh && WaitAnimation)
 	{
-		TargetMesh->PlayAnimation(WaitAnim, true);
+		TargetMesh->PlayAnimation(WaitAnimation, true);
 	}
 }
 
