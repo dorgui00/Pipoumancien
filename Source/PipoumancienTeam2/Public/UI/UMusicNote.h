@@ -38,11 +38,6 @@ public:
 	UPROPERTY()
 	UCanvasPanelSlot* EndPoint;
 
-	// float NoteAlpha = 0;
-
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* LetterText;
-
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Textures")
 	UTexture2D* Texture;

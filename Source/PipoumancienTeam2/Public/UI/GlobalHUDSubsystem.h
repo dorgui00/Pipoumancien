@@ -130,7 +130,7 @@ private:
 	UMusicWorldSubsystem* MusicWorldSubsystem;
 
 	// Unit of Distance.
-	float RatioDistance = 300.f;
+	float RatioDistance = 150.f;
 	
 	// Map to associate an InputAction (Key of Controller) to a MusicNoteType (The notes in ENUM).
 	UPROPERTY()

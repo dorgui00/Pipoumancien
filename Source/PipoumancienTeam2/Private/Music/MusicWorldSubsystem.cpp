@@ -44,9 +44,6 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	TObjectPtr<UMusicGenericData> MusicGenericData = SubsystemSettings->MusicGenericData.LoadSynchronous();
 	if (!MusicGenericData) return;
 
-	// Initialize Global Music Speed.
-	MusicGlobalSpeed = MusicGenericData->MusicGlobalSpeed;
-
 	// Initialize TimeTolerance.
 	TimeTolerance = MusicGenericData->TimeTolerance;
 

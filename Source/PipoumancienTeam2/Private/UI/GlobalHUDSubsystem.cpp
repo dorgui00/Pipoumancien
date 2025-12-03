@@ -11,6 +11,7 @@
 #include "Components/Slider.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
+#include "Data/MusicGenericData.h"
 #include "Editor/PipouCharacterSettings.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Logging/StructuredLog.h"
@@ -158,7 +159,7 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(const ASkeletonController* Current
 		if (!SpawnPointSlot) return;
 		
 		// Calculate Note Pos Y with SpawnPointSlot.
-		float PosY = SpawnPointSlot->GetPosition().Y;
+		float PosY = SpawnPointSlot->GetPosition().Y + 10.f;
 		
 		// Calculate Note Pos X.
 		float PosX = (Note.Frequency * RatioDistance) + DistancePreviousFrequencies;
@@ -241,6 +242,9 @@ void UGlobalHUDSubsystem::Init()
 	const USubsystemSettings* SubsystemSettings = GetDefault<USubsystemSettings>();
 	if (!SubsystemSettings) return;
 
+	UMusicGenericData* MusicGenericData = SubsystemSettings->MusicGenericData.LoadSynchronous();
+	if (!MusicGenericData) return;
+
 	// Init PipouCharacterSettings.
 	const UPipouCharacterSettings* CharacterSettings = GetDefault<UPipouCharacterSettings>();
 	if (!CharacterSettings) return;
@@ -262,6 +266,8 @@ void UGlobalHUDSubsystem::Init()
 		{ InputData->InputNoteY, EMusicNoteType::Y },
 		{ InputData->InputNoteX, EMusicNoteType::X }
 	};
+
+	RatioDistance = MusicGenericData->RatioDistance;
 }
 
 EMusicNoteType UGlobalHUDSubsystem::GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const

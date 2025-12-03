@@ -14,9 +14,6 @@ class PIPOUMANCIENTEAM2_API UMusicGenericData : public UDataAsset
 public:
 	// ---- MUSIC DATA ----
 	UPROPERTY(EditAnywhere)
-	float MusicGlobalSpeed = 1.f;
-
-	UPROPERTY(EditAnywhere)
 	int MaxFailNotePossible = 5;
 
 	UPROPERTY(EditAnywhere)
@@ -24,6 +21,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float PitchTolerance = 0.2f;
+
+	UPROPERTY(EditAnywhere)
+	float RatioDistance = 150.f; 
 
 	
 	// ---- SOUNDS ----
