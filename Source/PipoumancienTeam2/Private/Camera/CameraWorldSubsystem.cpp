@@ -314,6 +314,11 @@ void UCameraWorldSubsystem::Dezoom(float Value)
 	IsSettingCamera = true;
 }
 
+bool UCameraWorldSubsystem::GetIsZoomed()
+{
+	return IsZoomed;
+}
+
 
 void UCameraWorldSubsystem::AddVisibleTarget(UObject* VisibleTarget)
 {

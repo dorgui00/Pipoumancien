@@ -22,22 +22,7 @@ enum class ECameraState : uint8{
 	DialogueCamera = 3,
 };
 
-
-// USTRUCT()
-// struct FInvisibleObject
-// {
-// 	GENERATED_USTRUCT_BODY()
-//
-// 	FInvisibleObject();
-//
-// 	UPROPERTY()
-// 	AActor* Actor;
-//
-// 	FString MaterialPath;
-// 	//UMaterialInterface Material;
-// };
-
-UCLASS()
+UCLASS(Blueprintable)
 class PIPOUMANCIENTEAM2_API UCameraWorldSubsystem : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
@@ -148,10 +133,18 @@ private  :
 
 	// zoom / dezoom
 public :
-	bool IsZoomed = false;
-	
+
+	UFUNCTION(BlueprintCallable) 
 	void Zoom(float Value);
+	
+	UFUNCTION(BlueprintCallable) 
 	void Dezoom(float Value);
+
+	UFUNCTION(BlueprintCallable) 
+	bool GetIsZoomed();
+	
+private :
+	bool IsZoomed = false;
 	
 #pragma endregion
 
