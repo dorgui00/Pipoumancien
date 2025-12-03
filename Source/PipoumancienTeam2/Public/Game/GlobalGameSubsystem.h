@@ -52,7 +52,7 @@ public :
 	bool HasValidFirstNotes();
 	void ResetInputsArray();
 
-	void CheckIfPlayersOverlapSameSkeleton();
+	bool PlayersOverlapSameSkeleton();
 
 	// State
 	EWorldState GetWorldState() const;
