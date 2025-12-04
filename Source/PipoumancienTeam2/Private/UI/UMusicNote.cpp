@@ -2,15 +2,20 @@
 
 
 #include "UI/UMusicNote.h"
+#include "Kismet/GameplayStatics.h"
+#include "Logging/StructuredLog.h"
+#include "UI/GlobalHUDSubsystem.h"
 
-#include "Components/TextBlock.h"
-
-void UMusicNote::SetSlotNote(EMusicNoteType NewNoteType)
+void UMusicNote::SetNoteTexture(UTexture2D* NewTexture)
 {
-	SlotNote = NewNoteType;
-}
+	UGlobalHUDSubsystem* HUDSub = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
+	if (!HUDSub || !NoteImage)
+	{
+		UE_LOGFMT(LogTemp, Error, "HUDSubsystem or NoteImage is null !");
+		return;
+	}
 
-FText UMusicNote::GetNameFromMusicNoteType(EMusicNoteType NoteType)
-{
-	return SlotTextures[NoteType];
+	FSlateBrush NoteImageBrush= NoteImage->GetBrush();
+	NoteImageBrush.SetResourceObject(NewTexture);
+	NoteImage->SetBrush(NoteImageBrush);
 }

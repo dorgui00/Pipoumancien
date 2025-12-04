@@ -2,7 +2,6 @@
 
 
 #include "UI/GlobalHUDSubsystem.h"
-
 #include "UResurrectionWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Character/PipouCharacterInputData.h"
@@ -17,7 +16,6 @@
 #include "Editor/PipouCharacterSettings.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Logging/StructuredLog.h"
-#include "Music/MusicWorldSubsystem.h"
 #include "PNJ/SkeletonController.h"
 #include "Settings/SubsystemSettings.h"
 #include "UI/UMusicNote.h"
@@ -195,7 +193,7 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(const ASkeletonController* Current
 		NoteSlotInstance->SetPosition(NotePos);
 
 		// Set Music Note Type depending on the input action of the note.
-		WBPNoteInstance->SetSlotNote(GetMusicNoteTypeFromInputAction(Note.InputAction));
+		WBPNoteInstance->SetNoteTexture(GetImageTextureFromNoteInput(Note.InputAction));
 
 		// Add the note instantiated to an array to use in the music mechanic.
 		NotesInstanciated.Add(WBPNoteInstance);
@@ -284,30 +282,22 @@ void UGlobalHUDSubsystem::Init()
 	WBPNoteClass = SubsystemSettings->WBPNoteClass;
 	WBPPartitionFinishClass = SubsystemSettings->WBPPartitionFinishClass;
 
-	// Initialize the association of InputAction to MusicNoteType.
-	MusicNoteFromInputAction =
-	{
-		{ InputData->InputNoteA, EMusicNoteType::A },
-		{ InputData->InputNoteB, EMusicNoteType::B },
-		{ InputData->InputNoteY, EMusicNoteType::Y },
-		{ InputData->InputNoteX, EMusicNoteType::X }
-	};
-
 	// Init HUD Data
 	HUDData = SubsystemSettings->HUDData.LoadSynchronous();
 
 	// init image from input
-	ImageFromNoteInput = {
-		{InputData->InputNoteY, HUDData->NoteUp },
-		{InputData->InputNoteB, HUDData->NoteRight },
-		{InputData->InputNoteA, HUDData->NoteDown },
-		{InputData->InputNoteX, HUDData->NoteLeft },
+	TextureFromNoteInput =
+	{
+		{ InputData->InputNoteY, HUDData->NoteUp },
+		{ InputData->InputNoteB, HUDData->NoteRight },
+		{ InputData->InputNoteA, HUDData->NoteDown },
+		{ InputData->InputNoteX, HUDData->NoteLeft },
 	};
 }
 
-EMusicNoteType UGlobalHUDSubsystem::GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const
+UTexture2D* UGlobalHUDSubsystem::GetImageTextureFromNoteInput(const UInputAction* NoteInput) const
 {
-	return MusicNoteFromInputAction[InputAction];
+	return TextureFromNoteInput[NoteInput];
 }
 
 void UGlobalHUDSubsystem::SetMusicWorldSubsystem(UMusicWorldSubsystem* NewMusicSubsystem)
