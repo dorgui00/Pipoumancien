@@ -8,6 +8,7 @@
 #include "Components/TextBlock.h"
 #include "GlobalHUDSubsystem.generated.h"
 
+class APipouCharacter;
 class UHUDData;
 class UPartitionFinish;
 struct F_Note;
@@ -89,6 +90,7 @@ public:
 
 	void SetMusicWorldSubsystem(UMusicWorldSubsystem* NewMusicSubsystem);
 
+
 	// ---- FEEDBACK COLORS NOTES ----
 	float TimerBeforeResetingColor = 0;
 
@@ -118,7 +120,6 @@ protected:
 	virtual TStatId GetStatId() const override { return TStatId(); };
 	
 private:
-
 	// ---- MUSIC UI ----
 	float UISpeed = 0;
 	
