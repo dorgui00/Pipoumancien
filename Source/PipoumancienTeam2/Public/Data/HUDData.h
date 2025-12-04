@@ -17,14 +17,14 @@ class PIPOUMANCIENTEAM2_API UHUDData : public UDataAsset
 
 public :
 	UPROPERTY(EditAnywhere, Category="Note Images")
-	UImage* NoteUp;
+	UTexture2D* NoteUp;
 
 	UPROPERTY(EditAnywhere, Category="Note Images")
-	UImage* NoteRight;
+	UTexture2D* NoteRight;
 
 	UPROPERTY(EditAnywhere, Category="Note Images")
-	UImage* NoteDown;
+	UTexture2D* NoteDown;
 
 	UPROPERTY(EditAnywhere, Category="Note Images")
-	UImage* NoteLeft;
+	UTexture2D* NoteLeft;
 };

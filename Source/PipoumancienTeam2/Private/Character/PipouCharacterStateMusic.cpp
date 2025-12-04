@@ -9,7 +9,6 @@
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Music/MusicWorldSubsystem.h"
-#include "Settings/SubsystemSettings.h"
 #include "Sound/SoundCue.h"
 #include "UI/GlobalHUDSubsystem.h"
 #include "UI/UResurrectionWidget.h"
@@ -26,7 +25,6 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 	InitRole();
 	InitSkeletons();
 	InitInputPitch();
-	InitSliderPitchSpeed();
 	SetMusicManager();
 
 	Character->InputPressedNoteEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
@@ -79,15 +77,6 @@ void UPipouCharacterStateMusic::InitSkeletons()
 void UPipouCharacterStateMusic::InitInputPitch()
 {
 	InputPitch = Character->InputData->InputPitch;
-}
-
-void UPipouCharacterStateMusic::InitSliderPitchSpeed()
-{
-	const USubsystemSettings* SubsystemSettings = GetDefault<USubsystemSettings>();
-	if (!SubsystemSettings) return;
-	//
-	// MaxPitchSpeed = SubsystemSettings->MaxSpeedPitch;
-	// AccelerationPitchSpeed = SubsystemSettings->AccelerationPitchSpeed;
 }
 
 void UPipouCharacterStateMusic::SetMusicManager()
