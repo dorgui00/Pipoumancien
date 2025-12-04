@@ -114,28 +114,17 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 				FHitResult Hit;
 				FCollisionQueryParams Params;
 				Params.AddIgnoredActor(Character);
+				Params.bReturnPhysicalMaterial = true;
 
 				FVector Start = Character->GetActorLocation();
 				FVector End = Start - FVector(0, 0, 200.f);
 
 				if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_WorldStatic, Params))
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Hit actor: %s"), *Hit.GetActor()->GetName());
 
 					if (UPhysicalMaterial* PhysMat = Hit.PhysMaterial.Get())
 					{
-						UE_LOG(LogTemp, Warning, TEXT("found a match, playing sound"));
-
 						PlayFootstepsSound(PhysMat);
-					}
-
-					if (Hit.PhysMaterial.IsValid())
-					{
-						UE_LOG(LogTemp, Warning, TEXT("PhysMat: %s"), *Hit.PhysMaterial.Get()->GetName());
-					}
-					else
-					{
-						UE_LOG(LogTemp, Error, TEXT("PHYSICAL MATERIAL IS NULL HERE!"));
 					}
 				}
 			}
