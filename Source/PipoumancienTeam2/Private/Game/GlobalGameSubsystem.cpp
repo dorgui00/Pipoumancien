@@ -6,11 +6,15 @@
 #include "Camera/CameraWorldSubsystem.h"
 #include "Character/PipouCharacterStateMachine.h"
 #include "Character/PipouCharacterStateID.h"
+#include "Components/ScaleBox.h"
+#include "Components/WidgetComponent.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
+#include "Kismet/GameplayStatics.h"
 #include "Music/MusicWorldSubsystem.h"
 #include "PNJ/SkeletonController.h"
 #include "UI/GlobalHUDSubsystem.h"
+#include "UI/SkeletonInteractionWidget.h"
 
 // void UGlobalGameSubsystem::Tick(float DeltaTime)
 // {
@@ -20,6 +24,11 @@
 void UGlobalGameSubsystem::SetCharacters(APipouCharacter* Character)
 {
 	PipouCharacters.Add(Character);
+}
+
+TObjectPtr<UWidgetComponent> UGlobalGameSubsystem::GetSkeletonInteractionWidget() const
+{
+	return SkeletonInteractionWidget;
 }
 
 ASkeletonController* UGlobalGameSubsystem::GetCurrentSkeleton() const
@@ -35,10 +44,35 @@ void UGlobalGameSubsystem::SetCurrentSkeleton(ASkeletonController* Skeleton)
 	//GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>()->SpawnSkeletonInteractionWidget(PipouCharacters);
 }
 
+void UGlobalGameSubsystem::FindSkeletonInteractionWidget() 
+{
+	TArray<AActor*> SkeletonInteractionWidgetIn;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), "SkeletonInteractionWidget",SkeletonInteractionWidgetIn);
+
+	// Get Cam Actor 
+	if (SkeletonInteractionWidgetIn.Num() > 0)
+	{
+		AActor* SkeletonInteractionWidgetActor = SkeletonInteractionWidgetIn[0];
+		SkeletonInteractionWidget = SkeletonInteractionWidgetActor->FindComponentByClass<UWidgetComponent>();
+	}
+}
+
 // Music
 void UGlobalGameSubsystem::AddNoteForSkeletonInteraction(UInputAction* InputAction)
 {
 	InputPressed.Add(InputAction);
+	
+	UScaleBox* ScaleBox;
+	if (USkeletonInteractionWidget* Widget = Cast<USkeletonInteractionWidget>(SkeletonInteractionWidget->GetWidget()))
+	{
+		ScaleBox = Widget->ScaleBox01;
+	
+		UGlobalHUDSubsystem* GlobalHud = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
+			
+		UTexture2D* Text = GlobalHud->GetImageTextureFromNoteInput(InputAction);
+		Widget->Image01->SetBrushFromTexture(Text);
+	}
+	
 
 	if (InputPressed.Num() >= SkeletonNotesToCheck)
 	{

@@ -137,7 +137,7 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 			// Set invisibility for the notes.
 			MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor(0.f, 0.f, 0.f,0.f));
 		}
-		else if (!MusicWorldSubsystem->GetIsAwatingReply() && !MusicWorldSubsystem->IsInCountDown && !HasPressedNotes)
+		else if (MusicWorldSubsystem->IsBeforeWindowNote() && !MusicWorldSubsystem->IsInCountDown && !HasPressedNotes)
 		{
 			HasPressedNotes = true;
 			
