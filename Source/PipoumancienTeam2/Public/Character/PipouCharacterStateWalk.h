@@ -72,7 +72,7 @@ private:
 
 	//AUDIO
 	float FootstepTimer = 0.f;
-	float FootstepInterval = 1.f; // default step rate
+	float FootstepInterval = .5f; // default step rate
 	
 	// --- MUSIC ---
 	virtual void OnCharacterPressedNote(UInputAction* InputAction) override;
