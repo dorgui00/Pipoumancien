@@ -83,7 +83,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 
 		GlobalHUDSubsystem->MovePartition(DeltaTime);
 
-		UE_LOGFMT(LogTemp, Log, "{0}", CurrentFailNotePossible);
+		// UE_LOGFMT(LogTemp, Log, "{0}", CurrentFailNotePossible);
 
 		if (IsLerpingOffset)
 		{
@@ -97,7 +97,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		else
 		{
 			IncreaseMusicTempo(DeltaTime);
-			TempoNoteUI = (TempoNoteUI + DeltaTime);
+			TempoNoteUI += DeltaTime;
 
 			// Security Check: The Music Logic can't work if there is no skeleton. 
 			if (!CurrentSkeleton)
@@ -259,17 +259,16 @@ void UMusicWorldSubsystem::SucceedQTE()
 	if (GetCurrentWaitingNote()->Sound)
 		UGameplayStatics::PlaySound2D(GetWorld(),GetCurrentWaitingNote()->Sound);
 
-	UE_LOGFMT(LogTemp, Warning, "Reussi QTE");
-	
-	// POSSIBLE FAILS 
 	SetCurrentFailNotePossible(GetCurrentFailNotePossible() + 1);
-
+	       
 	if (HasCurrentFailNoteReachMaximumValue())
 	{
 		SetCurrentFailNotePossible(MaxFailNotePossible);
 	}
 
-	// continue
+	UE_LOGFMT(LogTemp, Warning, "Reussi QTE");
+	
+	// Continue
 	GoNextNote();
 }
 
@@ -388,9 +387,6 @@ void UMusicWorldSubsystem::LostQTE()
 {
 	// FAILS 
 	SetCurrentFailNotePossible(GetCurrentFailNotePossible() - 1);
-
-	// continue (to edit ? call after check HasLostAllFaileNotePossible() ?)
-	GoNextNote();
 	
 	// If the max note possible to fail has been achieved you go out of the music state without the skeletons.
 	if (HasLostAllFaileNotePossible())
@@ -398,6 +394,9 @@ void UMusicWorldSubsystem::LostQTE()
 		SetCurrentFailNotePossible(0);
 		LostMelody();
 	}
+
+	// continue 
+	GoNextNote();
 }
 
 int UMusicWorldSubsystem::GetCurrentFailNotePossible() const

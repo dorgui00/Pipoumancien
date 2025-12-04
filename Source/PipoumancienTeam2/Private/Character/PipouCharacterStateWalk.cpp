@@ -44,6 +44,8 @@ void UPipouCharacterStateWalk::StateEnter(EPipouCharacterStateID PreviousStateID
 			}
 		}
 	}
+
+	Character->GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
 	Character->InputPressedNoteEvent.AddDynamic(this, &UPipouCharacterStateWalk::OnCharacterPressedNote);
 }
 
@@ -74,7 +76,7 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 		MoveDir += Character->CameraMain->GetRightVector() * FMath::Sign(Character->GetInputMoveXY().X);
 		MoveDir.Normalize();
 		Character->SetOrientXY(FVector2D(MoveDir.X, MoveDir.Y));
-		FVector NextPos = Character->GetActorLocation() +  MoveDir * MoveSpeed;
+		FVector NextPos = Character->GetActorLocation() + (MoveDir * MoveSpeed * Deltatime);
 		
 		// Camera 
 		if (UCameraWorldSubsystem* CamSys = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
@@ -89,7 +91,7 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 			}
 			else
 			{
-				Character->SetActorLocation(NextPos);
+				Character->AddMovementInput(MoveDir);
 			}
 		}
 	}

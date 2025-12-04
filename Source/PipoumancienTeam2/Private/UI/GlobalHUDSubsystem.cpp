@@ -20,6 +20,7 @@
 #include "Settings/SubsystemSettings.h"
 #include "UI/UMusicNote.h"
 #include "UI/PartitionFinish.h"
+#include "Character/PipouCharacter.h"
 #include "UI/SkeletonInteractionWidget.h"
 
 
