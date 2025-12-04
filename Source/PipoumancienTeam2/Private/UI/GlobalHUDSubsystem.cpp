@@ -2,24 +2,25 @@
 
 
 #include "UI/GlobalHUDSubsystem.h"
-
 #include "UResurrectionWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Character/PipouCharacterInputData.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Slider.h"
+#include "Components/WidgetComponent.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
+#include "Data/HUDData.h"
+#include "Data/MusicGenericData.h"
 #include "Editor/PipouCharacterSettings.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Logging/StructuredLog.h"
-#include "Music/MusicWorldSubsystem.h"
 #include "PNJ/SkeletonController.h"
 #include "Settings/SubsystemSettings.h"
 #include "UI/UMusicNote.h"
 #include "UI/PartitionFinish.h"
-
+#include "UI/SkeletonInteractionWidget.h"
 
 
 // ---- GAME INSTANCE SUBSYSTEM ---- 
@@ -43,6 +44,30 @@ void UGlobalHUDSubsystem::Tick(float DeltaTime)
 	}
 }
 
+// ---- WORLD UI ---
+void UGlobalHUDSubsystem::SpawnSkeletonInteractionWidget(TArray<APipouCharacter*> Characters)
+{
+	FVector Tot;
+	for (auto Target : Characters)
+	{
+		Tot += Target->GetActorLocation();
+	}
+	FVector Moy = Tot/Characters.Num();
+
+	
+// 	USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+// 	
+// 	UWidgetComponent* WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
+// 	WidgetComponent->SetupAttachment(Root); // middle of player
+//
+// 	WidgetComponent->SetWidgetClass(USkeletonInteractionWidget::StaticClass());
+// 		
+// 	// if (USkeletonInteractionWidget* SkeletonInteractionWidget = Cast<USkeletonInteractionWidget>(WidgetComponent->GetUserWidgetObject()))
+// 	// {
+// 	// 	
+// 	// }
+	
+}
 
 // ---- MUSIC UI ----
 void UGlobalHUDSubsystem::DisplayResurrectionWidget()
@@ -158,7 +183,7 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(const ASkeletonController* Current
 		if (!SpawnPointSlot) return;
 		
 		// Calculate Note Pos Y with SpawnPointSlot.
-		float PosY = SpawnPointSlot->GetPosition().Y;
+		float PosY = SpawnPointSlot->GetPosition().Y + 10.f;
 		
 		// Calculate Note Pos X.
 		float PosX = (Note.Frequency * RatioDistance) + DistancePreviousFrequencies;
@@ -168,7 +193,7 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(const ASkeletonController* Current
 		NoteSlotInstance->SetPosition(NotePos);
 
 		// Set Music Note Type depending on the input action of the note.
-		WBPNoteInstance->SetSlotNote(GetMusicNoteTypeFromInputAction(Note.InputAction));
+		WBPNoteInstance->SetNoteTexture(GetImageTextureFromNoteInput(Note.InputAction));
 
 		// Add the note instantiated to an array to use in the music mechanic.
 		NotesInstanciated.Add(WBPNoteInstance);
@@ -241,6 +266,9 @@ void UGlobalHUDSubsystem::Init()
 	const USubsystemSettings* SubsystemSettings = GetDefault<USubsystemSettings>();
 	if (!SubsystemSettings) return;
 
+	UMusicGenericData* MusicGenericData = SubsystemSettings->MusicGenericData.LoadSynchronous();
+	if (!MusicGenericData) return;
+
 	// Init PipouCharacterSettings.
 	const UPipouCharacterSettings* CharacterSettings = GetDefault<UPipouCharacterSettings>();
 	if (!CharacterSettings) return;
@@ -254,19 +282,22 @@ void UGlobalHUDSubsystem::Init()
 	WBPNoteClass = SubsystemSettings->WBPNoteClass;
 	WBPPartitionFinishClass = SubsystemSettings->WBPPartitionFinishClass;
 
-	// Initialize the association of InputAction to MusicNoteType.
-	MusicNoteFromInputAction =
+	// Init HUD Data
+	HUDData = SubsystemSettings->HUDData.LoadSynchronous();
+
+	// init image from input
+	TextureFromNoteInput =
 	{
-		{ InputData->InputNoteA, EMusicNoteType::A },
-		{ InputData->InputNoteB, EMusicNoteType::B },
-		{ InputData->InputNoteY, EMusicNoteType::Y },
-		{ InputData->InputNoteX, EMusicNoteType::X }
+		{ InputData->InputNoteY, HUDData->NoteUp },
+		{ InputData->InputNoteB, HUDData->NoteRight },
+		{ InputData->InputNoteA, HUDData->NoteDown },
+		{ InputData->InputNoteX, HUDData->NoteLeft },
 	};
 }
 
-EMusicNoteType UGlobalHUDSubsystem::GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const
+UTexture2D* UGlobalHUDSubsystem::GetImageTextureFromNoteInput(const UInputAction* NoteInput) const
 {
-	return MusicNoteFromInputAction[InputAction];
+	return TextureFromNoteInput[NoteInput];
 }
 
 void UGlobalHUDSubsystem::SetMusicWorldSubsystem(UMusicWorldSubsystem* NewMusicSubsystem)
@@ -289,6 +320,10 @@ void UGlobalHUDSubsystem::SetImageColor(UImage* CurrentImage, FLinearColor NewCo
 		0.2f,
 		false
 	);
+}
+
+void UGlobalHUDSubsystem::DisplayNotesForSkeletonInteraction(UInputAction* InputAction)
+{
 }
 
 void UGlobalHUDSubsystem::Internal_SetImageColor(UImage* CurrentImage, FLinearColor NewColor)

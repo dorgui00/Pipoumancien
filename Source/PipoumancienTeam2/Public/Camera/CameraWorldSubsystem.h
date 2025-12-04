@@ -6,6 +6,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "CameraWorldSubsystem.generated.h"
 
+struct FInvisibleObject;
 class APipouCharacter;
 class ASkeletonController;
 class UCameraComponent;
@@ -21,22 +22,7 @@ enum class ECameraState : uint8{
 	DialogueCamera = 3,
 };
 
-
-// USTRUCT()
-// struct FInvisibleObject
-// {
-// 	GENERATED_USTRUCT_BODY()
-//
-// 	FInvisibleObject();
-//
-// 	UPROPERTY()
-// 	AActor* Actor;
-//
-// 	FString MaterialPath;
-// 	//UMaterialInterface Material;
-// };
-
-UCLASS()
+UCLASS(Blueprintable)
 class PIPOUMANCIENTEAM2_API UCameraWorldSubsystem : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
@@ -127,7 +113,7 @@ private :
 #pragma region Zoom
 	
 private  :
-	
+	// Zoom according to distance
 	UPROPERTY()
 	float CameraZoomYMin = 0.f;
 
@@ -144,6 +130,21 @@ private  :
 	void InitCameraZoomParameters();
 	
 	void TickUpdateCameraZoom(float DeltaTime);
+
+	// zoom / dezoom
+public :
+
+	UFUNCTION(BlueprintCallable) 
+	void Zoom(float Value);
+	
+	UFUNCTION(BlueprintCallable) 
+	void Dezoom(float Value);
+
+	UFUNCTION(BlueprintCallable) 
+	bool GetIsZoomed();
+	
+private :
+	bool IsZoomed = false;
 	
 #pragma endregion
 
@@ -161,7 +162,7 @@ private :
 	void InitCameraVisibility();
 	void TickUpdateCameraVisibility(float DeltaTime);
 
-	void SetCloakingObjectBehaviour(const FHitResult& Hit); // object that hides visible traget
+	void SetCloakingObjectBehaviour(const FHitResult& Hit); // object that hides visible target
 	void MakeObjectVisibleAgain(TObjectPtr<AActor> InvisibleObject); // no more invisible
 	
 	void CompareCurrentFromPreviousInvisibleObjects();
@@ -169,10 +170,10 @@ private :
 
 	UPROPERTY()
 	UMaterialInterface* InvisibleMaterial;
-
 	
 	UPROPERTY()
-	TMap<TObjectPtr<AActor>, TObjectPtr<UMaterialInterface>> InvisibleObjects;
+	TArray<FInvisibleObject> InvisibleObjects;
+	//TMap<TObjectPtr<AActor>, TObjectPtr<UMaterialInterface>> InvisibleObjects;
 
 	UPROPERTY()
 	TArray<AActor*> CurrentCloakingObjects;
@@ -256,7 +257,7 @@ private :
 #pragma region Dialogue Camera
 public :
 
-	void SetDialogueCamera(APipouCharacter* Interactor, ASkeletonController* Speaker);
+	void SetDialogueCamera(const APipouCharacter* Interactor, ASkeletonController* Speaker);
 
 private :
 	

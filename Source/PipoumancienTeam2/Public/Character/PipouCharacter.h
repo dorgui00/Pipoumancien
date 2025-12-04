@@ -236,7 +236,7 @@ private:
 
 	#pragma endregion
 
-	#pragma region Skeletons Interaction Overlap
+	#pragma region Interaction
 	// Interact with the Skeletons
 	UFUNCTION()
 	void OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -246,6 +246,8 @@ private:
 	void OnComponentEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	void InteractWithSkeleton(ASkeletonController& SkeletonController);
+	
 	#pragma endregion
 
 	// SOUNDS

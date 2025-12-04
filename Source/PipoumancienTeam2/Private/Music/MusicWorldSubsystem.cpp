@@ -10,7 +10,6 @@
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Logging/StructuredLog.h"
-#include "Math/UnitConversion.h"
 #include "PNJ/SkeletonController.h"
 #include "Settings/SubsystemSettings.h"
 #include "Sound/SoundCue.h"
@@ -43,9 +42,6 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	// Get the Music Generic Data.
 	TObjectPtr<UMusicGenericData> MusicGenericData = SubsystemSettings->MusicGenericData.LoadSynchronous();
 	if (!MusicGenericData) return;
-
-	// Initialize Global Music Speed.
-	MusicGlobalSpeed = MusicGenericData->MusicGlobalSpeed;
 
 	// Initialize TimeTolerance.
 	TimeTolerance = MusicGenericData->TimeTolerance;
@@ -87,9 +83,8 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 
 		GlobalHUDSubsystem->MovePartition(DeltaTime);
 
-		// UE_LOGFMT(LogTemp, Error, "{0}", GlobalHUDSubsystem->GetUISpeed());
-		UE_LOGFMT(LogTemp, Warning, "{0}", TimeTolerance);
-		
+		UE_LOGFMT(LogTemp, Log, "{0}", CurrentFailNotePossible);
+
 		if (IsLerpingOffset)
 		{
 			IncreaseTimerLerpingOffset(DeltaTime);
@@ -103,9 +98,6 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		{
 			IncreaseMusicTempo(DeltaTime);
 			TempoNoteUI = (TempoNoteUI + DeltaTime);
-
-			// UE_LOGFMT(LogTemp, Log, "Tempo {0}", Tempo);
-			// UE_LOGFMT(LogTemp, Log, "CurrentNoteFrequency {0}", GetCurrentWaitingNote()->Frequency);
 
 			// Security Check: The Music Logic can't work if there is no skeleton. 
 			if (!CurrentSkeleton)
