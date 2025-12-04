@@ -6,6 +6,7 @@
 #include "Character/PipouCharacter.h"
 #include "GlobalGameSubsystem.generated.h"
 
+class UWidgetComponent;
 class UInputAction;
 /**
  * 
@@ -37,9 +38,12 @@ public :
 
 	void SetCharacters(APipouCharacter* Character);
 
-	// Current Skeleton
+	// Skeleton
 	ASkeletonController* GetCurrentSkeleton() const;
 	void SetCurrentSkeleton(ASkeletonController* Skeleton); // TO EDIT ? Switch to private ?
+
+	void FindSkeletonInteractionWidget();
+	TObjectPtr<UWidgetComponent> GetSkeletonInteractionWidget() const;
 
 	// Music
 	// Skeleton Interaction
@@ -73,4 +77,7 @@ private :
 	// Skeleton
 	UPROPERTY()
 	ASkeletonController* CurrentSkeleton = nullptr;
+	
+	UPROPERTY()
+	TObjectPtr<UWidgetComponent> SkeletonInteractionWidget = nullptr;
 };
