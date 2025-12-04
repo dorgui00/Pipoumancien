@@ -385,10 +385,6 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 	
 	IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch >= GetCurrentPitchCursorValue() - PitchTolerance
 	   && GetCurrentWaitingNote()->Pitch <= GetCurrentPitchCursorValue() + PitchTolerance;
-
-	UE_LOGFMT(LogTemp, Warning, "Pitch Réussi ? : {0}", IsConductorOnTheRightPitch);
-	UE_LOGFMT(LogTemp, Warning, "Pitch Attendu : {0}", GetCurrentWaitingNote()->Pitch);
-	UE_LOGFMT(LogTemp, Warning, "Pitch Actuel : {0}", GetCurrentPitchCursorValue());
 	
 	if (HasMusicianReceivedInput && IsConductorOnTheRightPitch)
 	{
@@ -408,9 +404,14 @@ void UMusicWorldSubsystem::LostQTE()
 	{
 		SetCurrentFailNotePossible(0);
 		LostMelody();
+		return;
 	}
 
-	// UE_LOGFMT(LogTemp, Warning, "Je suis dans le LostQTE().");
+	if (HasFinishedMelody())
+	{
+		SucceedMelody();
+		return;
+	}
 
 	// continue 
 	GoNextNote();

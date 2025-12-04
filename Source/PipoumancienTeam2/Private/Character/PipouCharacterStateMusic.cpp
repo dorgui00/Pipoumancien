@@ -5,6 +5,7 @@
 #include "InputActionValue.h"
 #include "Character/PipouCharacter.h"
 #include "Character/PipouCharacterInputData.h"
+#include "Components/CanvasPanelSlot.h"
 #include "Data/F_Note.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
@@ -90,33 +91,40 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 {
 	if (CurrentRole == EPipouCharacterRoles::Conductor)
 	{
-		// Dead Zone
-		if (InputActionValue.Get<float>() >= -0.1f && InputActionValue.Get<float>() <= 0.1f) return;
-
 		UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
 		if (!HUDSubsystem || !HUDSubsystem->WBPResurrectionInstance) return;
+		
+		// Dead Zone
+		if (InputActionValue.Get<float>() >= -0.1f && InputActionValue.Get<float>() <= 0.1f)
+		{
+			MusicWorldSubsystem->SetCurrentPitchCursorValue(0.f);
 
-		if (InputActionValue.Get<float>() > 0.1f && InputActionValue.Get<float>() < 0.8f)
+			// Update slider too
+			HUDSubsystem->WBPResurrectionInstance->SetSliderPitch(0.f);
+			return;
+		}
+
+		// Le pitch est supérieur à 0.2 et inférieur à 0.8, il est entre 0.3 et 0.7
+		if (InputActionValue.Get<float>() > 0.2f && InputActionValue.Get<float>() < 0.8f)
 		{
 			MusicWorldSubsystem->SetCurrentPitchCursorValue(0.5f);
 		}
+		// Le pitch est supérieur ou égale à 0.8. Il est entre 0.8 et 1
 		else if (InputActionValue.Get<float>() >= 0.8f)
 		{
 			MusicWorldSubsystem->SetCurrentPitchCursorValue(1.f);
 		}
-		else if (InputActionValue.Get<float>() < -0.1f && InputActionValue.Get<float>() > -0.8f)
+		// Le pitch est inférieur à -0.2 et supérieur à -0.8. Il est entre -0.3 et -0.7
+		else if (InputActionValue.Get<float>() < -0.2f && InputActionValue.Get<float>() > -0.8f)
 		{
 			MusicWorldSubsystem->SetCurrentPitchCursorValue(-0.5f);
 		}
+		// Le pitch est inférieur ou égale à -0.8. Il est entre -0.8 et -1
 		else if (InputActionValue.Get<float>() <= -0.8f)
 		{
 			MusicWorldSubsystem->SetCurrentPitchCursorValue(-1.f);
 		}
-		else if (InputActionValue.Get<float>() > -0.1f && InputActionValue.Get<float>() < 0.1f)
-		{
-			MusicWorldSubsystem->SetCurrentPitchCursorValue(0);
-		}
-
+		
 		HUDSubsystem->WBPResurrectionInstance->SetSliderPitch(MusicWorldSubsystem->GetCurrentPitchCursorValue());
 	}
 }
@@ -127,6 +135,7 @@ void UPipouCharacterStateMusic::OnCharacterPitchCompleted()
 	if (!HUDSubsystem || !HUDSubsystem->WBPResurrectionInstance) return;
 	
 	HUDSubsystem->WBPResurrectionInstance->SetSliderPitch(0);
+	MusicWorldSubsystem->SetCurrentPitchCursorValue(0);
 }
 
 void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction)
@@ -140,7 +149,8 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 			MusicWorldSubsystem->SetNoteFeedbackMusic(FLinearColor::Green);
 			
 			// Set invisibility for the notes.
-			MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor(0.f, 0.f, 0.f,0.f));
+			MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->PlayValidationNote({50, 50}, 0);
+			// MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor(0.f, 0.f, 0.f,0.f));
 		}
 		else if (!MusicWorldSubsystem->GetIsAwatingReply() && !MusicWorldSubsystem->IsInCountDown && !HasPressedNotes)
 		{
