@@ -8,6 +8,7 @@
 #include "Data/F_Note.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
+#include "Logging/StructuredLog.h"
 #include "Music/MusicWorldSubsystem.h"
 #include "Sound/SoundCue.h"
 #include "UI/GlobalHUDSubsystem.h"
@@ -95,7 +96,7 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 		UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
 		if (!HUDSubsystem || !HUDSubsystem->WBPResurrectionInstance) return;
 
-		if (InputActionValue.Get<float>() >= 0.1f && InputActionValue.Get<float>() <= 0.8f)
+		if (InputActionValue.Get<float>() > 0.1f && InputActionValue.Get<float>() < 0.8f)
 		{
 			MusicWorldSubsystem->SetCurrentPitchCursorValue(0.5f);
 		}
@@ -103,13 +104,17 @@ void UPipouCharacterStateMusic::OnCharacterPitch(FInputActionValue InputActionVa
 		{
 			MusicWorldSubsystem->SetCurrentPitchCursorValue(1.f);
 		}
-		else if (InputActionValue.Get<float>() <= -0.1f && InputActionValue.Get<float>() >= -0.8f)
+		else if (InputActionValue.Get<float>() < -0.1f && InputActionValue.Get<float>() > -0.8f)
 		{
 			MusicWorldSubsystem->SetCurrentPitchCursorValue(-0.5f);
 		}
 		else if (InputActionValue.Get<float>() <= -0.8f)
 		{
 			MusicWorldSubsystem->SetCurrentPitchCursorValue(-1.f);
+		}
+		else if (InputActionValue.Get<float>() > -0.1f && InputActionValue.Get<float>() < 0.1f)
+		{
+			MusicWorldSubsystem->SetCurrentPitchCursorValue(0);
 		}
 
 		HUDSubsystem->WBPResurrectionInstance->SetSliderPitch(MusicWorldSubsystem->GetCurrentPitchCursorValue());
@@ -128,7 +133,7 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 {
 	if (CurrentRole == EPipouCharacterRoles::Musician)
 	{
-		if (MusicWorldSubsystem->GetIsAwatingReply() && MusicWorldSubsystem->GetCurrentWaitingNote()->InputAction == InputAction)
+		if (MusicWorldSubsystem->GetIsAwatingReply() && MusicWorldSubsystem->GetCurrentWaitingNote()->InputAction == InputAction && !HasPressedNotes)
 		{
 			HasPressedNotes = true;
 			MusicWorldSubsystem->ReceivedMusicianInput();
@@ -137,7 +142,7 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 			// Set invisibility for the notes.
 			MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor(0.f, 0.f, 0.f,0.f));
 		}
-		else if (MusicWorldSubsystem->IsBeforeWindowNote() && !MusicWorldSubsystem->IsInCountDown && !HasPressedNotes)
+		else if (!MusicWorldSubsystem->GetIsAwatingReply() && !MusicWorldSubsystem->IsInCountDown && !HasPressedNotes)
 		{
 			HasPressedNotes = true;
 			

@@ -15,6 +15,7 @@
 #include "Game/GlobalGameSubsystem.h"
 #include "Interaction/Interact.h"
 #include "Kismet/GameplayStatics.h"
+#include "Music/MusicWorldSubsystem.h"
 #include "PNJ/SkeletonController.h"
 
 #pragma region Default Constructors

@@ -154,6 +154,9 @@ private:
 	// The Music Logic is waiting or not for the player to do an action.
 	bool IsAwaitingReply = false;
 
+	// Prevent HasExitedWindow to be call in Loop.
+	bool HasProcessWindowNoteExit = false;
+
 	UPROPERTY()
 	int CurrentFailNotePossible;
 
@@ -163,8 +166,6 @@ private:
 
 	// Change the CurrentWaitingNoteIndex to go to the next note.
 	void GoNextNote();
-
-	
 
 	// Has the player enter the time to do the QTE.
 	bool HasEnteredWindowNote() const;
