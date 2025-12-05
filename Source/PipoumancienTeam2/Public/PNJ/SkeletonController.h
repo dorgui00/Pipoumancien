@@ -6,14 +6,20 @@
 #include "GameFramework/Actor.h"
 #include "Components/SphereComponent.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "Engine/EngineTypes.h"
 #include "SkeletonController.generated.h"
 
 class UAC_SkeletonFollower;
+class UAC_SetAnimations;
 class UUIDialoge;
 class UGlobalDataTableSubsystem;
 class UDataTableGameInstanceSubsystem;
 class ADB_Manager;
+class UAnimationAsset;
+class USkeletalMeshComponent;
 struct F_Skeleton;
+class AFog;
+class UPhysicalMaterial;
 
 
 enum class ESkeletonState : uint8{
@@ -62,6 +68,24 @@ public:
 	UPROPERTY()
 	UUIDialoge* PlayerWidget;
 
+	//ANIM
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
+	UAnimationAsset* IdleAnimation = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
+	UAnimationAsset* WalkAnimation = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
+	UAnimationAsset* WaitAnimation = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
+	USkeletalMeshComponent* TargetMesh = nullptr;
+
+	//SOUNDS
+	UPROPERTY(EditAnywhere, Category = "Audio")
+	TObjectPtr<USoundBase> FootstepCue;
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -91,6 +115,10 @@ protected:
 		UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
 
 	int ValutFrase = 0;
+
+	// Liste de Fog (équivalent du tableau dans le Blueprint)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Références")
+	TArray<AFog*> FogList; 
 	
 private :
 	
@@ -99,5 +127,26 @@ private :
 
 	// FOLLOW
 	UPROPERTY()
-	TObjectPtr<UAC_SkeletonFollower> FollowComponent ;
+	TObjectPtr<UAC_SkeletonFollower> FollowComponent;
+
+	// ANIM
+	FVector LastLocation = FVector::ZeroVector;
+	bool bHasLastLocation = false;
+	bool bWasMoving = false;
+	bool bWasFollowing = false;
+
+	void PlayIdle();
+	void PlayWalk();
+	void PlayWait();
+	void UpdateAnimation(float DeltaTime);
+	void FogDilet();
+
+
+	float FootstepTimer = 0.f;
+
+	UPROPERTY(EditAnywhere, Category = "Audio")
+	float FootstepInterval = .6f;
+
+	void PlayFootstepsSound(UPhysicalMaterial* PhysMat);
+
 };

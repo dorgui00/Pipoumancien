@@ -15,6 +15,7 @@
 #include "Game/GlobalGameSubsystem.h"
 #include "Interaction/Interact.h"
 #include "Kismet/GameplayStatics.h"
+#include "Music/MusicWorldSubsystem.h"
 #include "PNJ/SkeletonController.h"
 
 #pragma region Default Constructors
@@ -371,42 +372,12 @@ void APipouCharacter::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCom
 		{
 				Interactor.SetInterface(InInteractor); // update current interactor
 				Interactor.SetObject(OtherActor);
-
-				//IInteract::Execute_Interact(Interactor.GetObject()); 
 		}
 	}
 	// Skeleton Interaction
 	else if (ASkeletonController* SkeletonController = Cast<ASkeletonController>(OtherActor))
 	{
-		UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
-		
-		// can't interact in transport 
-		if (GlobalGameSubsystem->GetWorldState()==EWorldState::WorldTransport) return;
-
-		// overlap to revive or talk with 
-		if (SkeletonController->GetState() == ESkeletonState::Dead
-			|| SkeletonController->GetState() == ESkeletonState::Dialogue)
-		{
-			// set current skeleton for myself
-			OverlapSkeleton = SkeletonController; // dead or dialogue
-		
-			// can't retrigger music of a skeleton alive
-			if (SkeletonController->GetState() == ESkeletonState::Dead)
-			{
-				// trying to set current skeleton for everyone
-				GlobalGameSubsystem->CheckIfPlayersOverlapSameSkeleton();
-
-				//not everyone is overlapping the same skel
-				if (!GlobalGameSubsystem->GetCurrentSkeleton()) return;
-
-				//everyone overlap the same skel
-				for (int i = 0; i < 3; ++i)
-				{
-					GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
-					FString::Printf(TEXT("INPUT : %s"), *GlobalGameSubsystem->GetCurrentSkeleton()->MySkeleton->Notes[i].InputAction->GetName()), true, FVector2D(2, 2));
-				}
-			}
-		}
+		InteractWithSkeleton(*SkeletonController);
 	}
 }
 
@@ -438,15 +409,52 @@ void APipouCharacter::OnComponentEndOverlap(UPrimitiveComponent* OverlappedCompo
 		// can't interact in transport
 		UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
 		if (GlobalGameSubsystem->GetWorldState()==EWorldState::WorldTransport) return;
+
+		// Camera
+		if (GlobalGameSubsystem->PlayersOverlapSameSkeleton())
+			GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->Dezoom(200);
 		
 		// delete current skeleton for myself
 		OverlapSkeleton = nullptr;
 		
 		// delete current skeleton for everyone
-		GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>()->SetCurrentSkeleton(nullptr);
+		GlobalGameSubsystem->CancelOverlapSameSkeleton();
 		UE_LOG(LogTemp, Display, TEXT("End Overlap Skeleton"));
 	}
 }
+
+void APipouCharacter::InteractWithSkeleton(ASkeletonController& SkeletonController)
+{
+	UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
+		
+	// can't interact in transport 
+	if (GlobalGameSubsystem->GetWorldState()==EWorldState::WorldTransport) return;
+
+	// overlap to revive or talk with 
+	if (SkeletonController.GetState() == ESkeletonState::Dead
+		|| SkeletonController.GetState() == ESkeletonState::Dialogue)
+	{
+		// set current skeleton for myself
+		OverlapSkeleton = &SkeletonController; // dead or dialogue
+		
+		// can't retrigger music of a skeleton alive
+		if (SkeletonController.GetState() == ESkeletonState::Dead)
+		{
+			//not everyone overlaps the same skel
+			if (!GlobalGameSubsystem->PlayersOverlapSameSkeleton()) return;
+
+			// -- OVERLAP SAME SKELETON --
+			GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->Zoom(200);
+
+			// for (int i = 0; i < 3; ++i)
+			// {
+			// 	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
+			// 	FString::Printf(TEXT("INPUT : %s"), *GlobalGameSubsystem->GetCurrentSkeleton()->MySkeleton->Notes[i].InputAction->GetName()), true, FVector2D(2, 2));
+			// }
+		}
+	}
+}
+
 
 #pragma endregion
 

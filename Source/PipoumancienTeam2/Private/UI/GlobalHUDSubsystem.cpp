@@ -2,32 +2,37 @@
 
 
 #include "UI/GlobalHUDSubsystem.h"
-
 #include "UResurrectionWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Character/PipouCharacterInputData.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Slider.h"
+#include "Components/WidgetComponent.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
+#include "Data/HUDData.h"
+#include "Data/MusicGenericData.h"
 #include "Editor/PipouCharacterSettings.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Logging/StructuredLog.h"
-#include "Music/MusicWorldSubsystem.h"
 #include "PNJ/SkeletonController.h"
 #include "Settings/SubsystemSettings.h"
 #include "UI/UMusicNote.h"
 #include "UI/PartitionFinish.h"
-
+#include "Character/PipouCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "UI/SkeletonInteractionWidget.h"
 
 
 // ---- GAME INSTANCE SUBSYSTEM ---- 
 void UGlobalHUDSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
+	
 	Init();
 }
+
 
 void UGlobalHUDSubsystem::Tick(float DeltaTime)
 {
@@ -158,7 +163,7 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(const ASkeletonController* Current
 		if (!SpawnPointSlot) return;
 		
 		// Calculate Note Pos Y with SpawnPointSlot.
-		float PosY = SpawnPointSlot->GetPosition().Y;
+		float PosY = SpawnPointSlot->GetPosition().Y + 10.f;
 		
 		// Calculate Note Pos X.
 		float PosX = (Note.Frequency * RatioDistance) + DistancePreviousFrequencies;
@@ -168,7 +173,7 @@ void UGlobalHUDSubsystem::SpawnNotesPartition(const ASkeletonController* Current
 		NoteSlotInstance->SetPosition(NotePos);
 
 		// Set Music Note Type depending on the input action of the note.
-		WBPNoteInstance->SetSlotNote(GetMusicNoteTypeFromInputAction(Note.InputAction));
+		WBPNoteInstance->SetNoteTexture(GetImageTextureFromNoteInput(Note.InputAction));
 
 		// Add the note instantiated to an array to use in the music mechanic.
 		NotesInstanciated.Add(WBPNoteInstance);
@@ -241,6 +246,9 @@ void UGlobalHUDSubsystem::Init()
 	const USubsystemSettings* SubsystemSettings = GetDefault<USubsystemSettings>();
 	if (!SubsystemSettings) return;
 
+	UMusicGenericData* MusicGenericData = SubsystemSettings->MusicGenericData.LoadSynchronous();
+	if (!MusicGenericData) return;
+
 	// Init PipouCharacterSettings.
 	const UPipouCharacterSettings* CharacterSettings = GetDefault<UPipouCharacterSettings>();
 	if (!CharacterSettings) return;
@@ -254,19 +262,22 @@ void UGlobalHUDSubsystem::Init()
 	WBPNoteClass = SubsystemSettings->WBPNoteClass;
 	WBPPartitionFinishClass = SubsystemSettings->WBPPartitionFinishClass;
 
-	// Initialize the association of InputAction to MusicNoteType.
-	MusicNoteFromInputAction =
+	// Init HUD Data
+	HUDData = SubsystemSettings->HUDData.LoadSynchronous();
+
+	// init image from input
+	TextureFromNoteInput =
 	{
-		{ InputData->InputNoteA, EMusicNoteType::A },
-		{ InputData->InputNoteB, EMusicNoteType::B },
-		{ InputData->InputNoteY, EMusicNoteType::Y },
-		{ InputData->InputNoteX, EMusicNoteType::X }
+		{ InputData->InputNoteY, HUDData->NoteUp },
+		{ InputData->InputNoteB, HUDData->NoteRight },
+		{ InputData->InputNoteA, HUDData->NoteDown },
+		{ InputData->InputNoteX, HUDData->NoteLeft },
 	};
 }
 
-EMusicNoteType UGlobalHUDSubsystem::GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const
+UTexture2D* UGlobalHUDSubsystem::GetImageTextureFromNoteInput(const UInputAction* NoteInput) const
 {
-	return MusicNoteFromInputAction[InputAction];
+	return TextureFromNoteInput[NoteInput];
 }
 
 void UGlobalHUDSubsystem::SetMusicWorldSubsystem(UMusicWorldSubsystem* NewMusicSubsystem)
@@ -307,3 +318,85 @@ void UGlobalHUDSubsystem::Internal_SetImageColor(UImage* CurrentImage, FLinearCo
 	}
 }
 
+// --- UI WORLD ---
+
+void UGlobalHUDSubsystem::SetWidgetVisibility(UUserWidget* Widget, bool Visibility)
+{
+	if (Visibility)
+		Widget->SetVisibility(ESlateVisibility::Visible);
+	else
+		Widget->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void UGlobalHUDSubsystem::FindSkeletonInteractionWidget()
+{
+	TArray<AActor*> SkeletonInteractionWidgetIn;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), "SkeletonInteractionWidget",SkeletonInteractionWidgetIn);
+	
+	if (SkeletonInteractionWidgetIn.Num() > 0)
+	{
+		SkeletonInteractionWidgetActor = SkeletonInteractionWidgetIn[0];
+		if (!SkeletonInteractionWidgetActor)
+			UE_LOG(LogTemp, Error, TEXT("SkeletonInteractionWidgetActor is nullptr"));
+		
+		SkeletonInteractionWidgetComponent = SkeletonInteractionWidgetActor->FindComponentByClass<UWidgetComponent>();
+		if (!SkeletonInteractionWidgetComponent)
+			UE_LOG(LogTemp, Error, TEXT("SkeletonInteractionWidgetComponent is nullptr"));
+		
+		SkeletonInteractionWidget =  Cast<USkeletonInteractionWidget>(SkeletonInteractionWidgetComponent->GetWidget());
+		if (!SkeletonInteractionWidget)
+		{
+			UE_LOG(LogTemp, Error, TEXT("SkeletonInteractionWidget is nullptr"));
+		}
+		else
+		{
+			ResetSkeletonInteractionWidget();
+		}
+	}
+}
+
+TObjectPtr<UWidgetComponent> UGlobalHUDSubsystem::GetSkeletonInteractionWidgetComponent() const
+{
+	return SkeletonInteractionWidgetComponent;
+}
+
+
+void UGlobalHUDSubsystem::CallSkeletonInteractionWidget()
+{
+	FVector Tot;
+	TArray<APipouCharacter*> Characters = GlobalGameSubsystem->PipouCharacters;
+	
+	for (auto Target : Characters)
+	{
+		Tot += Target->GetActorLocation();
+	}
+	FVector Moy = Tot/Characters.Num();
+
+	SkeletonInteractionWidgetActor->SetActorLocation(Moy);
+	
+	// For now hide all image not widget
+	//SetWidgetVisibility(SkeletonInteractionWidget, true);
+	
+}
+
+void UGlobalHUDSubsystem::ResetSkeletonInteractionWidget()
+{
+	for (auto Image : SkeletonInteractionWidget->Images)
+	{
+		Image->SetVisibility(ESlateVisibility::Hidden);
+	}
+	
+}
+
+void UGlobalHUDSubsystem::DisplayNotesForSkeletonInteraction(const UInputAction* InputAction)
+{
+	int index = GlobalGameSubsystem->InputPressed.Num() - 1;
+	
+	// set image
+	UTexture2D* Text = GetImageTextureFromNoteInput(InputAction);
+	SkeletonInteractionWidget->Images[index]->SetBrushFromTexture(Text);
+
+	// display
+	SkeletonInteractionWidget->Images[index]->SetVisibility(ESlateVisibility::Visible);
+
+}

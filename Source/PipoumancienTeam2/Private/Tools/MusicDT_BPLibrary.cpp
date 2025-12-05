@@ -192,4 +192,50 @@ void UMusicDT_BPLibrary::BuildNotesFromHandles_Lane01Map(
 	}
 }
 
+bool UMusicDT_BPLibrary::UpdateSkeletonRowNotes(UDataTable* Table, FName RowName, const TArray<USoundCue*>& NewCues, bool bSaveAsset)
+{
+	if (!Table)
+	{
+		return false;
+	}
+
+	F_Skeleton* RowPtr = Table->FindRow<F_Skeleton>(RowName, TEXT("UpdateSkeletonRowNotes"));
+	if (!RowPtr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UpdateSkeletonRowNotes: Row %s not found"), *RowName.ToString());
+		return false;
+	}
+
+	F_Skeleton& Row = *RowPtr;
+
+	if (Row.Notes.Num() != NewCues.Num())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UpdateSkeletonRowNotes: Size mismatch)"));
+	}
+
+	const int32 Count = FMath::Min(Row.Notes.Num(), NewCues.Num());
+
+	for (int32 i = 0; i < Count; ++i)
+	{
+		if (NewCues[i])
+		{
+			Row.Notes[i].Sound = NewCues[i];
+		}
+	}
+
+#if WITH_EDITOR
+
+	Table->Modify();
+
+#endif
+
+	Table->AddRow(RowName, Row); // re-add
+
+	SaveIf(Table, bSaveAsset);
+
+	UE_LOG(LogTemp, Log, TEXT("UpdateSkeletonRowNotes: Updated %d notes in row %s"), Count, *RowName.ToString());
+	return true;
+}
+
+
 

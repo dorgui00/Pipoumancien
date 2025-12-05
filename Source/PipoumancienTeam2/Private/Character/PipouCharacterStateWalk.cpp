@@ -9,6 +9,9 @@
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
+
 
 // ---- STATE DEFAULT FUNCTIONS ----
 EPipouCharacterStateID UPipouCharacterStateWalk::GetStateID()
@@ -20,7 +23,20 @@ void UPipouCharacterStateWalk::StateEnter(EPipouCharacterStateID PreviousStateID
 {
 	Super::StateEnter(PreviousStateID);
 	Character->GetMesh()->PlayAnimation(WalkAnim, true);
+	
+	// -------------- AUDIO -----------------
+	//walk steps audio start
+	if (WalkSoundBase)
+	{
+		if (!IterateOnGround) //check if we're doing different sounds
+		{
+			WalkLoopComponent = UGameplayStatics::SpawnSoundAttached(
+				WalkSoundBase,
+				Character->GetRootComponent());
+		}
+	}
 
+	Character->GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
 	Character->InputPressedNoteEvent.AddDynamic(this, &UPipouCharacterStateWalk::OnCharacterPressedNote);
 }
 
@@ -51,7 +67,7 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 		MoveDir += Character->CameraMain->GetRightVector() * FMath::Sign(Character->GetInputMoveXY().X);
 		MoveDir.Normalize();
 		Character->SetOrientXY(FVector2D(MoveDir.X, MoveDir.Y));
-		FVector NextPos = Character->GetActorLocation() +  MoveDir * MoveSpeed;
+		FVector NextPos = Character->GetActorLocation() + (MoveDir * MoveSpeed * Deltatime);
 		
 		// Camera 
 		if (UCameraWorldSubsystem* CamSys = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
@@ -66,7 +82,7 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 			}
 			else
 			{
-				Character->SetActorLocation(NextPos);
+				Character->AddMovementInput(MoveDir);
 			}
 		}
 	}
@@ -84,12 +100,55 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 		}
 	}
 
+	//AUDIO
+	if (IterateOnGround)
+	{
+		bool bIsMoving = (Character->GetInputMoveXY().SquaredLength() > Character->DeadZone * Character->DeadZone);
+
+		if (bIsMoving) // only walk if actually moving
+		{
+			FootstepTimer += Deltatime;
+
+			if (FootstepTimer >= FootstepInterval)
+			{
+				FootstepTimer = 0.f;
+
+				FHitResult Hit;
+				FCollisionQueryParams Params;
+				Params.AddIgnoredActor(Character);
+				Params.bReturnPhysicalMaterial = true;
+
+				FVector Start = Character->GetActorLocation();
+				FVector End = Start - FVector(0, 0, 200.f);
+
+				if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_WorldStatic, Params))
+				{
+
+					if (UPhysicalMaterial* PhysMat = Hit.PhysMaterial.Get())
+					{
+						PlayFootstepsSound(PhysMat);
+					}
+				}
+			}
+		}
+		else
+		{
+			// standing still
+			FootstepTimer = 0.f;
+		}
+	}
 }
 
 void UPipouCharacterStateWalk::StateExit(EPipouCharacterStateID NextStateID)
 {
 	Super::StateExit(NextStateID);
-	
+	//walk steps audio stop
+	if (WalkLoopComponent)
+	{
+		WalkLoopComponent->FadeOut(0.5f, 0.f);
+		WalkLoopComponent = nullptr;
+	}
+
 	Character->InputPressedNoteEvent.RemoveDynamic(this, &UPipouCharacterStateWalk::OnCharacterPressedNote);
 }
 
@@ -105,4 +164,29 @@ void UPipouCharacterStateWalk::OnCharacterPressedNote(UInputAction* InputAction)
 	//Super::OnCharacterPressedNote(InputAction);
 
 	//Character->GetMesh()->PlayAnimation(MusicWalkAnim,false);
+}
+
+// ------- AUDIO --------
+void UPipouCharacterStateWalk::PlayFootstepsSound(UPhysicalMaterial* PhysMat)
+{
+	if (PhysMat->SurfaceType == SurfaceType1) // grass
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, GrassFootstepSound, Character->GetActorLocation());
+	}
+	else if (PhysMat->SurfaceType == SurfaceType2) // dirt
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, DirtFootstepSound, Character->GetActorLocation());
+	}
+	else if (PhysMat->SurfaceType == SurfaceType3) // townRoad
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, TownRoadFootstepSound, Character->GetActorLocation());
+	}
+	else if (PhysMat->SurfaceType == SurfaceType4) // snow
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, SnowFootstepSound, Character->GetActorLocation());
+
+	} else {
+
+		return;
+	}
 }

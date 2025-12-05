@@ -8,6 +8,10 @@
 #include "Components/TextBlock.h"
 #include "GlobalHUDSubsystem.generated.h"
 
+class USkeletonInteractionWidget;
+class UWidgetComponent;
+class APipouCharacter;
+class UHUDData;
 class UPartitionFinish;
 struct F_Note;
 class USlider;
@@ -74,14 +78,20 @@ public:
 
 	// Move the partition at the same time of the main music mechanic in MusicWorldSubsystem.
 	void MovePartition(float DeltaTime);
-
+	
 	
 	// ---- UTILITIES ----
 	// Use to store the Input Data
 	UPROPERTY()
 	TObjectPtr<UPipouCharacterInputData> InputData;
 
+	UPROPERTY()
+	TObjectPtr<UHUDData> HUDData;
+
+	UTexture2D* GetImageTextureFromNoteInput(const UInputAction* NoteInput) const;
+
 	void SetMusicWorldSubsystem(UMusicWorldSubsystem* NewMusicSubsystem);
+
 
 	// ---- FEEDBACK COLORS NOTES ----
 	float TimerBeforeResetingColor = 0;
@@ -94,6 +104,20 @@ public:
 	TMap<UObject*, FTimerHandle> ColorResetTimers;
 
 	void SetImageColor(UImage* CurrentImage, FLinearColor NewColor);
+
+	// ----- UI WORLD -----
+	TObjectPtr<UWidgetComponent> GetSkeletonInteractionWidgetComponent() const;
+	
+	void FindSkeletonInteractionWidget(); // call at init in game mode
+	
+	void DisplayNotesForSkeletonInteraction(const UInputAction* InputAction);
+
+	void CallSkeletonInteractionWidget();
+
+	void ResetSkeletonInteractionWidget();
+
+	void SetWidgetVisibility(UUserWidget* Widget, bool Visibility);
+	
 	
 protected:
 	// ---- GAME INSTANCE SUBSYSTEM ----
@@ -107,7 +131,6 @@ protected:
 	virtual TStatId GetStatId() const override { return TStatId(); };
 	
 private:
-
 	// ---- MUSIC UI ----
 	float UISpeed = 0;
 	
@@ -124,25 +147,34 @@ private:
 	// ---- FEEDBACK COLORS NOTES ----
 	void Internal_SetImageColor(UImage* CurrentImage, FLinearColor NewColor);
 
+	// ---- UI WORLD ----
+	UPROPERTY()
+	TObjectPtr<AActor> SkeletonInteractionWidgetActor = nullptr;
+	
+	UPROPERTY()
+	TObjectPtr<UWidgetComponent> SkeletonInteractionWidgetComponent = nullptr;
+
+	UPROPERTY()
+	TObjectPtr<USkeletonInteractionWidget> SkeletonInteractionWidget = nullptr;
 	
 	// ---- UTILITIES ----
 	UPROPERTY()
 	UMusicWorldSubsystem* MusicWorldSubsystem;
 
 	// Unit of Distance.
-	float RatioDistance = 300.f;
+	float RatioDistance = 150.f;
 	
 	// Map to associate an InputAction (Key of Controller) to a MusicNoteType (The notes in ENUM).
+	// UPROPERTY()
+	// TMap<UInputAction*, EMusicNoteType> MusicNoteFromInputAction;
+
 	UPROPERTY()
-	TMap<UInputAction*, EMusicNoteType> MusicNoteFromInputAction;
+	TMap<UInputAction*, UTexture2D*> TextureFromNoteInput;
 
 	UPROPERTY()
 	UGlobalGameSubsystem* GlobalGameSubsystem;
 	
 	// Initialize data for GlobalHUDSubsystem.
 	void Init();
-	
-	// Get the MusicNoteType with a key input action based on the map.
-	EMusicNoteType GetMusicNoteTypeFromInputAction(const UInputAction* InputAction) const;
 
 };

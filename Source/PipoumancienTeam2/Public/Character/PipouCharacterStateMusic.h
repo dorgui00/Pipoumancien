@@ -32,7 +32,6 @@ public:
 	void InitRole();
 	void InitSkeletons();
 	void InitInputPitch();
-	void InitSliderPitchSpeed();
 	void SetMusicManager();
 
 	UPROPERTY()

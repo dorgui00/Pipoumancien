@@ -10,7 +10,6 @@
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Logging/StructuredLog.h"
-#include "Math/UnitConversion.h"
 #include "PNJ/SkeletonController.h"
 #include "Settings/SubsystemSettings.h"
 #include "Sound/SoundCue.h"
@@ -43,9 +42,6 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	// Get the Music Generic Data.
 	TObjectPtr<UMusicGenericData> MusicGenericData = SubsystemSettings->MusicGenericData.LoadSynchronous();
 	if (!MusicGenericData) return;
-
-	// Initialize Global Music Speed.
-	MusicGlobalSpeed = MusicGenericData->MusicGlobalSpeed;
 
 	// Initialize TimeTolerance.
 	TimeTolerance = MusicGenericData->TimeTolerance;
@@ -87,9 +83,6 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 
 		GlobalHUDSubsystem->MovePartition(DeltaTime);
 
-		// UE_LOGFMT(LogTemp, Error, "{0}", GlobalHUDSubsystem->GetUISpeed());
-		UE_LOGFMT(LogTemp, Warning, "{0}", TimeTolerance);
-		
 		if (IsLerpingOffset)
 		{
 			IncreaseTimerLerpingOffset(DeltaTime);
@@ -101,11 +94,10 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		}
 		else
 		{
+			// UE_LOGFMT(LogTemp, Warning, "CurrentNoteIndex: {0}", GetCurrentWaitingNoteIndex());
+			
 			IncreaseMusicTempo(DeltaTime);
-			TempoNoteUI = (TempoNoteUI + DeltaTime);
-
-			// UE_LOGFMT(LogTemp, Log, "Tempo {0}", Tempo);
-			// UE_LOGFMT(LogTemp, Log, "CurrentNoteFrequency {0}", GetCurrentWaitingNote()->Frequency);
+			TempoNoteUI += DeltaTime;
 
 			// Security Check: The Music Logic can't work if there is no skeleton. 
 			if (!CurrentSkeleton)
@@ -124,7 +116,6 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			if (HasEnteredWindowNote())
 			{
 				IsAwaitingReply = true;
-				GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FColor::Yellow);
 			}
 
 			// Reach the frequency !
@@ -142,10 +133,9 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			// Check for the exit of the window note, to check if the player HasAchievedQTE.
 			if (HasExitedWindowNote())
 			{
+				// Not Time for the QTE anymore.
 				IsAwaitingReply = false;
 
-				GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FColor::Blue);
-				
 				// success
 				if(HasAchievedQte())
 				{
@@ -180,7 +170,17 @@ F_Note* UMusicWorldSubsystem::GetCurrentWaitingNote() const
 
 UMusicNote* UMusicWorldSubsystem::GetCurrentWaitingNoteWidget() const
 {
-	if (GetCurrentWaitingNote() == nullptr) UE_LOGFMT(LogTemp, Error, "ERROR: No current waiting note !");
+	if (GetCurrentWaitingNote() == nullptr)
+	{
+		UE_LOGFMT(LogTemp, Error, "ERROR: No current waiting note !");
+		return nullptr;
+	}
+	if (GlobalHUDSubsystem->WBPResurrectionInstance == nullptr)
+	{
+		UE_LOGFMT(LogTemp, Error, "ERROR: WBPResurrectionInstance == nullptr !");
+		return nullptr;
+	}
+	
 	return GlobalHUDSubsystem->NotesInstanciated[GetCurrentWaitingNoteIndex()];
 }
 
@@ -226,9 +226,24 @@ void UMusicWorldSubsystem::InitMusic(ASkeletonController* Skeleton)
 	// Init the Skeleton for the Music Logic.
 	CurrentSkeleton = Skeleton;
 
+	Tempo = 0.f;
+	TempoNoteUI = 0.f;
+	TimerCountDown = 3.f;
+
+	CurrentWaitingNoteIndex = 0;
+	CurrentWaitingNoteIndexUI = 0;
+	
+	IsAwaitingReply = false;
+	HasMusicianReceivedInput = false;
+	HasReachFrequency = false;
+	
 	// Reset the current cursor value for the pith slider.
 	CurrentPitchCursorValue = 0.f;
-
+	
+	IsLerpingOffset = true;
+	TimerLerpingOffset = 0.f;
+	
+	IsConductorOnTheRightPitch = false;
 	HasLostMelody = false;
 	IsInWorldStateMusic = true;
 	
@@ -267,24 +282,21 @@ void UMusicWorldSubsystem::SucceedQTE()
 	if (GetCurrentWaitingNote()->Sound)
 		UGameplayStatics::PlaySound2D(GetWorld(),GetCurrentWaitingNote()->Sound);
 
-	UE_LOGFMT(LogTemp, Warning, "Reussi QTE");
-	
-	// POSSIBLE FAILS 
 	SetCurrentFailNotePossible(GetCurrentFailNotePossible() + 1);
-
+	       
 	if (HasCurrentFailNoteReachMaximumValue())
 	{
 		SetCurrentFailNotePossible(MaxFailNotePossible);
 	}
-
-	// continue
+	
+	// Continue
 	GoNextNote();
 }
 
 void UMusicWorldSubsystem::SucceedMelody()
 {
 	// DEBUG
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")), true, FVector2D(2, 2));
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")), true, FVector2D(2, 2));
 
 	// SUCCEED
 	MelodyState = EMelodyType::SUCCEED;
@@ -350,11 +362,7 @@ void UMusicWorldSubsystem::LostMelody()
 	GetWorld()->GetTimerManager().SetTimer(
 		IsAnimationFinished, [this]()
 		{
-			GlobalHUDSubsystem->RemovePartitionFinish();
-
-			GlobalGameSubsystem->SetWorldFreeState();
-			// Camera
-			//GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
+			GlobalGameSubsystem->SetLostMelody();
 		},
 		2.f,
 		false
@@ -381,9 +389,9 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 		return false;
 	}
 	
-	IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch >= CurrentPitchCursorValue - PitchTolerance
-	   && GetCurrentWaitingNote()->Pitch <= CurrentPitchCursorValue + PitchTolerance;
-
+	IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch >= GetCurrentPitchCursorValue() - PitchTolerance
+	   && GetCurrentWaitingNote()->Pitch <= GetCurrentPitchCursorValue() + PitchTolerance;
+	
 	if (HasMusicianReceivedInput && IsConductorOnTheRightPitch)
 	{
 		return true;
@@ -397,15 +405,42 @@ void UMusicWorldSubsystem::LostQTE()
 	// FAILS 
 	SetCurrentFailNotePossible(GetCurrentFailNotePossible() - 1);
 
-	// continue (to edit ? call after check HasLostAllFaileNotePossible() ?)
-	GoNextNote();
+	if (GetCurrentWaitingNoteWidget() != nullptr)
+	{
+		GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::Red);
+
+		FTimerHandle NoteChangeBackColor;
+		GetWorld()->GetTimerManager().ClearTimer(NoteChangeBackColor);
+
+		GetWorld()->GetTimerManager().SetTimer(
+			NoteChangeBackColor, [this]()
+			{
+				if (GetCurrentWaitingNoteWidget() != nullptr)
+				{
+					GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::White);
+				}
+			},
+			2.f,
+			false
+			);
+	}
 	
 	// If the max note possible to fail has been achieved you go out of the music state without the skeletons.
 	if (HasLostAllFaileNotePossible())
 	{
 		SetCurrentFailNotePossible(0);
 		LostMelody();
+		return;
 	}
+
+	if (HasFinishedMelody())
+	{
+		SucceedMelody();
+		return;
+	}
+
+	// continue 
+	GoNextNote();
 }
 
 int UMusicWorldSubsystem::GetCurrentFailNotePossible() const

@@ -8,6 +8,8 @@
 
 enum class EPipouCharacterStateID : uint8;
 class UAnimationAsset;
+class USoundBase;
+class UAudioComponent;
 
 UCLASS(ClassGroup=(PipouCharacterState), meta=(BlueprintSpawnableComponent))
 class PIPOUMANCIENTEAM2_API UPipouCharacterStateWalk : public UPipouCharacterState
@@ -39,7 +41,39 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FVector GetMoveDirection() const;
 
+	//AUDIO
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
+	USoundBase* WalkSoundBase;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio/IterateOnGround")
+	USoundBase* GrassFootstepSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio/IterateOnGround")
+	USoundBase* DirtFootstepSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio/IterateOnGround")
+	USoundBase* TownRoadFootstepSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio/IterateOnGround")
+	USoundBase* SnowFootstepSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
+	bool IterateOnGround = false;
+
+	void PlayFootstepsSound(UPhysicalMaterial* PhysMat);
+
+	// ----- //
+
+	UPROPERTY(Transient)
+	UAudioComponent* WalkLoopComponent;
+
+private:
+
+	//AUDIO
+	float FootstepTimer = 0.f;
+	float FootstepInterval = .5f; // default step rate
+	
 	// --- MUSIC ---
 	virtual void OnCharacterPressedNote(UInputAction* InputAction) override;
-
 };

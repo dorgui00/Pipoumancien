@@ -66,6 +66,9 @@ public:
 	// Return the status of IsAwaitingReplyVariable.
 	bool GetIsAwatingReply() const;
 
+	// Is the player before the time to do the QTE.
+	bool IsBeforeWindowNote() const;
+
 	// Called when the player performs an action too early or too late.
 	void LostQTE();
 	void LostMelody();
@@ -75,8 +78,10 @@ public:
 	int GetCurrentFailNotePossible() const;
 	void SetCurrentFailNotePossible(float NewValue);
 	bool HasLostAllFaileNotePossible() const;
-
+	bool HasCurrentFailNoteReachMaximumValue() const;
+	
 	EMelodyType GetMelodyType() const;
+
 	
 	// ---- UTILITIES ----
 	void InitMusic(ASkeletonController* Skeleton);
@@ -149,21 +154,18 @@ private:
 	// The Music Logic is waiting or not for the player to do an action.
 	bool IsAwaitingReply = false;
 
+	// Prevent HasExitedWindow to be call in Loop.
+	bool HasProcessWindowNoteExit = false;
+
 	UPROPERTY()
 	int CurrentFailNotePossible;
 
 	void PlayMusic();
 
-	bool HasCurrentFailNoteReachMaximumValue() const;
-	
-	
 	void IncreaseMusicTempo(float DeltaTime);
 
 	// Change the CurrentWaitingNoteIndex to go to the next note.
 	void GoNextNote();
-
-	// Is the player before the time to do the QTE.
-	bool IsBeforeWindowNote() const;
 
 	// Has the player enter the time to do the QTE.
 	bool HasEnteredWindowNote() const;
@@ -194,6 +196,5 @@ private:
 	// ---- SOUND ----
 	UPROPERTY()
 	UAudioComponent* BackgroundAudioComponent;
-	
 
 };
