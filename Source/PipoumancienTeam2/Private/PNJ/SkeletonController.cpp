@@ -31,8 +31,8 @@ ASkeletonController::ASkeletonController()
 	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
 	WidgetComponent->SetupAttachment(RootComponent);
 	
-	//SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ASkeletonController::ASkeletonController::BeginOverlaps);
-	//SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ASkeletonController::EndOverlaps);
+	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ASkeletonController::ASkeletonController::BeginOverlaps);
+	SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ASkeletonController::EndOverlaps);
 
 	//HUD
 	PlayerWidgetClass = nullptr;
@@ -47,12 +47,17 @@ ASkeletonController::~ASkeletonController()
 		FollowComponent->OnEnterVillage.RemoveDynamic(this, &ASkeletonController::OnEnterVillage);
 		FollowComponent->OnReachHome.RemoveDynamic(this, &ASkeletonController::OnReachHome);
 	}
+
+	//SphereComponent->OnComponentBeginOverlap.RemoveDynamic(this, &ASkeletonController::ASkeletonController::BeginOverlaps);
+	//SphereComponent->OnComponentEndOverlap.RemoveDynamic(this, &ASkeletonController::EndOverlaps);
 }
 
 // Called when the game starts or when spawned
 void ASkeletonController::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	WidgetComponent->SetVisibility(false);
 
 	MySkeleton = GetGameInstance()->GetSubsystem<UGlobalDataTableSubsystem>()->GetSkeletonByID(ID);
 
@@ -86,19 +91,21 @@ void ASkeletonController::BeginOverlaps(UPrimitiveComponent* OverlappedComp, AAc
 {
 	if (OtherActor->IsA(APipouCharacter::StaticClass()))
 	{
-		if (MyState==ESkeletonState::Dialogue)
+		if (MyState == ESkeletonState::Dialogue)
 		{
 			InterationDialogue();
 		}
 	}
 }
 
-void ASkeletonController::EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void ASkeletonController::EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (OtherActor->IsA(APipouCharacter::StaticClass()))
 	{
-		InterationDialoguenOFF();
+		if (MyState == ESkeletonState::Dialogue)
+		{
+			WidgetComponent->SetVisibility(false);
+		}
 	}
 }
 
@@ -136,6 +143,9 @@ void ASkeletonController::OnEnterVillage()
 	// WORLD STATE : Free
 	if (UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>())
 		GlobalGameSubsystem->SetWorldFreeState();
+
+	
+	isDialogVisible = true;
 }
 
 
@@ -152,6 +162,7 @@ void ASkeletonController::OnReachHome()
 
 void ASkeletonController::OpenDialogue()
 {
+	WidgetComponent->SetVisibility(false);
 	PlayerWidget = CreateWidget<UUIDialoge>(GetWorld(), PlayerWidgetClass);
 	PlayerWidget->SetDialogue(MySkeleton,ValutFrase);
 	if (ValutFrase == 0)
@@ -170,11 +181,7 @@ void ASkeletonController::InterationDialogue()
 
 void ASkeletonController::InterationDialoguenOFF()
 {
-	if (WidgetComponent->IsVisible())
-	{
 		WidgetComponent->SetVisibility(false);
-	}
-		
 }
 
 

@@ -27,7 +27,7 @@ enum class ESkeletonState : uint8{
 	Dead = 1,
 	Transport = 2,
 	BackToHome = 3, // follow spline to go back home
-	Dialogue = 3, // reached his home
+	Dialogue = 4, // reached his home
 };
 
 
@@ -109,6 +109,8 @@ protected:
 	
 	UPROPERTY()
 	bool isDialoge = true;
+
+	bool isDialogVisible = false;
 
 	UFUNCTION()
 	void BeginOverlaps(UPrimitiveComponent* OverlappedComp,AActor* OtherActor,
