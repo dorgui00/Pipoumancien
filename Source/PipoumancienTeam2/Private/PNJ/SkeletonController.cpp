@@ -84,12 +84,22 @@ void ASkeletonController::Tick(float DeltaTime)
 
 void ASkeletonController::BeginOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	
+	if (OtherActor->IsA(APipouCharacter::StaticClass()))
+	{
+		if (MyState==ESkeletonState::Dialogue)
+		{
+			InterationDialogue();
+		}
+	}
 }
 
 void ASkeletonController::EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	if (OtherActor->IsA(APipouCharacter::StaticClass()))
+	{
+		InterationDialoguenOFF();
+	}
 }
 
 // STATE
@@ -156,6 +166,15 @@ void ASkeletonController::InterationDialogue()
 	{
 		WidgetComponent->SetVisibility(true);			
 	}
+}
+
+void ASkeletonController::InterationDialoguenOFF()
+{
+	if (WidgetComponent->IsVisible())
+	{
+		WidgetComponent->SetVisibility(false);
+	}
+		
 }
 
 

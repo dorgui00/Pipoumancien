@@ -66,7 +66,8 @@ public:
 	void OpenDialogue();
 
 	void InterationDialogue();
-	
+	void InterationDialoguenOFF();
+
 	UPROPERTY()
 	UUIDialoge* PlayerWidget;
 
@@ -85,6 +86,8 @@ public:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ZoneVictoir")
 	UWidgetComponent* WidgetComponent;
+
+
 
 
 protected:
