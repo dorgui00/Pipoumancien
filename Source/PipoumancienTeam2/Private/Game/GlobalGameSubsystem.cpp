@@ -83,14 +83,14 @@ bool UGlobalGameSubsystem::HasValidFirstNotes()
 		if (CurrentSkeleton->MySkeleton->Notes[i].InputAction != InputPressed[i])
 		{
 			// UE_LOG(LogTemp, Display, TEXT("Enchainement de 3 notes raté"));
-			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Enchainement de 3 notes raté")), true, FVector2D(2, 2));
+			// GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Enchainement de 3 notes raté")), true, FVector2D(2, 2));
 			
 			return false;
 		}
 	}
 
 	// UE_LOG(LogTemp, Display, TEXT("Enchainement de 3 notes réussi"));
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Enchainement de 3 notes réussi")), true, FVector2D(2, 2));
+	// GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Enchainement de 3 notes réussi")), true, FVector2D(2, 2));
 	
 	return true;
 }
