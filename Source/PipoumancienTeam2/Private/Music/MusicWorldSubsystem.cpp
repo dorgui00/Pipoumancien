@@ -170,7 +170,17 @@ F_Note* UMusicWorldSubsystem::GetCurrentWaitingNote() const
 
 UMusicNote* UMusicWorldSubsystem::GetCurrentWaitingNoteWidget() const
 {
-	if (GetCurrentWaitingNote() == nullptr) UE_LOGFMT(LogTemp, Error, "ERROR: No current waiting note !");
+	if (GetCurrentWaitingNote() == nullptr)
+	{
+		UE_LOGFMT(LogTemp, Error, "ERROR: No current waiting note !");
+		return nullptr;
+	}
+	if (GlobalHUDSubsystem->WBPResurrectionInstance == nullptr)
+	{
+		UE_LOGFMT(LogTemp, Error, "ERROR: WBPResurrectionInstance == nullptr !");
+		return nullptr;
+	}
+	
 	return GlobalHUDSubsystem->NotesInstanciated[GetCurrentWaitingNoteIndex()];
 }
 
@@ -394,6 +404,26 @@ void UMusicWorldSubsystem::LostQTE()
 {
 	// FAILS 
 	SetCurrentFailNotePossible(GetCurrentFailNotePossible() - 1);
+
+	if (GetCurrentWaitingNoteWidget() != nullptr)
+	{
+		GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::Red);
+
+		FTimerHandle NoteChangeBackColor;
+		GetWorld()->GetTimerManager().ClearTimer(NoteChangeBackColor);
+
+		GetWorld()->GetTimerManager().SetTimer(
+			NoteChangeBackColor, [this]()
+			{
+				if (GetCurrentWaitingNoteWidget() != nullptr)
+				{
+					GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::White);
+				}
+			},
+			2.f,
+			false
+			);
+	}
 	
 	// If the max note possible to fail has been achieved you go out of the music state without the skeletons.
 	if (HasLostAllFaileNotePossible())
