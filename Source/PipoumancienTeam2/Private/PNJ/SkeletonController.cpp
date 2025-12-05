@@ -48,8 +48,7 @@ ASkeletonController::~ASkeletonController()
 		FollowComponent->OnReachHome.RemoveDynamic(this, &ASkeletonController::OnReachHome);
 	}
 
-	//SphereComponent->OnComponentBeginOverlap.RemoveDynamic(this, &ASkeletonController::ASkeletonController::BeginOverlaps);
-	//SphereComponent->OnComponentEndOverlap.RemoveDynamic(this, &ASkeletonController::EndOverlaps);
+	
 }
 
 // Called when the game starts or when spawned
@@ -77,6 +76,14 @@ void ASkeletonController::BeginPlay()
 	bHasLastLocation = true;
 	bWasMoving = false;
 	bWasFollowing = false;
+}
+
+void ASkeletonController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	
+	SphereComponent->OnComponentBeginOverlap.RemoveDynamic(this, &ASkeletonController::BeginOverlaps);
+	SphereComponent->OnComponentEndOverlap.RemoveDynamic(this, &ASkeletonController::EndOverlaps);
 }
 
 // Called every frame
