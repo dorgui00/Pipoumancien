@@ -104,7 +104,7 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 	{
 		TickUpdateCameraPosition(DeltaTime);
 		
-		TickUpdateCameraVisibility(DeltaTime);
+		//TickUpdateCameraVisibility(DeltaTime);
 	}
 }
 
