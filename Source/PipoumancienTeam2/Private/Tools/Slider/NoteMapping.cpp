@@ -17,57 +17,63 @@ static bool StringToInput(const FString& In, ENoteInput& OutInput)
 
 void UNoteMapping::AutoBuildFromFolder()
 {
-    if (FolderPath.Path.IsEmpty())
+#if WITH_EDITOR
+    NoteSets.Reset();
+
+    FString Folder = FolderPath.Path;
+    if (Folder.IsEmpty())
     {
-        UE_LOG(LogTemp, Warning, TEXT("AutoBuildFromFolder: Folder path is empty."));
+        UE_LOG(LogTemp, Warning,
+            TEXT("UNoteMapping::AutoBuildFromFolder - FolderPath is empty"));
         return;
     }
 
-    FString GameRelativePath = FolderPath.Path;           // Pipoumancien/Sounds/Notes
-
-    if (!GameRelativePath.StartsWith(TEXT("/Game")))
+    if (!Folder.StartsWith(TEXT("/Game")))
     {
-        GameRelativePath = TEXT("/Game/") + GameRelativePath;
+        Folder = TEXT("/Game/") + Folder;
     }
 
-    UE_LOG(LogTemp, Log, TEXT("AutoBuildFromFolder: Scanning path %s"), *GameRelativePath);
+    FARFilter Filter;
+    Filter.bRecursivePaths = true;
+    Filter.PackagePaths.Add(*Folder);
+    Filter.ClassPaths.Add(USoundCue::StaticClass()->GetClassPathName());
 
+    TArray<FAssetData> Assets;
     FAssetRegistryModule& AssetRegistryModule =
         FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+    AssetRegistryModule.Get().GetAssets(Filter, Assets);
 
-    TArray<FAssetData> AssetDataList;
-    const bool bRecursive = true;
-    AssetRegistryModule.Get().GetAssetsByPath(FName(*GameRelativePath), AssetDataList, bRecursive);
-
-    TMap<FNoteKey, TArray<TSoftObjectPtr<USoundBase>>> TempMap;
-
-    for (const FAssetData& AssetData : AssetDataList)
+    for (const FAssetData& AssetData : Assets)
     {
-        if (!AssetData.IsValid() ||
-            !AssetData.GetClass()->IsChildOf(USoundBase::StaticClass()))
-        {
-            continue;
-        }
+        const FString Name = AssetData.AssetName.ToString();
 
-        const FString AssetName = AssetData.AssetName.ToString();
+        UE_LOG(LogTemp, Log, TEXT("Found asset: %s"), *Name);
 
         TArray<FString> Parts;
-        AssetName.ParseIntoArray(Parts, TEXT("_"), true);
+        Name.ParseIntoArray(Parts, TEXT("_"));
 
-        if (Parts.Num() < 3 || !Parts[0].Equals(TEXT("Note"), ESearchCase::IgnoreCase))
+        if (Parts.Num() < 3)
         {
             continue;
         }
 
+        const FString& Prefix = Parts[0];
         const FString& PitchStr = Parts[1];
         const FString& InputStr = Parts[2];
+
+        if (!Prefix.Equals(TEXT("Note"), ESearchCase::IgnoreCase) &&
+            !Prefix.Equals(TEXT("Notes"), ESearchCase::IgnoreCase))
+        {
+            continue;
+        }
 
         if (!PitchStr.IsNumeric())
         {
             continue;
         }
 
-        int32 Pitch10Int = FCString::Atoi(*PitchStr);
+        const float ParsedPitch = (FCString::Atof(*PitchStr) / 10.0f) *10.f;
+
         ENoteInput InputEnum;
         if (!StringToInput(InputStr, InputEnum))
         {
@@ -75,37 +81,48 @@ void UNoteMapping::AutoBuildFromFolder()
         }
 
         FNoteKey Key;
-        Key.Pitch10 = static_cast<int8>(Pitch10Int);
+        Key.Pitch10 = static_cast<int8>(FMath::RoundToInt(ParsedPitch * 10.0f));
         Key.Input = InputEnum;
 
-        auto& Bucket = TempMap.FindOrAdd(Key);
-        Bucket.Add(TSoftObjectPtr<USoundBase>(AssetData.ToSoftObjectPath()));
-    }
+        FSoftObjectPath SoftPath = AssetData.ToSoftObjectPath();
+        TSoftObjectPtr<USoundBase> SoundRef(SoftPath);
 
-    NoteSets.Empty();
-
-    for (auto& Pair : TempMap)
-    {
-        FNoteSoundSet Set;
-        Set.Key = Pair.Key;
-
-        Pair.Value.Sort([](const TSoftObjectPtr<USoundBase>& A,
-            const TSoftObjectPtr<USoundBase>& B)
+        FNoteSoundSet* ExistingSet = NoteSets.FindByPredicate(
+            [&Key](const FNoteSoundSet& S)
             {
-                return A.ToString() < B.ToString();
+                return S.Key == Key;
             });
 
-        if (Pair.Value.Num() > 3)
+        if (ExistingSet)
         {
-            Pair.Value.SetNum(3);
+            ExistingSet->Variants.AddUnique(SoundRef);
         }
-
-        Set.Variants = Pair.Value;
-        NoteSets.Add(Set);
+        else
+        {
+            FNoteSoundSet NewSet;
+            NewSet.Key = Key;
+            NewSet.Pitch = ParsedPitch;
+            NewSet.Variants.Add(SoundRef);
+            NoteSets.Add(MoveTemp(NewSet));
+        }
     }
 
-    MarkPackageDirty(); //asset changed, save it pls
+    NoteSets.Sort(
+        [](const FNoteSoundSet& A, const FNoteSoundSet& B)
+        {
+            if (A.Key.Pitch10 == B.Key.Pitch10)
+            {
+                return (int32)A.Key.Input < (int32)B.Key.Input;
+            }
+            return A.Key.Pitch10 < B.Key.Pitch10;
+        });
+
+    UE_LOG(LogTemp, Log,
+        TEXT("UNoteMapping::AutoBuildFromFolder - built %d sets from '%s'"),
+        NoteSets.Num(), *Folder);
+#endif
 }
+
 
 
 #endif
