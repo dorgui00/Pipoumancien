@@ -11,6 +11,11 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimationAsset.h"
 #include "BP/Fog.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
+#include "DrawDebugHelpers.h"
+
 
 
 // Sets default values
@@ -76,6 +81,7 @@ void ASkeletonController::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	UpdateAnimation(DeltaTime);
+
 }
 
 void ASkeletonController::BeginOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -108,8 +114,6 @@ void ASkeletonController::SetSkeletonForTransport()
 		FollowComponent->OnReachHome.AddDynamic(this, &ASkeletonController::OnReachHome);
 	}
 	
-	
-	// ANIMS
 
 }
 
@@ -150,7 +154,7 @@ void ASkeletonController::OpenDialogue()
 
 void ASkeletonController::UpdateAnimation(float DeltaTime)
 {
-	// no mesh no do
+	// no mesh, no animation / footsteps
 	if (!TargetMesh)
 	{
 		TargetMesh = FindComponentByClass<USkeletalMeshComponent>();
@@ -160,7 +164,7 @@ void ASkeletonController::UpdateAnimation(float DeltaTime)
 		}
 	}
 
-	// check player follow
+	// check if following the player
 	bool bIsFollowing = false;
 	if (FollowComponent)
 	{
@@ -170,6 +174,7 @@ void ASkeletonController::UpdateAnimation(float DeltaTime)
 	const FVector CurrentLocation = GetActorLocation();
 	bool bIsMoving = false;
 
+	// movement detection
 	if (!bHasLastLocation)
 	{
 		LastLocation = CurrentLocation;
@@ -178,10 +183,10 @@ void ASkeletonController::UpdateAnimation(float DeltaTime)
 	else
 	{
 		const float DistanceMovedSq = FVector::DistSquared(CurrentLocation, LastLocation);
-		bIsMoving = DistanceMovedSq > 1.0f;
+		bIsMoving = DistanceMovedSq > 1.0f; // small threshold
 	}
 
-	// change anim on state
+	// --------- ANIMATION STATE ---------
 	if (bIsMoving != bWasMoving || bIsFollowing != bWasFollowing)
 	{
 		if (bIsFollowing)
@@ -211,8 +216,60 @@ void ASkeletonController::UpdateAnimation(float DeltaTime)
 		bWasFollowing = bIsFollowing;
 	}
 
+	// uadio
+	if (bIsMoving)
+	{
+		FootstepTimer += DeltaTime;
+
+		if (FootstepTimer >= FootstepInterval)
+		{
+			FootstepTimer = 0.f;
+
+			FHitResult Hit;
+			FCollisionQueryParams Params;
+			Params.bReturnPhysicalMaterial = true;
+
+			const FVector BaseLoc = (TargetMesh ? TargetMesh->GetComponentLocation() : GetActorLocation());
+
+			FVector Start = BaseLoc + FVector(0.f, 0.f, 100.f);
+			FVector End = BaseLoc - FVector(0.f, 0.f, 1000.f);
+
+			bool bHit = GetWorld()->LineTraceSingleByChannel(
+				Hit,
+				Start,
+				End,
+				ECC_Visibility,
+				Params
+			);
+
+			if (!bHit)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[SkeletonController] step trace hit NOTHIIIIIIING HEEEEEELP MEEEEEEEEEEEE"));
+			}
+			else
+			{
+				AActor* HitActor = Hit.GetActor();
+				UPrimitiveComponent* HitComp = Hit.GetComponent();
+				UPhysicalMaterial* PhysMat = Hit.PhysMaterial.Get();
+
+				if (PhysMat)
+				{
+					PlayFootstepsSound(PhysMat);
+				}
+			}
+		}
+	}
+	else
+	{
+		// standing still so reset timer
+		FootstepTimer = 0.f;
+	}
+
 	LastLocation = CurrentLocation;
 }
+
+
+//ANIMATIONS
 
 void ASkeletonController::FogDilet()
 {
@@ -248,4 +305,38 @@ void ASkeletonController::PlayWait()
 		TargetMesh->PlayAnimation(WaitAnimation, true);
 	}
 }
+
+// ------------------ //
+
+void ASkeletonController::PlayFootstepsSound(UPhysicalMaterial* PhysMat)
+{
+	if (!FootstepCue)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Skeleton] stepcue not set"));
+		return;
+	}
+
+	if (!PhysMat)
+	{
+		return;
+	}
+
+	const FVector Location = GetActorLocation();
+
+	UAudioComponent* AudioComp = UGameplayStatics::SpawnSoundAtLocation(
+		this,
+		FootstepCue,
+		Location
+	);
+
+	if (!AudioComp)
+	{
+		return;
+	}
+
+	const int32 SurfaceIndex = static_cast<int32>(PhysMat->SurfaceType);
+	AudioComp->SetIntParameter(TEXT("SurfaceType"), SurfaceIndex);
+}
+
+
 
