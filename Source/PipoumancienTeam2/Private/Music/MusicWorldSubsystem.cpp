@@ -352,11 +352,7 @@ void UMusicWorldSubsystem::LostMelody()
 	GetWorld()->GetTimerManager().SetTimer(
 		IsAnimationFinished, [this]()
 		{
-			GlobalHUDSubsystem->RemovePartitionFinish();
-
-			GlobalGameSubsystem->SetWorldFreeState();
-			// Camera
-			//GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
+			GlobalGameSubsystem->SetLostMelody();
 		},
 		2.f,
 		false

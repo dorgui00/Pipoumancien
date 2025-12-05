@@ -418,10 +418,8 @@ void APipouCharacter::OnComponentEndOverlap(UPrimitiveComponent* OverlappedCompo
 		OverlapSkeleton = nullptr;
 		
 		// delete current skeleton for everyone
-		GlobalGameSubsystem->SetCurrentSkeleton(nullptr);
+		GlobalGameSubsystem->CancelOverlapSameSkeleton();
 		UE_LOG(LogTemp, Display, TEXT("End Overlap Skeleton"));
-
-		
 	}
 }
 

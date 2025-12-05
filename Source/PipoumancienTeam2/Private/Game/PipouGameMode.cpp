@@ -12,7 +12,7 @@
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
-#include "Game/GlobalGameSubsystem.h"
+#include "UI/GlobalHUDSubsystem.h"
 
 class AGameManager;
 
@@ -35,9 +35,14 @@ void APipouGameMode::BeginPlay()
 	SpawnCharacters(PlayerStartsPoint);
 
 	// -- SKELETON --
-	UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
-	GlobalGameSubsystem->FindSkeletonInteractionWidget();
-	
+	UGlobalHUDSubsystem* GlobalHUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
+
+	// timer for execution order (to edit ?)
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, GlobalHUDSubsystem,
+		&UGlobalHUDSubsystem::FindSkeletonInteractionWidget,
+		0.05f, false);
+
 }
 
 
