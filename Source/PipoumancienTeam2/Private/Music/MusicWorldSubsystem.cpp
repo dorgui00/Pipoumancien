@@ -83,8 +83,6 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 
 		GlobalHUDSubsystem->MovePartition(DeltaTime);
 
-		// UE_LOGFMT(LogTemp, Log, "{0}", CurrentFailNotePossible);
-
 		if (IsLerpingOffset)
 		{
 			IncreaseTimerLerpingOffset(DeltaTime);
@@ -96,6 +94,8 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		}
 		else
 		{
+			// UE_LOGFMT(LogTemp, Warning, "CurrentNoteIndex: {0}", GetCurrentWaitingNoteIndex());
+			
 			IncreaseMusicTempo(DeltaTime);
 			TempoNoteUI += DeltaTime;
 
@@ -116,7 +116,6 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			if (HasEnteredWindowNote())
 			{
 				IsAwaitingReply = true;
-				GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FColor::Yellow);
 			}
 
 			// Reach the frequency !
@@ -134,10 +133,9 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			// Check for the exit of the window note, to check if the player HasAchievedQTE.
 			if (HasExitedWindowNote())
 			{
+				// Not Time for the QTE anymore.
 				IsAwaitingReply = false;
 
-				GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FColor::Blue);
-				
 				// success
 				if(HasAchievedQte())
 				{
@@ -218,9 +216,24 @@ void UMusicWorldSubsystem::InitMusic(ASkeletonController* Skeleton)
 	// Init the Skeleton for the Music Logic.
 	CurrentSkeleton = Skeleton;
 
+	Tempo = 0.f;
+	TempoNoteUI = 0.f;
+	TimerCountDown = 3.f;
+
+	CurrentWaitingNoteIndex = 0;
+	CurrentWaitingNoteIndexUI = 0;
+	
+	IsAwaitingReply = false;
+	HasMusicianReceivedInput = false;
+	HasReachFrequency = false;
+	
 	// Reset the current cursor value for the pith slider.
 	CurrentPitchCursorValue = 0.f;
-
+	
+	IsLerpingOffset = true;
+	TimerLerpingOffset = 0.f;
+	
+	IsConductorOnTheRightPitch = false;
 	HasLostMelody = false;
 	IsInWorldStateMusic = true;
 	
@@ -265,8 +278,6 @@ void UMusicWorldSubsystem::SucceedQTE()
 	{
 		SetCurrentFailNotePossible(MaxFailNotePossible);
 	}
-
-	UE_LOGFMT(LogTemp, Warning, "Reussi QTE");
 	
 	// Continue
 	GoNextNote();
@@ -275,7 +286,7 @@ void UMusicWorldSubsystem::SucceedQTE()
 void UMusicWorldSubsystem::SucceedMelody()
 {
 	// DEBUG
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")), true, FVector2D(2, 2));
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")), true, FVector2D(2, 2));
 
 	// SUCCEED
 	MelodyState = EMelodyType::SUCCEED;
@@ -341,11 +352,7 @@ void UMusicWorldSubsystem::LostMelody()
 	GetWorld()->GetTimerManager().SetTimer(
 		IsAnimationFinished, [this]()
 		{
-			GlobalHUDSubsystem->RemovePartitionFinish();
-
-			GlobalGameSubsystem->SetWorldFreeState();
-			// Camera
-			//GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetGlobalCamera();
+			GlobalGameSubsystem->SetLostMelody();
 		},
 		2.f,
 		false
@@ -372,9 +379,9 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 		return false;
 	}
 	
-	IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch >= CurrentPitchCursorValue - PitchTolerance
-	   && GetCurrentWaitingNote()->Pitch <= CurrentPitchCursorValue + PitchTolerance;
-
+	IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch >= GetCurrentPitchCursorValue() - PitchTolerance
+	   && GetCurrentWaitingNote()->Pitch <= GetCurrentPitchCursorValue() + PitchTolerance;
+	
 	if (HasMusicianReceivedInput && IsConductorOnTheRightPitch)
 	{
 		return true;
@@ -393,6 +400,13 @@ void UMusicWorldSubsystem::LostQTE()
 	{
 		SetCurrentFailNotePossible(0);
 		LostMelody();
+		return;
+	}
+
+	if (HasFinishedMelody())
+	{
+		SucceedMelody();
+		return;
 	}
 
 	// continue 

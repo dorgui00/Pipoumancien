@@ -28,6 +28,7 @@ public:
     UPROPERTY(EditAnywhere, Category = "Follow|Spline")
     USplineComponent* SplineToFollow = nullptr;
 
+    // speed
     UPROPERTY(EditAnywhere, Category = "Follow|Spline", meta = (ClampMin = "0"))
     float SplineFollowSpeed = 300.f;
 
@@ -37,11 +38,13 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Follow")
     bool IsStartFollowing() const { return bStartFollowing; }
 
+    // distance par rapport au joueur
     UPROPERTY(EditAnywhere, Category = "PathGen|Circles", meta = (ClampMin = "0"))
     float PlayerCircleRadius = 300.f;
 
+    // delay
     UPROPERTY(EditAnywhere, Category = "PathGen|Timing", meta = (ClampMin = "0.01"))
-    float SegmentDelay = 1.5f;
+    float SegmentDelay = 0.1f;
 
     UPROPERTY(EditAnywhere, Category = "PathGen|Debug")
     bool bDrawDebug = true;

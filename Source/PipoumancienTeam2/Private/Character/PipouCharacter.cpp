@@ -15,6 +15,7 @@
 #include "Game/GlobalGameSubsystem.h"
 #include "Interaction/Interact.h"
 #include "Kismet/GameplayStatics.h"
+#include "Music/MusicWorldSubsystem.h"
 #include "PNJ/SkeletonController.h"
 
 #pragma region Default Constructors
@@ -417,10 +418,8 @@ void APipouCharacter::OnComponentEndOverlap(UPrimitiveComponent* OverlappedCompo
 		OverlapSkeleton = nullptr;
 		
 		// delete current skeleton for everyone
-		GlobalGameSubsystem->SetCurrentSkeleton(nullptr);
+		GlobalGameSubsystem->CancelOverlapSameSkeleton();
 		UE_LOG(LogTemp, Display, TEXT("End Overlap Skeleton"));
-
-		
 	}
 }
 

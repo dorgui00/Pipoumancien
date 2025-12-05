@@ -12,6 +12,7 @@
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
+#include "UI/GlobalHUDSubsystem.h"
 
 class AGameManager;
 
@@ -22,15 +23,26 @@ void APipouGameMode::BeginPlay()
 	CreateAndInitPlayers();
 	FindPlayerStartActorsInScene(PlayerStartsPoint);
 
+	// -- CAMERA --
 	// Init the camera main in the CameraWorldSubsystem.
 	if (UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
 		CameraWorldSubsystem->InitCameraSubsystem();
 
 	// Init the camera main variable in this script with the one in the CameraWorldSubsystem.
 	GetCamera();
-	
+
+	// -- PLAYERS -- 
 	SpawnCharacters(PlayerStartsPoint);
-	
+
+	// -- SKELETON --
+	UGlobalHUDSubsystem* GlobalHUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
+
+	// timer for execution order (to edit ?)
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, GlobalHUDSubsystem,
+		&UGlobalHUDSubsystem::FindSkeletonInteractionWidget,
+		0.05f, false);
+
 }
 
 

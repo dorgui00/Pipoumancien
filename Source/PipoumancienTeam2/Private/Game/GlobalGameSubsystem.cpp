@@ -9,7 +9,9 @@
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
 #include "Music/MusicWorldSubsystem.h"
+#include "PNJ/Bird.h"
 #include "PNJ/SkeletonController.h"
+#include "Tools/Slider/NoteMapping.h"
 #include "UI/GlobalHUDSubsystem.h"
 
 // void UGlobalGameSubsystem::Tick(float DeltaTime)
@@ -22,6 +24,7 @@ void UGlobalGameSubsystem::SetCharacters(APipouCharacter* Character)
 	PipouCharacters.Add(Character);
 }
 
+
 ASkeletonController* UGlobalGameSubsystem::GetCurrentSkeleton() const
 {
 	return CurrentSkeleton;
@@ -31,21 +34,45 @@ void UGlobalGameSubsystem::SetCurrentSkeleton(ASkeletonController* Skeleton)
 {
 	CurrentSkeleton = Skeleton;
 
-	// TO EDIT TEST
-	//GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>()->SpawnSkeletonInteractionWidget(PipouCharacters);
 }
+
+void UGlobalGameSubsystem::SetBird(ABird* InBird)
+{
+	Bird = InBird;
+}
+
 
 // Music
 void UGlobalGameSubsystem::AddNoteForSkeletonInteraction(UInputAction* InputAction)
 {
-	InputPressed.Add(InputAction);
+	// HUD 
+	UGlobalHUDSubsystem* GlobalHUDSubsystemIn = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
 
+	// First Note
+	if (InputPressed.Num() == 0)
+	{
+		GlobalHUDSubsystemIn->CallSkeletonInteractionWidget();
+	}
+
+	// Add Notes
+	InputPressed.Add(InputAction);
+	GlobalHUDSubsystemIn->DisplayNotesForSkeletonInteraction(InputAction);
+
+	// Compare notes
 	if (InputPressed.Num() >= SkeletonNotesToCheck)
 	{
-		if (HasValidFirstNotes()) 
+		if (HasValidFirstNotes())
+		{
 			SetWorldMusicState();
-		
+		}
+
+		// Reset 3 Notes
 		ResetInputsArray();
+		
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, GlobalHUDSubsystemIn,
+			&UGlobalHUDSubsystem::ResetSkeletonInteractionWidget,
+			1.f, false);
 	}
 }
 
@@ -93,11 +120,33 @@ bool UGlobalGameSubsystem::PlayersOverlapSameSkeleton()
 			return false;
 	}
 	
-	//Players Overlap the same skel
+	// ---- PLAYERS OVERLAP SAME SKELETON ----
 	UE_LOG(LogTemp, Display, TEXT("Players are Overlapping the same skeleton"));
 	SetCurrentSkeleton(CurrentSkeletonIn);
+
+	// feedbacks
+	Bird->SetWidgetVisibility(true);
 	
 	return true;
+}
+
+void UGlobalGameSubsystem::CancelOverlapSameSkeleton()
+{
+	SetCurrentSkeleton(nullptr);
+
+	// FEEDBACKS
+	Bird->SetWidgetVisibility(false);
+}
+
+void UGlobalGameSubsystem::SetLostMelody()
+{
+	UGlobalHUDSubsystem* HUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
+	HUDSubsystem->RemovePartitionFinish();
+
+	SetWorldFreeState();
+
+	// VISUELS
+	Bird->SetWidgetVisibility(true);
 }
 
 EWorldState UGlobalGameSubsystem::GetWorldState() const
@@ -123,6 +172,9 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 	
 	UGlobalHUDSubsystem* HUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
 	if (!HUDSubsystem) return;
+
+	// VISUELS
+	Bird->SetWidgetVisibility(false);
 	
 	// Display UI
 	HUDSubsystem->DisplayResurrectionWidget();

@@ -22,7 +22,8 @@ public class PipoumancienTeam2 : ModuleRules
             "DeveloperSettings",
                 
             "NavigationSystem",
-            "AIModule"
+            "AIModule", 
+            "NiagaraUIRenderer"
         });
 
         if (Target.bBuildEditor)
@@ -40,6 +41,7 @@ public class PipoumancienTeam2 : ModuleRules
                 "Engine",
                 "Slate",
                 "SlateCore",
+                "NiagaraUIRendererEditor"
             });
         }
         //jusqu'ici
