@@ -18,6 +18,9 @@ class PIPOUMANCIENTEAM2_API USkeletonInteractionWidget : public UUserWidget
 	GENERATED_BODY()
 
 public :
+	// ---- USER WIDGET FUNCTIONS ----
+	virtual void NativeConstruct() override;
+	
 	// Spawn Points
 	UPROPERTY(meta = (BindWidget))
 	UScaleBox* ScaleBox01;
@@ -37,5 +40,7 @@ public :
 	UPROPERTY(meta = (BindWidget))
 	UImage* Image03;
 
+	UPROPERTY()
+	TArray<UImage*> Images;
 	
 };

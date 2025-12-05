@@ -8,6 +8,8 @@
 #include "Components/TextBlock.h"
 #include "GlobalHUDSubsystem.generated.h"
 
+class USkeletonInteractionWidget;
+class UWidgetComponent;
 class APipouCharacter;
 class UHUDData;
 class UPartitionFinish;
@@ -103,10 +105,19 @@ public:
 
 	void SetImageColor(UImage* CurrentImage, FLinearColor NewColor);
 
-	// UI WORLD
-	void DisplayNotesForSkeletonInteraction(UInputAction* InputAction);
+	// ----- UI WORLD -----
+	TObjectPtr<UWidgetComponent> GetSkeletonInteractionWidgetComponent() const;
+	
+	void FindSkeletonInteractionWidget(); // call at init in game mode
+	
+	void DisplayNotesForSkeletonInteraction(const UInputAction* InputAction);
 
-	void SpawnSkeletonInteractionWidget(TArray<APipouCharacter*> Characters);
+	void CallSkeletonInteractionWidget();
+
+	void ResetSkeletonInteractionWidget();
+
+	void SetWidgetVisibility(UUserWidget* Widget, bool Visibility);
+	
 	
 protected:
 	// ---- GAME INSTANCE SUBSYSTEM ----
@@ -136,6 +147,15 @@ private:
 	// ---- FEEDBACK COLORS NOTES ----
 	void Internal_SetImageColor(UImage* CurrentImage, FLinearColor NewColor);
 
+	// ---- UI WORLD ----
+	UPROPERTY()
+	TObjectPtr<AActor> SkeletonInteractionWidgetActor = nullptr;
+	
+	UPROPERTY()
+	TObjectPtr<UWidgetComponent> SkeletonInteractionWidgetComponent = nullptr;
+
+	UPROPERTY()
+	TObjectPtr<USkeletonInteractionWidget> SkeletonInteractionWidget = nullptr;
 	
 	// ---- UTILITIES ----
 	UPROPERTY()
