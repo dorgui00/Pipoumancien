@@ -43,13 +43,19 @@ void UAC_SkeletonFollower::TickComponent(float DeltaTime, ELevelTick TickType, F
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-    if (bFollowingSpline && SplineToFollow)
+    if (SplineToFollow)
     {
-        TickFollowSpline(DeltaTime);
+        if (bLerpingToSpline)
+        {
+            TickLerpToSpline(DeltaTime);
+        }
+        else if (bFollowingSpline)
+        {
+            TickFollowSpline(DeltaTime);
+        }
     }
 
     CheckPlayerRange();
-
     UpdatePlayerMovement(DeltaTime);
 }
 
@@ -236,17 +242,102 @@ USplineComponent* UAC_SkeletonFollower::FindNearestSplineToOwner(bool bVillageOn
     return BestSpline;
 }
 
-void UAC_SkeletonFollower::StartFollowingSplineFromClosestPoint()
+void UAC_SkeletonFollower::StartFollowingSplineFromClosestPoint(bool bLerpToStart)
 {
     if (!ParentActor || !SplineToFollow) return;
 
     const FVector OwnerLoc = ParentActor->GetActorLocation();
     const float ClosestKey = SplineToFollow->FindInputKeyClosestToWorldLocation(OwnerLoc);
-    CurrentDistance = SplineToFollow->GetDistanceAlongSplineAtSplineInputKey(ClosestKey);
 
+    CurrentDistance = SplineToFollow->GetDistanceAlongSplineAtSplineInputKey(ClosestKey);
     TargetDistance = SplineToFollow->GetSplineLength();
-    bFollowingSpline = true;
+
+    if (bLerpToStart)
+    {
+        bFollowingSpline = false;
+        bLerpingToSpline = true;
+        LerpElapsedTime = 0.f;
+        LerpStartLocation = OwnerLoc;
+        LerpTargetLocation = SplineToFollow->GetLocationAtDistanceAlongSpline(
+            CurrentDistance,
+            ESplineCoordinateSpace::World
+        );
+    }
+    else
+    {
+        bLerpingToSpline = false;
+        bFollowingSpline = true;
+    }
 }
+
+void UAC_SkeletonFollower::TickLerpToSpline(float DeltaTime)
+{
+    if (!bLerpingToSpline || !ParentActor || !SplineToFollow)
+    {
+        return;
+    }
+
+    const FVector CurrentLoc = ParentActor->GetActorLocation();
+    FVector ToTarget = LerpTargetLocation - CurrentLoc;
+    const float DistToTarget = ToTarget.Size();
+
+    if (DistToTarget <= KINDA_SMALL_NUMBER)
+    {
+        bLerpingToSpline = false;
+        bFollowingSpline = true;
+        return;
+    }
+
+    ToTarget.Normalize();
+
+    const float MaxStep = SplineFollowSpeed * DeltaTime;
+    const bool bWillReachThisFrame = MaxStep >= DistToTarget;
+
+    const FVector NewLoc = bWillReachThisFrame
+        ? LerpTargetLocation
+        : CurrentLoc + ToTarget * MaxStep;
+
+    if (bOrientToSpline)
+    {
+        FRotator NewRot;
+        FVector DirForRot = ToTarget;
+
+        if (bYawOnly)
+        {
+            DirForRot.Z = 0.f;
+
+            if (!DirForRot.IsNearlyZero())
+            {
+                NewRot = DirForRot.Rotation();
+                NewRot.Pitch = 0.f;
+                NewRot.Roll = 0.f;
+            }
+            else
+            {
+                NewRot = ParentActor->GetActorRotation();
+                NewRot.Pitch = 0.f;
+                NewRot.Roll = 0.f;
+            }
+        }
+        else
+        {
+            NewRot = DirForRot.Rotation();
+        }
+
+        ParentActor->SetActorLocationAndRotation(NewLoc, NewRot);
+    }
+    else
+    {
+        ParentActor->SetActorLocation(NewLoc);
+    }
+
+    if (bWillReachThisFrame)
+    {
+        bLerpingToSpline = false;
+        bFollowingSpline = true;
+    }
+}
+
 
 void UAC_SkeletonFollower::TickFollowSpline(float DeltaTime)
 {
@@ -455,7 +546,7 @@ void UAC_SkeletonFollower::OnParentOverlap(AActor* OverlappedActor, AActor* Othe
         bOnVillageSpline = true;
         bHasReachedHome = false;
 
-        StartFollowingSplineFromClosestPoint();
+        StartFollowingSplineFromClosestPoint(true);
     }
     else
     {

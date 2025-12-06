@@ -96,6 +96,9 @@ public:
     UPROPERTY()
     FOnReachHome OnReachHome;
 
+    UPROPERTY(EditAnywhere, Category = "Follow|Spline", meta = (ClampMin = "0"))
+    float SplineEntryLerpTime = 0.5f;
+
 protected:
     virtual void BeginPlay() override;
 
@@ -160,7 +163,9 @@ private:
 
     void GenerateNextPathPoint();
 
-    void StartFollowingSplineFromClosestPoint();
+    void StartFollowingSplineFromClosestPoint(bool bLerpToStart = false);
+
+    void TickLerpToSpline(float DeltaTime);
 
     void TickFollowSpline(float DeltaTime);
 
@@ -171,4 +176,9 @@ private:
     bool HasLocalClearanceAt(const FVector& Location) const;
 
     bool TrySnapToGround(const FVector& In, FVector& Out) const;
+
+    bool bLerpingToSpline = false;
+    FVector LerpStartLocation = FVector::ZeroVector;
+    FVector LerpTargetLocation = FVector::ZeroVector;
+    float LerpElapsedTime = 0.f;
 };
