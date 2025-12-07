@@ -16,6 +16,7 @@
 #include "NavigationPath.h"
 
 #include "Character/PipouCharacter.h"
+#include "Character/PipouCharacterStateWalk.h"
 #include "Tools/VillagePathManager.h"
 
 
@@ -429,22 +430,34 @@ void UAC_SkeletonFollower::UpdatePlayerMovement(float DeltaTime)
         return;
     }
 
+    const bool bShouldEffectBeOn = bCanFollowPlayers;
+
+
     for (int32 i = 0; i < PipouPlayers.Num(); ++i)
     {
         AActor* Player = PipouPlayers[i];
-        if (!Player) continue;
+        if (!Player)
+            continue;
 
         const FVector CurrentLoc = Player->GetActorLocation();
         const FVector PrevLoc = PreviousPlayerLocations[i];
 
         const float DistanceMoved = FVector::Dist(CurrentLoc, PrevLoc);
-
         PreviousPlayerLocations[i] = CurrentLoc;
 
-        if (DistanceMoved >= PlayerMovingDistanceThreshold)
+
+        if (APipouCharacter* Pipou = Cast<APipouCharacter>(Player))
+        {
+            if (UPipouCharacterStateWalk* WalkState = Pipou->FindComponentByClass<UPipouCharacterStateWalk>())
+            {
+                WalkState->SetFollowEffectActive(bShouldEffectBeOn);
+            }
+        }
+
+        if (bShouldEffectBeOn)
         {
             bAnyPlayerMoving = true;
-            break;
+
         }
     }
 }

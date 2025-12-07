@@ -5,6 +5,7 @@
 #include "Components/SplineComponent.h"
 #include "AC_SkeletonFollower.generated.h"
 
+class APipouCharacter;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class PIPOUMANCIENTEAM2_API UAC_SkeletonFollower : public UActorComponent
@@ -98,6 +99,16 @@ public:
 
     UPROPERTY(EditAnywhere, Category = "Follow|Spline", meta = (ClampMin = "0"))
     float SplineEntryLerpTime = 0.5f;
+
+    //NIAGARA
+
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
+        FOnPipouFollowEffectChanged,
+        APipouCharacter*, Pipou,
+        bool, bActive);
+
+    UPROPERTY(BlueprintAssignable, Category = "Follow|Events")
+    FOnPipouFollowEffectChanged OnPipouFollowEffectChanged;
 
 protected:
     virtual void BeginPlay() override;

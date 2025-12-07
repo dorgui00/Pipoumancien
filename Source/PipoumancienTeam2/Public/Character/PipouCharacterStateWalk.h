@@ -23,6 +23,8 @@ public:
 	virtual void StateTick(float Deltatime) override;
 	virtual void StateExit(EPipouCharacterStateID NextStateID) override;
 
+	virtual void BeginPlay();
+
 	// ---- ANIMATIONS ----
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animation")
 	UAnimationAsset* WalkAnim;
@@ -68,6 +70,15 @@ public:
 	UPROPERTY(Transient)
 	UAudioComponent* WalkLoopComponent;
 
+	//NIAGARA
+
+	UPROPERTY(BlueprintReadOnly, Category = "Follow|VFX")
+	bool bFollowEffectActive = false;
+
+	void SetFollowEffectActive(bool bActive);
+
+	// ----- //
+
 private:
 
 	//AUDIO
@@ -76,4 +87,7 @@ private:
 	
 	// --- MUSIC ---
 	virtual void OnCharacterPressedNote(UInputAction* InputAction) override;
+
+	// NIAGARA
+
 };

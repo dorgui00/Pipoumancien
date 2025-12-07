@@ -137,6 +137,11 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 			FootstepTimer = 0.f;
 		}
 	}
+
+	if (bFollowEffectActive) 
+	{
+
+	}
 }
 
 void UPipouCharacterStateWalk::StateExit(EPipouCharacterStateID NextStateID)
@@ -189,4 +194,11 @@ void UPipouCharacterStateWalk::PlayFootstepsSound(UPhysicalMaterial* PhysMat)
 
 		return;
 	}
+}
+
+//NIAGARA
+
+void UPipouCharacterStateWalk::SetFollowEffectActive(bool bActive)
+{
+	bFollowEffectActive = bActive;
 }
