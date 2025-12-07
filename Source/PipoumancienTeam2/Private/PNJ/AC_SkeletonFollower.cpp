@@ -11,6 +11,7 @@
 #include "TimerManager.h"
 #include "CollisionShape.h" 
 #include "Kismet/GameplayStatics.h"
+#include "Components/LightComponent.h"
 
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
@@ -38,6 +39,8 @@ void UAC_SkeletonFollower::BeginPlay()
         ParentActor->OnActorHit.AddDynamic(this, &UAC_SkeletonFollower::OnParentHit);
         ParentActor->OnActorBeginOverlap.AddDynamic(this, &UAC_SkeletonFollower::OnParentOverlap);
     }
+
+    OnReachHome.AddDynamic(this, &UAC_SkeletonFollower::HandleReachHome);
 }
 
 void UAC_SkeletonFollower::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -685,6 +688,45 @@ bool UAC_SkeletonFollower::TrySnapToGround(const FVector& In, FVector& Out) cons
     }
     return false;
 }
+
+
+//village
+
+void UAC_SkeletonFollower::HandleReachHome()
+{
+    UE_LOG(LogTemp, Log, TEXT("[SkeletonFollower] HandleReachHome called"));
+
+    if (!ParentActor)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[SkeletonFollower] ParentActor is null"));
+        return;
+    }
+
+    UWorld* World = GetWorld();
+    if (!World)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[SkeletonFollower] World is null"));
+        return;
+    }
+
+    // Find the VillagePathManager in the level
+    AActor* ManagerActor = UGameplayStatics::GetActorOfClass(World, AVillagePathManager::StaticClass());
+    if (!ManagerActor)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[SkeletonFollower] No VillagePathManager found in world"));
+        return;
+    }
+
+    if (AVillagePathManager* Manager = Cast<AVillagePathManager>(ManagerActor))
+    {
+        UE_LOG(LogTemp, Log, TEXT("[SkeletonFollower] Notifying VillagePathManager for %s"),
+            *GetNameSafe(ParentActor));
+
+        Manager->OnSkeletonReachedEnd(ParentActor);
+    }
+}
+
+
 
 
 //debug

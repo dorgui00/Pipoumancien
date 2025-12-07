@@ -86,7 +86,7 @@ public:
     
     // On Enter Village
     DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnterVillage);
-    
+
     UPROPERTY()
     FOnEnterVillage OnEnterVillage;
     
@@ -155,6 +155,9 @@ protected:
 
     UFUNCTION()
     void OnParentOverlap(AActor* OverlappedActor, AActor* OtherActor);
+
+    UFUNCTION()
+    void HandleReachHome();
 
 public:
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
