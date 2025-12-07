@@ -430,9 +430,6 @@ void UAC_SkeletonFollower::UpdatePlayerMovement(float DeltaTime)
         return;
     }
 
-    const bool bShouldEffectBeOn = bCanFollowPlayers;
-
-
     for (int32 i = 0; i < PipouPlayers.Num(); ++i)
     {
         AActor* Player = PipouPlayers[i];
@@ -445,6 +442,8 @@ void UAC_SkeletonFollower::UpdatePlayerMovement(float DeltaTime)
         const float DistanceMoved = FVector::Dist(CurrentLoc, PrevLoc);
         PreviousPlayerLocations[i] = CurrentLoc;
 
+        const bool bIsMovingNow = (DistanceMoved >= PlayerMovingDistanceThreshold);
+        const bool bShouldEffectBeOn = bStartFollowing && bIsMovingNow;
 
         if (APipouCharacter* Pipou = Cast<APipouCharacter>(Player))
         {
@@ -454,10 +453,9 @@ void UAC_SkeletonFollower::UpdatePlayerMovement(float DeltaTime)
             }
         }
 
-        if (bShouldEffectBeOn)
+        if (bIsMovingNow)
         {
             bAnyPlayerMoving = true;
-
         }
     }
 }

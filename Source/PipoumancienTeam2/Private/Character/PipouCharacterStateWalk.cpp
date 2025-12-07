@@ -137,11 +137,6 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 			FootstepTimer = 0.f;
 		}
 	}
-
-	if (bFollowEffectActive) 
-	{
-
-	}
 }
 
 void UPipouCharacterStateWalk::StateExit(EPipouCharacterStateID NextStateID)
