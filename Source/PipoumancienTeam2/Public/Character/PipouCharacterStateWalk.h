@@ -23,8 +23,6 @@ public:
 	virtual void StateTick(float Deltatime) override;
 	virtual void StateExit(EPipouCharacterStateID NextStateID) override;
 
-	virtual void BeginPlay();
-
 	// ---- ANIMATIONS ----
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animation")
 	UAnimationAsset* WalkAnim;
