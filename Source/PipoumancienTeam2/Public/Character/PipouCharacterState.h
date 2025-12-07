@@ -65,7 +65,7 @@ protected:
 	// World Interaction
 	int WorldNotesToPlay = 3; // check 3 world notes to interact
 	int CurrentWorldNotes = 0;
-	float WorldNotesInterval = 2.f;
+	float WorldNotesInterval = 5.f;
 	float WorldNotesTimer = 0; 
 	bool IsTryingToInteractWithWorld = false;
 	
