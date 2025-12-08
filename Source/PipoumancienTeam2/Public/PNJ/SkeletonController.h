@@ -7,6 +7,7 @@
 #include "Components/SphereComponent.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Engine/EngineTypes.h"
+#include "Components/WidgetComponent.h"
 #include "SkeletonController.generated.h"
 
 class UAC_SkeletonFollower;
@@ -27,7 +28,7 @@ enum class ESkeletonState : uint8{
 	Dead = 1,
 	Transport = 2,
 	BackToHome = 3, // follow spline to go back home
-	Dialogue = 3, // reached his home
+	Dialogue = 4, // reached his home
 };
 
 
@@ -64,7 +65,10 @@ public:
 	void OnReachHome();
 
 	void OpenDialogue();
-	
+
+	void InterationDialogue();
+	void InterationDialoguenOFF();
+
 	UPROPERTY()
 	UUIDialoge* PlayerWidget;
 
@@ -80,6 +84,11 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
 	USkeletalMeshComponent* TargetMesh = nullptr;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ZoneVictoir")
+	UWidgetComponent* WidgetComponent;
+
+
 
 	//SOUNDS
 	UPROPERTY(EditAnywhere, Category = "Audio")
@@ -89,6 +98,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UPROPERTY(EditAnywhere, Category="Skeleton")
 	int ID = 0;
@@ -105,6 +115,8 @@ protected:
 	
 	UPROPERTY()
 	bool isDialoge = true;
+
+	bool isDialogVisible = false;
 
 	UFUNCTION()
 	void BeginOverlaps(UPrimitiveComponent* OverlappedComp,AActor* OtherActor,
