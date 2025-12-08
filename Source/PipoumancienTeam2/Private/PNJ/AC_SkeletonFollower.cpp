@@ -1,5 +1,6 @@
 
 #include "PNJ/AC_SkeletonFollower.h"
+#include "PNJ/SkeletonController.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
@@ -10,7 +11,6 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "CollisionShape.h" 
-#include "Kismet/GameplayStatics.h"
 #include "Components/LightComponent.h"
 
 #include "NavigationSystem.h"
@@ -19,6 +19,7 @@
 #include "Character/PipouCharacter.h"
 #include "Character/PipouCharacterStateWalk.h"
 #include "Tools/VillagePathManager.h"
+#include "MyAnimNotify_PlayCleanseOnce.h"
 
 
 UAC_SkeletonFollower::UAC_SkeletonFollower()
@@ -274,6 +275,61 @@ void UAC_SkeletonFollower::StartFollowingSplineFromClosestPoint(bool bLerpToStar
     }
 }
 
+void UAC_SkeletonFollower::TickFollowSpline(float DeltaTime)
+{
+    if (!bFollowingSpline || !ParentActor || !SplineToFollow)
+    {
+        return;
+    }
+
+    const float SplineLength = SplineToFollow->GetSplineLength();
+
+    CurrentDistance = FMath::Clamp(CurrentDistance + (SplineFollowSpeed * DeltaTime), 0.0f, SplineLength);
+
+    const FVector NewLocation = SplineToFollow->GetLocationAtDistanceAlongSpline(CurrentDistance, ESplineCoordinateSpace::World);
+    const FRotator SplineRotation = SplineToFollow->GetRotationAtDistanceAlongSpline(CurrentDistance, ESplineCoordinateSpace::World);
+
+    if (bOrientToSpline)
+    {
+        FRotator NewRot;
+
+        if (bYawOnly)
+        {
+            FVector Dir = SplineRotation.Vector();
+            Dir.Z = 0.f;
+
+            if (!Dir.IsNearlyZero())
+            {
+                NewRot = Dir.Rotation();
+                NewRot.Pitch = 0.f;
+                NewRot.Roll = 0.f;
+            }
+            else
+            {
+                NewRot = ParentActor->GetActorRotation();
+                NewRot.Pitch = 0.f;
+                NewRot.Roll = 0.f;
+            }
+        }
+        else
+        {
+            NewRot = SplineRotation;
+        }
+
+        ParentActor->SetActorLocationAndRotation(NewLocation, NewRot);
+    }
+    else
+    {
+        ParentActor->SetActorLocation(NewLocation);
+    }
+
+    if (CurrentDistance >= SplineLength - KINDA_SMALL_NUMBER)
+    {
+        bFollowingSpline = false;
+        UE_LOG(LogTemp, Display, TEXT("[SkeletonFollower] %s reached the end of spline."), *ParentActor->GetName());
+    }
+}
+
 void UAC_SkeletonFollower::TickLerpToSpline(float DeltaTime)
 {
     if (!bLerpingToSpline || !ParentActor || !SplineToFollow)
@@ -285,10 +341,27 @@ void UAC_SkeletonFollower::TickLerpToSpline(float DeltaTime)
     FVector ToTarget = LerpTargetLocation - CurrentLoc;
     const float DistToTarget = ToTarget.Size();
 
+    auto HandleLerpFinished = [this]()
+        {
+            bLerpingToSpline = false;
+            bFollowingSpline = false;
+
+            if (ParentActor)
+            {
+                ParentActor->SetActorLocation(LerpTargetLocation);
+
+                if (ASkeletonController* Skel = Cast<ASkeletonController>(ParentActor))
+                {
+                    Skel->StartCleanseWindow();
+                }
+            }
+
+            OnWaitingForDialogue.Broadcast();
+        };
+
     if (DistToTarget <= KINDA_SMALL_NUMBER)
     {
-        bLerpingToSpline = false;
-        bFollowingSpline = true;
+        HandleLerpFinished();
         return;
     }
 
@@ -337,73 +410,7 @@ void UAC_SkeletonFollower::TickLerpToSpline(float DeltaTime)
 
     if (bWillReachThisFrame)
     {
-        bLerpingToSpline = false;
-        bFollowingSpline = true;
-    }
-}
-
-
-void UAC_SkeletonFollower::TickFollowSpline(float DeltaTime)
-{
-    if (!ParentActor || !SplineToFollow) return;
-
-    TargetDistance = SplineToFollow->GetSplineLength();
-
-    const float PreviousDistance = CurrentDistance;
-
-    CurrentDistance = FMath::Min(CurrentDistance + SplineFollowSpeed * DeltaTime, TargetDistance);
-
-    const float Dist = CurrentDistance;
-
-    const FVector NewLoc = SplineToFollow->GetLocationAtDistanceAlongSpline(Dist, ESplineCoordinateSpace::World);
-
-    FVector FinalLoc = NewLoc;
-
-    if (bOrientToSpline)
-    {
-        FRotator NewRot;
-
-        if (bYawOnly)
-        {
-            FVector Dir = SplineToFollow->GetDirectionAtDistanceAlongSpline(Dist, ESplineCoordinateSpace::World);
-
-            Dir.Z = 0.f;
-
-            if (!Dir.IsNearlyZero())
-            {
-                NewRot = Dir.Rotation();
-            }
-            else
-            {
-                NewRot = ParentActor->GetActorRotation();
-                NewRot.Pitch = 0.f;
-                NewRot.Roll = 0.f;
-            }
-        }
-        else
-        {
-            NewRot = SplineToFollow->GetRotationAtDistanceAlongSpline(Dist, ESplineCoordinateSpace::World);
-        }
-
-        ParentActor->SetActorLocationAndRotation(FinalLoc, NewRot);
-    }
-    else
-    {
-        ParentActor->SetActorLocation(FinalLoc);
-    }
-
-    const bool bReachedEndNow =
-        bOnVillageSpline &&
-        !bHasReachedHome &&
-        PreviousDistance < TargetDistance &&
-        FMath::IsNearlyEqual(CurrentDistance, TargetDistance, .5f);
-
-    if (bReachedEndNow)
-    {
-        bHasReachedHome = true;
-        bFollowingSpline = false;
-
-        OnReachHome.Broadcast();
+        HandleLerpFinished();
     }
 }
 
@@ -726,8 +733,18 @@ void UAC_SkeletonFollower::HandleReachHome()
     }
 }
 
+void UAC_SkeletonFollower::ResumeFollowingSpline()
+{
+    bFollowingSpline = true;
+    bOnVillageSpline = true;
+    bHasReachedHome = false;
 
+    UE_LOG(LogTemp, Log, TEXT("[SkeletonFollower] Dialogue finished, resuming spline follow."));
+}
 
+/*
+FollowerComponent->OnWaitingForDialogue.AddDynamic(this, &AMyDialogueManager::StartDialogue);
+*/
 
 //debug
 

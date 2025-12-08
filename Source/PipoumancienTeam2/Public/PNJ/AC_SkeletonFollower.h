@@ -87,6 +87,9 @@ public:
     // On Enter Village
     DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnterVillage);
 
+    // Waiting for dialogue
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWaitingForDialogue);
+
     UPROPERTY()
     FOnEnterVillage OnEnterVillage;
     
@@ -109,6 +112,12 @@ public:
 
     UPROPERTY(BlueprintAssignable, Category = "Follow|Events")
     FOnPipouFollowEffectChanged OnPipouFollowEffectChanged;
+
+    UPROPERTY(BlueprintAssignable, Category = "Events")
+    FOnWaitingForDialogue OnWaitingForDialogue;
+
+    UFUNCTION(BlueprintCallable, Category = "Follow|Spline")
+    void ResumeFollowingSpline();
 
 protected:
     virtual void BeginPlay() override;
