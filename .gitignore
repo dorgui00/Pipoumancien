@@ -62,6 +62,8 @@ Binaries/Win64/*
 !Binaries/Win64/UnrealEditor.modules
 !Binaries/Win64/UnrealEditor-PipoumancienTeam2.dll
 !Binaries/Win64/UnrealEditor-LocalMultiplayer.dll
+!Plugins/Binaries/Win64/UnrealEditor-NiagaraUIRenderer.dll
+!Plugins/Binaries/Win64/UnrealEditor-NiagaraUIRendererEditor.dll
 
 # Builds
 Build/*
