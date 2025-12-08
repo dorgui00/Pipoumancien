@@ -15,7 +15,7 @@
 #include "Components/AudioComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "DrawDebugHelpers.h"
-
+#include "MyAnimNotify_PlayCleanseOnce.h"
 
 
 // Sets default values
@@ -313,9 +313,6 @@ void ASkeletonController::UpdateAnimation(float DeltaTime)
 	LastLocation = CurrentLocation;
 }
 
-
-//ANIMATIONS
-
 void ASkeletonController::FogDilet()
 {
 	for (AFog* Fog : FogList)
@@ -350,6 +347,33 @@ void ASkeletonController::PlayWait()
 		TargetMesh->PlayAnimation(WaitAnimation, true);
 	}
 }
+
+//NIAGARA SFX
+
+void ASkeletonController::StartCleanseWindow()
+{
+	if (bCleanseFXPlayed)
+		return;
+
+	bCleanseWindowActive = true;
+
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().SetTimer(
+			CleanseWindowTimerHandle,
+			this,
+			&ASkeletonController::EndCleanseWindow,
+			CleanseWindowDuration,
+			false
+		);
+	}
+}
+
+void ASkeletonController::EndCleanseWindow()
+{
+	bCleanseWindowActive = false;
+}
+
 
 // ------------------ //
 
