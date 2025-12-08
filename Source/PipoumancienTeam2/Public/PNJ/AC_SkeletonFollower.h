@@ -5,6 +5,7 @@
 #include "Components/SplineComponent.h"
 #include "AC_SkeletonFollower.generated.h"
 
+class APipouCharacter;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class PIPOUMANCIENTEAM2_API UAC_SkeletonFollower : public UActorComponent
@@ -85,7 +86,10 @@ public:
     
     // On Enter Village
     DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnterVillage);
-    
+
+    // Waiting for dialogue
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWaitingForDialogue);
+
     UPROPERTY()
     FOnEnterVillage OnEnterVillage;
     
@@ -95,6 +99,25 @@ public:
     
     UPROPERTY()
     FOnReachHome OnReachHome;
+
+    UPROPERTY(EditAnywhere, Category = "Follow|Spline", meta = (ClampMin = "0"))
+    float SplineEntryLerpTime = 0.5f;
+
+    //NIAGARA
+
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
+        FOnPipouFollowEffectChanged,
+        APipouCharacter*, Pipou,
+        bool, bActive);
+
+    UPROPERTY(BlueprintAssignable, Category = "Follow|Events")
+    FOnPipouFollowEffectChanged OnPipouFollowEffectChanged;
+
+    UPROPERTY(BlueprintAssignable, Category = "Events")
+    FOnWaitingForDialogue OnWaitingForDialogue;
+
+    UFUNCTION(BlueprintCallable, Category = "Follow|Spline")
+    void ResumeFollowingSpline();
 
 protected:
     virtual void BeginPlay() override;
@@ -142,6 +165,9 @@ protected:
     UFUNCTION()
     void OnParentOverlap(AActor* OverlappedActor, AActor* OtherActor);
 
+    UFUNCTION()
+    void HandleReachHome();
+
 public:
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -160,7 +186,9 @@ private:
 
     void GenerateNextPathPoint();
 
-    void StartFollowingSplineFromClosestPoint();
+    void StartFollowingSplineFromClosestPoint(bool bLerpToStart = false);
+
+    void TickLerpToSpline(float DeltaTime);
 
     void TickFollowSpline(float DeltaTime);
 
@@ -171,4 +199,9 @@ private:
     bool HasLocalClearanceAt(const FVector& Location) const;
 
     bool TrySnapToGround(const FVector& In, FVector& Out) const;
+
+    bool bLerpingToSpline = false;
+    FVector LerpStartLocation = FVector::ZeroVector;
+    FVector LerpTargetLocation = FVector::ZeroVector;
+    float LerpElapsedTime = 0.f;
 };

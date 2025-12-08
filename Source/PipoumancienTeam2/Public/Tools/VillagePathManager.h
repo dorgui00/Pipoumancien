@@ -19,6 +19,9 @@ struct FSkeletonVillageRoute
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Village Route")
     AActor* EndPoint = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Village Route")
+    AActor* HouseLight = nullptr;
 };
 
 UCLASS()
@@ -37,6 +40,9 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Village")
     USplineComponent* GetSplineForSkeleton(AActor* Skeleton) const;
+
+    UFUNCTION(BlueprintCallable, Category = "Village")
+    void OnSkeletonReachedEnd(AActor* Skeleton);
 
 protected:
     virtual void BeginPlay() override;

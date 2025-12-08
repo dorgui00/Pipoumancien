@@ -67,7 +67,6 @@ void UUIDialoge::SetDialogue(F_Skeleton* Skeleton , int Valut)
 
 		AddToViewport();
 	}
-	
 }
 
 void UUIDialoge::GoToNextDialogue()
