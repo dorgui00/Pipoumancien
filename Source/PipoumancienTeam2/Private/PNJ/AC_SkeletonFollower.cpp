@@ -413,6 +413,8 @@ void UAC_SkeletonFollower::TickLerpToSpline(float DeltaTime)
     if (bWillReachThisFrame)
     {
         HandleLerpFinished();
+
+        ResumeFollowingSpline();
     }
 }
 
