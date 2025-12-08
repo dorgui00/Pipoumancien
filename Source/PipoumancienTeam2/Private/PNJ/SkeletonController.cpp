@@ -31,9 +31,12 @@ ASkeletonController::ASkeletonController()
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	SphereComponent->SetupAttachment(RootComponent);
 	SphereComponent->SetSphereRadius(500);
+
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
+	WidgetComponent->SetupAttachment(RootComponent);
 	
-	//SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ASkeletonController::ASkeletonController::BeginOverlaps);
-	//SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ASkeletonController::EndOverlaps);
+	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ASkeletonController::ASkeletonController::BeginOverlaps);
+	SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ASkeletonController::EndOverlaps);
 
 	//HUD
 	PlayerWidgetClass = nullptr;
@@ -48,12 +51,16 @@ ASkeletonController::~ASkeletonController()
 		FollowComponent->OnEnterVillage.RemoveDynamic(this, &ASkeletonController::OnEnterVillage);
 		FollowComponent->OnReachHome.RemoveDynamic(this, &ASkeletonController::OnReachHome);
 	}
+
+	
 }
 
 // Called when the game starts or when spawned
 void ASkeletonController::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	WidgetComponent->SetVisibility(false);
 
 	MySkeleton = GetGameInstance()->GetSubsystem<UGlobalDataTableSubsystem>()->GetSkeletonByID(ID);
 
@@ -75,6 +82,14 @@ void ASkeletonController::BeginPlay()
 	bWasFollowing = false;
 }
 
+void ASkeletonController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	
+	SphereComponent->OnComponentBeginOverlap.RemoveDynamic(this, &ASkeletonController::BeginOverlaps);
+	SphereComponent->OnComponentEndOverlap.RemoveDynamic(this, &ASkeletonController::EndOverlaps);
+}
+
 // Called every frame
 void ASkeletonController::Tick(float DeltaTime)
 {
@@ -86,12 +101,24 @@ void ASkeletonController::Tick(float DeltaTime)
 
 void ASkeletonController::BeginOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	
+	if (OtherActor->IsA(APipouCharacter::StaticClass()))
+	{
+		if (MyState == ESkeletonState::Dialogue)
+		{
+			InterationDialogue();
+		}
+	}
 }
 
-void ASkeletonController::EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void ASkeletonController::EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	if (OtherActor->IsA(APipouCharacter::StaticClass()))
+	{
+		if (MyState == ESkeletonState::Dialogue)
+		{
+			WidgetComponent->SetVisibility(false);
+		}
+	}
 }
 
 // STATE
@@ -126,6 +153,9 @@ void ASkeletonController::OnEnterVillage()
 	// WORLD STATE : Free
 	if (UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>())
 		GlobalGameSubsystem->SetWorldFreeState();
+
+	
+	isDialogVisible = true;
 }
 
 
@@ -142,6 +172,7 @@ void ASkeletonController::OnReachHome()
 
 void ASkeletonController::OpenDialogue()
 {
+	WidgetComponent->SetVisibility(false);
 	PlayerWidget = CreateWidget<UUIDialoge>(GetWorld(), PlayerWidgetClass);
 	PlayerWidget->SetDialogue(MySkeleton,ValutFrase);
 	if (ValutFrase == 0)
@@ -149,6 +180,20 @@ void ASkeletonController::OpenDialogue()
 		ValutFrase = 1;	
 	}
 }
+
+void ASkeletonController::InterationDialogue()
+{
+	if (!WidgetComponent->IsVisible())
+	{
+		WidgetComponent->SetVisibility(true);			
+	}
+}
+
+void ASkeletonController::InterationDialoguenOFF()
+{
+		WidgetComponent->SetVisibility(false);
+}
+
 
 //ANIMATION
 
