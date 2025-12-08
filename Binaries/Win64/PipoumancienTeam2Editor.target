@@ -6574,26 +6574,6 @@
 			"Type": "RequiredResource"
 		},
 		{
-			"Path": "$(EngineDir)/Plugins/Marketplace/NiagaraU4b35ff3681ccV8/Binaries/Win64/UnrealEditor-NiagaraUIRenderer.dll",
-			"Type": "DynamicLibrary"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/Marketplace/NiagaraU4b35ff3681ccV8/Binaries/Win64/UnrealEditor-NiagaraUIRenderer.pdb",
-			"Type": "SymbolFile"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/Marketplace/NiagaraU4b35ff3681ccV8/Binaries/Win64/UnrealEditor-NiagaraUIRendererEditor.dll",
-			"Type": "DynamicLibrary"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/Marketplace/NiagaraU4b35ff3681ccV8/Binaries/Win64/UnrealEditor-NiagaraUIRendererEditor.pdb",
-			"Type": "SymbolFile"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/Marketplace/NiagaraU4b35ff3681ccV8/Binaries/Win64/UnrealEditor.modules",
-			"Type": "RequiredResource"
-		},
-		{
 			"Path": "$(EngineDir)/Plugins/Media/AndroidMedia/Binaries/Win64/UnrealEditor-AndroidMediaEditor.dll",
 			"Type": "DynamicLibrary"
 		},
@@ -8047,6 +8027,26 @@
 		},
 		{
 			"Path": "$(ProjectDir)/Binaries/Win64/UnrealEditor.modules",
+			"Type": "RequiredResource"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/NiagaraU4b35ff3681ccV8/Binaries/Win64/UnrealEditor-NiagaraUIRenderer.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/NiagaraU4b35ff3681ccV8/Binaries/Win64/UnrealEditor-NiagaraUIRenderer.pdb",
+			"Type": "SymbolFile"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/NiagaraU4b35ff3681ccV8/Binaries/Win64/UnrealEditor-NiagaraUIRendererEditor.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/NiagaraU4b35ff3681ccV8/Binaries/Win64/UnrealEditor-NiagaraUIRendererEditor.pdb",
+			"Type": "SymbolFile"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/NiagaraU4b35ff3681ccV8/Binaries/Win64/UnrealEditor.modules",
 			"Type": "RequiredResource"
 		}
 	],
@@ -33484,10 +33484,6 @@
 			"Type": "UFS"
 		},
 		{
-			"Path": "$(EngineDir)/Plugins/Marketplace/NiagaraU4b35ff3681ccV8/NiagaraUIRenderer.uplugin",
-			"Type": "UFS"
-		},
-		{
 			"Path": "$(EngineDir)/Plugins/Media/AndroidMedia/AndroidMedia.uplugin",
 			"Type": "UFS"
 		},
@@ -33785,6 +33781,10 @@
 		},
 		{
 			"Path": "$(ProjectDir)/PipoumancienTeam2.uproject",
+			"Type": "UFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/NiagaraU4b35ff3681ccV8/NiagaraUIRenderer.uplugin",
 			"Type": "UFS"
 		}
 	],
