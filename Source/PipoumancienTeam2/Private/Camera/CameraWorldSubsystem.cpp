@@ -94,7 +94,8 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	//TickUpdateCameraZoom(DeltaTime);
-	
+
+	// --- SETTING + ZOOM ---
 	if (IsSettingCamera)
 	{
 		LerpCamera(DeltaTime);
@@ -102,6 +103,7 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 		if (!IsZooming) return; // Zoom => continue default behaviour of current camera
 	}
 
+	//  --- CAMERAS TICK BEHAVIOUR ---
 	if (CameraState == ECameraState::GlobalCamera)
 	{
 		TickUpdateCameraPosition(DeltaTime);
@@ -346,6 +348,7 @@ void UCameraWorldSubsystem::SkeletonInteractionZoom(bool Zoom)
 	{
 		EndPos = GlobalCamera->GetRelativeTransform().GetLocation();
 		IsZooming = false;
+		IsZooming = true;
 	}
 	
 	EndComponentTransform.SetLocation(EndPos);
