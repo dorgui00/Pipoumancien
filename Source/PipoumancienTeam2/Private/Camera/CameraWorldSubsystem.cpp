@@ -104,7 +104,7 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 	{
 		TickUpdateCameraPosition(DeltaTime);
 		
-		TickUpdateCameraVisibility(DeltaTime);
+		//TickUpdateCameraVisibility(DeltaTime);
 	}
 }
 
@@ -601,6 +601,9 @@ ECameraState UCameraWorldSubsystem::GetState() const
 
 void UCameraWorldSubsystem::SetMusicCamera()
 {
+	//transition
+	LerpTimer = 0;
+	
 	// Actor Pos / Rot
 	CanLerpActor = false;
 	
@@ -618,6 +621,9 @@ void UCameraWorldSubsystem::SetMusicCamera()
 
 void UCameraWorldSubsystem::SetGlobalCamera()
 {
+	//transition
+	LerpTimer = 0;
+	
 	//Camera Actor pos
 	CanLerpActor = true;
 	StartActorTransform = CameraMain->GetOwner()->GetActorTransform();
@@ -650,6 +656,9 @@ void UCameraWorldSubsystem::SetGlobalCamera()
 // camera moves closer, places itself between the two interlocutors but targets the speaker
 void UCameraWorldSubsystem::SetDialogueCamera(const APipouCharacter* Interactor, ASkeletonController* Speaker)
 {
+	//transition
+	LerpTimer = 0;
+	
 	// Speaker look at interactor
 	// forward = target - look at
 	FVector Forward1 = Interactor->GetActorLocation() - Speaker->GetActorLocation();

@@ -6,6 +6,8 @@
 #include "Character/PipouCharacter.h"
 #include "GlobalGameSubsystem.generated.h"
 
+class ABird;
+class UGlobalHUDSubsystem;
 class UInputAction;
 /**
  * 
@@ -37,11 +39,14 @@ public :
 
 	void SetCharacters(APipouCharacter* Character);
 
-	// Current Skeleton
+	// Skeleton
 	ASkeletonController* GetCurrentSkeleton() const;
 	void SetCurrentSkeleton(ASkeletonController* Skeleton); // TO EDIT ? Switch to private ?
 
-	// Music
+	// Bird
+	void SetBird(ABird* InBird);
+	
+	// --- MUSIC ---
 	// Skeleton Interaction
 	int SkeletonNotesToCheck = 3; // check 3 skeleton notes to trigger main music meca
 	
@@ -53,7 +58,11 @@ public :
 	void ResetInputsArray();
 
 	bool PlayersOverlapSameSkeleton();
+	void CancelOverlapSameSkeleton(); // no longer overlap same skeleton
 
+	//melody
+	void SetLostMelody();
+	
 	// State
 	EWorldState GetWorldState() const;
 	
@@ -73,4 +82,15 @@ private :
 	// Skeleton
 	UPROPERTY()
 	ASkeletonController* CurrentSkeleton = nullptr;
+
+	// Bird
+	UPROPERTY()
+	TObjectPtr<ABird> Bird = nullptr;
+
+	// ---- UTILITIES ----
+
+	// to init (not yet done)
+	// UPROPERTY()
+	// UGlobalHUDSubsystem* GlobalHUDSubsystem;
+	
 };

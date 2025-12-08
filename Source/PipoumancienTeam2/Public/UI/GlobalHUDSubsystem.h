@@ -8,6 +8,9 @@
 #include "Components/TextBlock.h"
 #include "GlobalHUDSubsystem.generated.h"
 
+class USkeletonInteractionWidget;
+class UWidgetComponent;
+class APipouCharacter;
 class UHUDData;
 class UPartitionFinish;
 struct F_Note;
@@ -89,6 +92,7 @@ public:
 
 	void SetMusicWorldSubsystem(UMusicWorldSubsystem* NewMusicSubsystem);
 
+
 	// ---- FEEDBACK COLORS NOTES ----
 	float TimerBeforeResetingColor = 0;
 
@@ -101,10 +105,19 @@ public:
 
 	void SetImageColor(UImage* CurrentImage, FLinearColor NewColor);
 
-	// UI WORLD
-	void DisplayNotesForSkeletonInteraction(UInputAction* InputAction);
+	// ----- UI WORLD -----
+	TObjectPtr<UWidgetComponent> GetSkeletonInteractionWidgetComponent() const;
+	
+	void FindSkeletonInteractionWidget(); // call at init in game mode
+	
+	void DisplayNotesForSkeletonInteraction(const UInputAction* InputAction);
 
-	void SpawnSkeletonInteractionWidget(TArray<APipouCharacter*> Characters);
+	void CallSkeletonInteractionWidget();
+
+	void ResetSkeletonInteractionWidget();
+
+	void SetWidgetVisibility(UUserWidget* Widget, bool Visibility);
+	
 	
 protected:
 	// ---- GAME INSTANCE SUBSYSTEM ----
@@ -118,7 +131,6 @@ protected:
 	virtual TStatId GetStatId() const override { return TStatId(); };
 	
 private:
-
 	// ---- MUSIC UI ----
 	float UISpeed = 0;
 	
@@ -135,6 +147,15 @@ private:
 	// ---- FEEDBACK COLORS NOTES ----
 	void Internal_SetImageColor(UImage* CurrentImage, FLinearColor NewColor);
 
+	// ---- UI WORLD ----
+	UPROPERTY()
+	TObjectPtr<AActor> SkeletonInteractionWidgetActor = nullptr;
+	
+	UPROPERTY()
+	TObjectPtr<UWidgetComponent> SkeletonInteractionWidgetComponent = nullptr;
+
+	UPROPERTY()
+	TObjectPtr<USkeletonInteractionWidget> SkeletonInteractionWidget = nullptr;
 	
 	// ---- UTILITIES ----
 	UPROPERTY()

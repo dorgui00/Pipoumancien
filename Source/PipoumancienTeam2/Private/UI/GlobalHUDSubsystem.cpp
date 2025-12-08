@@ -20,6 +20,8 @@
 #include "Settings/SubsystemSettings.h"
 #include "UI/UMusicNote.h"
 #include "UI/PartitionFinish.h"
+#include "Character/PipouCharacter.h"
+#include "Kismet/GameplayStatics.h"
 #include "UI/SkeletonInteractionWidget.h"
 
 
@@ -27,8 +29,10 @@
 void UGlobalHUDSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
+	
 	Init();
 }
+
 
 void UGlobalHUDSubsystem::Tick(float DeltaTime)
 {
@@ -44,30 +48,6 @@ void UGlobalHUDSubsystem::Tick(float DeltaTime)
 	}
 }
 
-// ---- WORLD UI ---
-void UGlobalHUDSubsystem::SpawnSkeletonInteractionWidget(TArray<APipouCharacter*> Characters)
-{
-	FVector Tot;
-	for (auto Target : Characters)
-	{
-		Tot += Target->GetActorLocation();
-	}
-	FVector Moy = Tot/Characters.Num();
-
-	
-// 	USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-// 	
-// 	UWidgetComponent* WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
-// 	WidgetComponent->SetupAttachment(Root); // middle of player
-//
-// 	WidgetComponent->SetWidgetClass(USkeletonInteractionWidget::StaticClass());
-// 		
-// 	// if (USkeletonInteractionWidget* SkeletonInteractionWidget = Cast<USkeletonInteractionWidget>(WidgetComponent->GetUserWidgetObject()))
-// 	// {
-// 	// 	
-// 	// }
-	
-}
 
 // ---- MUSIC UI ----
 void UGlobalHUDSubsystem::DisplayResurrectionWidget()
@@ -322,10 +302,6 @@ void UGlobalHUDSubsystem::SetImageColor(UImage* CurrentImage, FLinearColor NewCo
 	);
 }
 
-void UGlobalHUDSubsystem::DisplayNotesForSkeletonInteraction(UInputAction* InputAction)
-{
-}
-
 void UGlobalHUDSubsystem::Internal_SetImageColor(UImage* CurrentImage, FLinearColor NewColor)
 {
 	if (!CurrentImage)
@@ -342,3 +318,85 @@ void UGlobalHUDSubsystem::Internal_SetImageColor(UImage* CurrentImage, FLinearCo
 	}
 }
 
+// --- UI WORLD ---
+
+void UGlobalHUDSubsystem::SetWidgetVisibility(UUserWidget* Widget, bool Visibility)
+{
+	if (Visibility)
+		Widget->SetVisibility(ESlateVisibility::Visible);
+	else
+		Widget->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void UGlobalHUDSubsystem::FindSkeletonInteractionWidget()
+{
+	TArray<AActor*> SkeletonInteractionWidgetIn;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), "SkeletonInteractionWidget",SkeletonInteractionWidgetIn);
+	
+	if (SkeletonInteractionWidgetIn.Num() > 0)
+	{
+		SkeletonInteractionWidgetActor = SkeletonInteractionWidgetIn[0];
+		if (!SkeletonInteractionWidgetActor)
+			UE_LOG(LogTemp, Error, TEXT("SkeletonInteractionWidgetActor is nullptr"));
+		
+		SkeletonInteractionWidgetComponent = SkeletonInteractionWidgetActor->FindComponentByClass<UWidgetComponent>();
+		if (!SkeletonInteractionWidgetComponent)
+			UE_LOG(LogTemp, Error, TEXT("SkeletonInteractionWidgetComponent is nullptr"));
+		
+		SkeletonInteractionWidget =  Cast<USkeletonInteractionWidget>(SkeletonInteractionWidgetComponent->GetWidget());
+		if (!SkeletonInteractionWidget)
+		{
+			UE_LOG(LogTemp, Error, TEXT("SkeletonInteractionWidget is nullptr"));
+		}
+		else
+		{
+			ResetSkeletonInteractionWidget();
+		}
+	}
+}
+
+TObjectPtr<UWidgetComponent> UGlobalHUDSubsystem::GetSkeletonInteractionWidgetComponent() const
+{
+	return SkeletonInteractionWidgetComponent;
+}
+
+
+void UGlobalHUDSubsystem::CallSkeletonInteractionWidget()
+{
+	FVector Tot;
+	TArray<APipouCharacter*> Characters = GlobalGameSubsystem->PipouCharacters;
+	
+	for (auto Target : Characters)
+	{
+		Tot += Target->GetActorLocation();
+	}
+	FVector Moy = Tot/Characters.Num();
+
+	SkeletonInteractionWidgetActor->SetActorLocation(Moy);
+	
+	// For now hide all image not widget
+	//SetWidgetVisibility(SkeletonInteractionWidget, true);
+	
+}
+
+void UGlobalHUDSubsystem::ResetSkeletonInteractionWidget()
+{
+	for (auto Image : SkeletonInteractionWidget->Images)
+	{
+		Image->SetVisibility(ESlateVisibility::Hidden);
+	}
+	
+}
+
+void UGlobalHUDSubsystem::DisplayNotesForSkeletonInteraction(const UInputAction* InputAction)
+{
+	int index = GlobalGameSubsystem->InputPressed.Num() - 1;
+	
+	// set image
+	UTexture2D* Text = GetImageTextureFromNoteInput(InputAction);
+	SkeletonInteractionWidget->Images[index]->SetBrushFromTexture(Text);
+
+	// display
+	SkeletonInteractionWidget->Images[index]->SetVisibility(ESlateVisibility::Visible);
+
+}

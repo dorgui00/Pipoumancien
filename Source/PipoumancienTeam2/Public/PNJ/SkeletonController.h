@@ -20,6 +20,7 @@ class UAnimationAsset;
 class USkeletalMeshComponent;
 struct F_Skeleton;
 class AFog;
+class UPhysicalMaterial;
 
 
 enum class ESkeletonState : uint8{
@@ -89,6 +90,10 @@ public:
 
 
 
+	//SOUNDS
+	UPROPERTY(EditAnywhere, Category = "Audio")
+	TObjectPtr<USoundBase> FootstepCue;
+
 
 protected:
 	// Called when the game starts or when spawned
@@ -147,5 +152,13 @@ private :
 	void PlayWait();
 	void UpdateAnimation(float DeltaTime);
 	void FogDilet();
+
+
+	float FootstepTimer = 0.f;
+
+	UPROPERTY(EditAnywhere, Category = "Audio")
+	float FootstepInterval = .6f;
+
+	void PlayFootstepsSound(UPhysicalMaterial* PhysMat);
 
 };

@@ -42,12 +42,16 @@ struct FNoteSoundSet
 {
     GENERATED_BODY()
 
-    UPROPERTY(EditAnywhere, Category = "Note")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FNoteKey Key;
 
-    UPROPERTY(EditAnywhere, Category = "Note")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    float Pitch = 0.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TArray<TSoftObjectPtr<USoundBase>> Variants;
 };
+
 
 UCLASS(BlueprintType)
 class PIPOUMANCIENTEAM2_API UNoteMapping : public UDataAsset

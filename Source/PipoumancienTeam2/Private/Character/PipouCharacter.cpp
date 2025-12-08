@@ -15,6 +15,7 @@
 #include "Game/GlobalGameSubsystem.h"
 #include "Interaction/Interact.h"
 #include "Kismet/GameplayStatics.h"
+#include "Music/MusicWorldSubsystem.h"
 #include "PNJ/SkeletonController.h"
 
 #pragma region Default Constructors
@@ -417,10 +418,8 @@ void APipouCharacter::OnComponentEndOverlap(UPrimitiveComponent* OverlappedCompo
 		OverlapSkeleton = nullptr;
 		
 		// delete current skeleton for everyone
-		GlobalGameSubsystem->SetCurrentSkeleton(nullptr);
+		GlobalGameSubsystem->CancelOverlapSameSkeleton();
 		UE_LOG(LogTemp, Display, TEXT("End Overlap Skeleton"));
-
-		
 	}
 }
 
@@ -447,11 +446,11 @@ void APipouCharacter::InteractWithSkeleton(ASkeletonController& SkeletonControll
 			// -- OVERLAP SAME SKELETON --
 			GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->Zoom(200);
 
-			for (int i = 0; i < 3; ++i)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
-				FString::Printf(TEXT("INPUT : %s"), *GlobalGameSubsystem->GetCurrentSkeleton()->MySkeleton->Notes[i].InputAction->GetName()), true, FVector2D(2, 2));
-			}
+			// for (int i = 0; i < 3; ++i)
+			// {
+			// 	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
+			// 	FString::Printf(TEXT("INPUT : %s"), *GlobalGameSubsystem->GetCurrentSkeleton()->MySkeleton->Notes[i].InputAction->GetName()), true, FVector2D(2, 2));
+			// }
 		}
 	}
 }

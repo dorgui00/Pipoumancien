@@ -2,3 +2,10 @@
 
 
 #include "UI/SkeletonInteractionWidget.h"
+
+void USkeletonInteractionWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	Images = {Image01, Image02,Image03};
+}
