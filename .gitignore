@@ -63,11 +63,11 @@ Binaries/Win64/*
 !Binaries/Win64/UnrealEditor-LocalMultiplayer.dll
 
 # Plugins
-Plugins/**/Binaries/*
-!Plugins/**/Binaries/Win64
-Plugins/**/Binaries/Win64/*
-!Plugins/**/Binaries/Win64/*.dll
-!Plugins/**/Binaries/Win64/*.modules
+Plugins/*/Binaries/*
+!Plugins/*/Binaries/Win64
+Plugins/*/Binaries/Win64/*
+!Plugins/*/Binaries/Win64/*.dll
+!Plugins/*/Binaries/Win64/*.modules
 
 # Builds
 Build/*
