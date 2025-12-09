@@ -155,7 +155,7 @@ private:
 	TObjectPtr<UWidgetComponent> SkeletonInteractionWidgetComponent = nullptr;
 
 	UPROPERTY()
-	TObjectPtr<USkeletonInteractionWidget> SkeletonInteractionWidget = nullptr;
+	TObjectPtr<USkeletonInteractionWidget> BirdWidget = nullptr;
 	
 	// ---- UTILITIES ----
 	UPROPERTY()

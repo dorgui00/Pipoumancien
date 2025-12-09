@@ -23,6 +23,7 @@
 #include "Character/PipouCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/SkeletonInteractionWidget.h"
+#include "UI/BirdWidget.h"
 
 
 // ---- GAME INSTANCE SUBSYSTEM ---- 
@@ -343,8 +344,8 @@ void UGlobalHUDSubsystem::FindSkeletonInteractionWidget()
 		if (!SkeletonInteractionWidgetComponent)
 			UE_LOG(LogTemp, Error, TEXT("SkeletonInteractionWidgetComponent is nullptr"));
 		
-		SkeletonInteractionWidget =  Cast<USkeletonInteractionWidget>(SkeletonInteractionWidgetComponent->GetWidget());
-		if (!SkeletonInteractionWidget)
+		BirdWidget =  Cast<USkeletonInteractionWidget>(SkeletonInteractionWidgetComponent->GetWidget());
+		if (!BirdWidget)
 		{
 			UE_LOG(LogTemp, Error, TEXT("SkeletonInteractionWidget is nullptr"));
 		}
@@ -381,7 +382,7 @@ void UGlobalHUDSubsystem::CallSkeletonInteractionWidget()
 
 void UGlobalHUDSubsystem::ResetSkeletonInteractionWidget()
 {
-	for (auto Image : SkeletonInteractionWidget->Images)
+	for (auto Image : BirdWidget->Images)
 	{
 		Image->SetVisibility(ESlateVisibility::Hidden);
 	}
@@ -394,9 +395,9 @@ void UGlobalHUDSubsystem::DisplayNotesForSkeletonInteraction(const UInputAction*
 	
 	// set image
 	UTexture2D* Text = GetImageTextureFromNoteInput(InputAction);
-	SkeletonInteractionWidget->Images[index]->SetBrushFromTexture(Text);
+	BirdWidget->Images[index]->SetBrushFromTexture(Text);
 
 	// display
-	SkeletonInteractionWidget->Images[index]->SetVisibility(ESlateVisibility::Visible);
+	BirdWidget->Images[index]->SetVisibility(ESlateVisibility::Visible);
 
 }
