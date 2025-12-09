@@ -341,7 +341,7 @@ void UCameraWorldSubsystem::SkeletonInteractionZoom(bool Zoom)
 	FVector EndPos;
 	if (Zoom)
 	{
-		EndPos = CameraMain->GetRelativeTransform().GetLocation() + CameraMain->GetForwardVector() * 200;
+		EndPos = GlobalCamera->GetRelativeTransform().GetLocation() + CameraMain->GetForwardVector() * SkeletonZoom;
 		IsZooming = true;
 	}
 	else

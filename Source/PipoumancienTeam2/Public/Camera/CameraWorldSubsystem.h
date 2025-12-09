@@ -144,6 +144,7 @@ public :
 	bool GetIsZoomed();
 
 	void SkeletonInteractionZoom(bool Zoom);
+	float SkeletonZoom = 115.f;
 	
 private :
 	bool IsZoomed = false;
