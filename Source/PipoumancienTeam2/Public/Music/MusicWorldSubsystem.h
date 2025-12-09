@@ -46,6 +46,8 @@ public:
 	int GetCurrentWaitingNoteIndexUI() const;
 	F_Note* GetCurrentWaitingNoteUI() const;
 
+	bool GetIsConductorOnPitch() const;	
+	
 	// Tell the Music Logic the player HAS pressed an input.
 	void ReceivedMusicianInput();
 	
@@ -63,6 +65,8 @@ public:
 	float GetCurrentPitchCursorValue() const;
 	void SetCurrentPitchCursorValue(float NewPitchCursorValue);
 
+	float GetPitchTolerance() const;
+
 	// Return the status of IsAwaitingReplyVariable.
 	bool GetIsAwatingReply() const;
 
@@ -78,7 +82,6 @@ public:
 	int GetCurrentFailNotePossible() const;
 	void SetCurrentFailNotePossible(float NewValue);
 	bool HasLostAllFaileNotePossible() const;
-	bool HasCurrentFailNoteReachMaximumValue() const;
 	
 	EMelodyType GetMelodyType() const;
 
@@ -163,6 +166,7 @@ private:
 	void PlayMusic();
 
 	void IncreaseMusicTempo(float DeltaTime);
+	void IncreaseMusicTempoUI(float DeltaTime);
 
 	// Change the CurrentWaitingNoteIndex to go to the next note.
 	void GoNextNote();
