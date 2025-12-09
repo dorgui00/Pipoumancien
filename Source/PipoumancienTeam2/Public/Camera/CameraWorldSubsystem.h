@@ -142,6 +142,9 @@ public :
 
 	UFUNCTION(BlueprintCallable) 
 	bool GetIsZoomed();
+
+	void SkeletonInteractionZoom(bool Zoom);
+	float SkeletonZoom = 115.f;
 	
 private :
 	bool IsZoomed = false;
@@ -194,9 +197,11 @@ private :
 	// STATE
 	ECameraState CameraState;
 	ECameraState PreviousState;
+	ECameraState NextState = ECameraState::GlobalCamera;
 	
 	// LERP CAMERAS
 	bool IsSettingCamera = false;
+	bool IsZooming = false;
 	float LerpTimer = 0;
 	
 	void LerpCamera(float DeltaTime);
@@ -215,6 +220,7 @@ private :
 	bool CanLerpComponent = false;
 	
 	void ResetLerp();
+	void ResetLerpTimer();
 	void FinishCameraLerp();
 	
 

@@ -78,9 +78,14 @@ public:
     UPROPERTY(EditAnywhere, Category = "Follow|Ground")
     float GroundOffset = 0.f;
 
+    UPROPERTY(EditAnywhere, Category = "Follow|Ground", meta = (ClampMin = "10"))
+    float BacktrackStepSize = 100.f;
+
 
     UPROPERTY(EditAnywhere, Category = "Follow|Spline")
     bool bYawOnly = true;
+
+
 
     // DELEGATES
     
@@ -204,4 +209,6 @@ private:
     FVector LerpStartLocation = FVector::ZeroVector;
     FVector LerpTargetLocation = FVector::ZeroVector;
     float LerpElapsedTime = 0.f;
+
+    bool BacktrackToGround(const FVector& Start, const FVector& End, FVector& Out) const;
 };
