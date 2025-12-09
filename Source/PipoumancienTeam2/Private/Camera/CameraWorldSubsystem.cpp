@@ -94,12 +94,16 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	//TickUpdateCameraZoom(DeltaTime);
-	
+
+	// --- SETTING + ZOOM ---
 	if (IsSettingCamera)
 	{
 		LerpCamera(DeltaTime);
+		
+		if (!IsZooming) return; // Zoom => continue default behaviour of current camera
 	}
-	
+
+	//  --- CAMERAS TICK BEHAVIOUR ---
 	if (CameraState == ECameraState::GlobalCamera)
 	{
 		TickUpdateCameraPosition(DeltaTime);
@@ -272,7 +276,7 @@ void UCameraWorldSubsystem::TickUpdateCameraZoom(float DeltaTime)
 
 void UCameraWorldSubsystem::Zoom(float Value)
 {
-	ResetLerp();
+	ResetLerpTimer(); // timer = 0
 	
 	IsZoomed = true;
 
@@ -294,7 +298,7 @@ void UCameraWorldSubsystem::Zoom(float Value)
 
 void UCameraWorldSubsystem::Dezoom(float Value)
 {
-	ResetLerp();
+	ResetLerpTimer(); // timer = 0
 	
 	IsZoomed = false;
 
@@ -317,6 +321,40 @@ void UCameraWorldSubsystem::Dezoom(float Value)
 bool UCameraWorldSubsystem::GetIsZoomed()
 {
 	return IsZoomed;
+}
+
+void UCameraWorldSubsystem::SkeletonInteractionZoom(bool Zoom)
+{
+	ResetLerpTimer(); // timer = 0
+
+	// --- ACTOR POS / ROT ---
+	CanLerpActor = false;
+
+	// --- COMPONENT POS / ROT ---
+	CanLerpComponent = true;
+	
+	StartComponentTransform = CameraMain->GetRelativeTransform();
+
+	// End Component
+	EndComponentTransform = FTransform(StartComponentTransform);
+	
+	FVector EndPos;
+	if (Zoom)
+	{
+		EndPos = GlobalCamera->GetRelativeTransform().GetLocation() + CameraMain->GetForwardVector() * SkeletonZoom;
+		IsZooming = true;
+	}
+	else
+	{
+		EndPos = GlobalCamera->GetRelativeTransform().GetLocation();
+		IsZooming = false;
+		IsZooming = true;
+	}
+	
+	EndComponentTransform.SetLocation(EndPos);
+
+	// --- START LERPING --
+	IsSettingCamera = true;
 }
 
 
@@ -602,7 +640,7 @@ ECameraState UCameraWorldSubsystem::GetState() const
 void UCameraWorldSubsystem::SetMusicCamera()
 {
 	//transition
-	LerpTimer = 0;
+	ResetLerp();
 	
 	// Actor Pos / Rot
 	CanLerpActor = false;
@@ -614,15 +652,15 @@ void UCameraWorldSubsystem::SetMusicCamera()
 		
 	//Update State
 	PreviousState = CameraState;
-	CameraState = ECameraState::MusicCamera;
+	NextState = ECameraState::MusicCamera;
 	
 	IsSettingCamera = true;
 }
 
 void UCameraWorldSubsystem::SetGlobalCamera()
-{
+{	
 	//transition
-	LerpTimer = 0;
+	ResetLerp();
 	
 	//Camera Actor pos
 	CanLerpActor = true;
@@ -647,7 +685,7 @@ void UCameraWorldSubsystem::SetGlobalCamera()
 
 	//Update State
 	PreviousState = CameraState;
-	CameraState = ECameraState::GlobalCamera;
+	NextState = ECameraState::GlobalCamera;
 	
 	IsSettingCamera = true;
 }
@@ -657,7 +695,7 @@ void UCameraWorldSubsystem::SetGlobalCamera()
 void UCameraWorldSubsystem::SetDialogueCamera(const APipouCharacter* Interactor, ASkeletonController* Speaker)
 {
 	//transition
-	LerpTimer = 0;
+	ResetLerp();
 	
 	// Speaker look at interactor
 	// forward = target - look at
@@ -702,8 +740,8 @@ void UCameraWorldSubsystem::SetDialogueCamera(const APipouCharacter* Interactor,
 	
 	// STATE
 	PreviousState = CameraState;
-    CameraState = ECameraState::DialogueCamera;
-
+    NextState = ECameraState::DialogueCamera;
+	
 	// Begin lerp in tick
 	IsSettingCamera = true;
 	
@@ -756,12 +794,20 @@ void UCameraWorldSubsystem::LerpCameraActor(float DeltaTime)
 void UCameraWorldSubsystem::ResetLerp()
 {
 	IsSettingCamera = false; // stop lerp
+	IsZooming = false;
 	
-	LerpTimer = 0; // reset timer
+	ResetLerpTimer();
+}
+
+void UCameraWorldSubsystem::ResetLerpTimer()
+{
+	LerpTimer = 0; 
 }
 
 void UCameraWorldSubsystem::FinishCameraLerp()
 {
+	CameraState = NextState;
+		
 	switch (CameraState)
 	{
 	case ECameraState::GlobalCamera :

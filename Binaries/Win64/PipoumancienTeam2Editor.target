@@ -8028,6 +8028,26 @@
 		{
 			"Path": "$(ProjectDir)/Binaries/Win64/UnrealEditor.modules",
 			"Type": "RequiredResource"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/NiagaraU4b35ff3681ccV8/Binaries/Win64/UnrealEditor-NiagaraUIRenderer.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/NiagaraU4b35ff3681ccV8/Binaries/Win64/UnrealEditor-NiagaraUIRenderer.pdb",
+			"Type": "SymbolFile"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/NiagaraU4b35ff3681ccV8/Binaries/Win64/UnrealEditor-NiagaraUIRendererEditor.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/NiagaraU4b35ff3681ccV8/Binaries/Win64/UnrealEditor-NiagaraUIRendererEditor.pdb",
+			"Type": "SymbolFile"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/NiagaraU4b35ff3681ccV8/Binaries/Win64/UnrealEditor.modules",
+			"Type": "RequiredResource"
 		}
 	],
 	"RuntimeDependencies": [
@@ -33762,6 +33782,10 @@
 		{
 			"Path": "$(ProjectDir)/PipoumancienTeam2.uproject",
 			"Type": "UFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/NiagaraU4b35ff3681ccV8/NiagaraUIRenderer.uplugin",
+			"Type": "UFS"
 		}
 	],
 	"BuildPlugins": [
@@ -33894,6 +33918,7 @@
 		"NNERuntimeORT",
 		"Niagara",
 		"NiagaraSimCaching",
+		"NiagaraUIRenderer",
 		"NullSourceCodeAccess",
 		"ObjectMixer",
 		"OnlineBase",
