@@ -39,6 +39,14 @@ void UGlobalGameSubsystem::SetCurrentSkeleton(ASkeletonController* Skeleton)
 void UGlobalGameSubsystem::SetBird(ABird* InBird)
 {
 	Bird = InBird;
+	
+	UGlobalHUDSubsystem* GlobalHUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
+	GlobalHUDSubsystem->InitBirdWidget(Bird);
+}
+
+ABird* UGlobalGameSubsystem::GetBird()
+{
+	return Bird;
 }
 
 
@@ -48,11 +56,12 @@ void UGlobalGameSubsystem::AddNoteForSkeletonInteraction(UInputAction* InputActi
 	// HUD 
 	UGlobalHUDSubsystem* GlobalHUDSubsystemIn = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
 
-	// First Note
-	if (InputPressed.Num() == 0)
-	{
-		GlobalHUDSubsystemIn->CallSkeletonInteractionWidget();
-	}
+	// TO EDIT
+	//// First Note
+	// if (InputPressed.Num() == 0)
+	// {
+	// 	GlobalHUDSubsystemIn->CallSkeletonInteractionWidget();
+	// }
 
 	// Add Notes
 	InputPressed.Add(InputAction);
@@ -66,12 +75,14 @@ void UGlobalGameSubsystem::AddNoteForSkeletonInteraction(UInputAction* InputActi
 			SetWorldMusicState();
 		}
 
+		// --- RESET ---
 		// Reset 3 Notes
 		ResetInputsArray();
-		
+
+		// Reset UI
 		FTimerHandle TimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle, GlobalHUDSubsystemIn,
-			&UGlobalHUDSubsystem::ResetSkeletonInteractionWidget,
+			&UGlobalHUDSubsystem::ResetBirdWidget,
 			1.f, false);
 	}
 }

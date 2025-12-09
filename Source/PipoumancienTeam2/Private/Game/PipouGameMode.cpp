@@ -34,15 +34,6 @@ void APipouGameMode::BeginPlay()
 	// -- PLAYERS -- 
 	SpawnCharacters(PlayerStartsPoint);
 
-	// -- SKELETON --
-	UGlobalHUDSubsystem* GlobalHUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
-
-	// timer for execution order (to edit ?)
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, GlobalHUDSubsystem,
-		&UGlobalHUDSubsystem::FindSkeletonInteractionWidget,
-		0.05f, false);
-
 }
 
 

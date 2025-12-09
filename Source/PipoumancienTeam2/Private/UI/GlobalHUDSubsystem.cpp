@@ -22,6 +22,7 @@
 #include "UI/PartitionFinish.h"
 #include "Character/PipouCharacter.h"
 #include "Kismet/GameplayStatics.h"
+#include "PNJ/Bird.h"
 #include "UI/SkeletonInteractionWidget.h"
 #include "UI/BirdWidget.h"
 
@@ -329,58 +330,15 @@ void UGlobalHUDSubsystem::SetWidgetVisibility(UUserWidget* Widget, bool Visibili
 		Widget->SetVisibility(ESlateVisibility::Hidden);
 }
 
-void UGlobalHUDSubsystem::FindSkeletonInteractionWidget()
-{
-	TArray<AActor*> SkeletonInteractionWidgetIn;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), "SkeletonInteractionWidget",SkeletonInteractionWidgetIn);
-	
-	if (SkeletonInteractionWidgetIn.Num() > 0)
-	{
-		SkeletonInteractionWidgetActor = SkeletonInteractionWidgetIn[0];
-		if (!SkeletonInteractionWidgetActor)
-			UE_LOG(LogTemp, Error, TEXT("SkeletonInteractionWidgetActor is nullptr"));
-		
-		SkeletonInteractionWidgetComponent = SkeletonInteractionWidgetActor->FindComponentByClass<UWidgetComponent>();
-		if (!SkeletonInteractionWidgetComponent)
-			UE_LOG(LogTemp, Error, TEXT("SkeletonInteractionWidgetComponent is nullptr"));
-		
-		BirdWidget =  Cast<USkeletonInteractionWidget>(SkeletonInteractionWidgetComponent->GetWidget());
-		if (!BirdWidget)
-		{
-			UE_LOG(LogTemp, Error, TEXT("SkeletonInteractionWidget is nullptr"));
-		}
-		else
-		{
-			ResetSkeletonInteractionWidget();
-		}
-	}
-}
 
-TObjectPtr<UWidgetComponent> UGlobalHUDSubsystem::GetSkeletonInteractionWidgetComponent() const
+void UGlobalHUDSubsystem::InitBirdWidget(ABird* Bird)
 {
-	return SkeletonInteractionWidgetComponent;
+	BirdWidget = Cast<UBirdWidget>(Bird->FindComponentByClass<UWidgetComponent>()->GetWidget());
 }
 
 
-void UGlobalHUDSubsystem::CallSkeletonInteractionWidget()
-{
-	FVector Tot;
-	TArray<APipouCharacter*> Characters = GlobalGameSubsystem->PipouCharacters;
-	
-	for (auto Target : Characters)
-	{
-		Tot += Target->GetActorLocation();
-	}
-	FVector Moy = Tot/Characters.Num();
 
-	SkeletonInteractionWidgetActor->SetActorLocation(Moy);
-	
-	// For now hide all image not widget
-	//SetWidgetVisibility(SkeletonInteractionWidget, true);
-	
-}
-
-void UGlobalHUDSubsystem::ResetSkeletonInteractionWidget()
+void UGlobalHUDSubsystem::ResetBirdWidget()
 {
 	for (auto Image : BirdWidget->Images)
 	{

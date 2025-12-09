@@ -45,6 +45,7 @@ public :
 
 	// Bird
 	void SetBird(ABird* InBird);
+	ABird* GetBird();
 	
 	// --- MUSIC ---
 	// Skeleton Interaction
