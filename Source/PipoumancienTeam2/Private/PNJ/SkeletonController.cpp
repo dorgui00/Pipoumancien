@@ -16,6 +16,7 @@
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "DrawDebugHelpers.h"
 #include "MyAnimNotify_PlayCleanseOnce.h"
+#include "Data/FSkeletonVisuals.h"
 
 
 // Sets default values
@@ -59,11 +60,11 @@ ASkeletonController::~ASkeletonController()
 void ASkeletonController::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	WidgetComponent->SetVisibility(false);
 
+	// SET MYSELF
 	MySkeleton = GetGameInstance()->GetSubsystem<UGlobalDataTableSubsystem>()->GetSkeletonByID(ID);
-
+	InitMyVisuals(); 
+	
 	//ANIM
 	if (!TargetMesh)
 	{
@@ -80,6 +81,9 @@ void ASkeletonController::BeginPlay()
 	bHasLastLocation = true;
 	bWasMoving = false;
 	bWasFollowing = false;
+
+	// UI
+	WidgetComponent->SetVisibility(false);
 }
 
 void ASkeletonController::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -321,6 +325,38 @@ void ASkeletonController::FogDilet()
 		{
 			Fog->SupprimerFog(MySkeleton);  // Appel sur chaque élément
 		}
+	}
+}
+
+void ASkeletonController::InitMyVisuals()
+{
+	if (!MySkeleton) return;
+	if (!MySkeleton->SkeletonVisuals.SkeletonMesh) return;
+	
+	 // -- MESH --
+	TargetMesh->SetSkeletalMeshAsset(MySkeleton->SkeletonVisuals.SkeletonMesh) ;
+
+	// -- ANIMS --
+	
+	//wake
+	WakeAnimation = MySkeleton->SkeletonVisuals.WakeAnim;
+	if (!WakeAnimation)
+		UE_LOG(LogTemp,Error,TEXT("Wake Anim is null"));
+	
+	// transport
+	IdleAnimation = MySkeleton->SkeletonVisuals.IdleAnim;
+	if (!IdleAnimation)
+		UE_LOG(LogTemp,Error,TEXT("Idle Anim is null"));
+	
+	WalkAnimation = MySkeleton->SkeletonVisuals.WalkAnim;
+	if (!WalkAnimation)
+		UE_LOG(LogTemp,Error,TEXT("Walk Anim is null"));
+	
+	WaitAnimation = MySkeleton->SkeletonVisuals.WaitAnim;
+	if (!WaitAnimation)
+	{
+		UE_LOG(LogTemp,Warning,TEXT("Wait Anim is null"));
+		if (IdleAnimation) WaitAnimation = IdleAnimation;
 	}
 }
 
