@@ -26,8 +26,10 @@ public class PipoumancienTeam2 : ModuleRules
 
             //"NiagaraUIRenderer"
             "Niagara",
-            "NiagaraAnimNotifies"
+            "NiagaraAnimNotifies",
             //niagaraaaaaa......????
+
+            "Landscape"
 
         });
 

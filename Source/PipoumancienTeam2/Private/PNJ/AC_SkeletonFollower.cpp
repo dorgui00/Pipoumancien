@@ -20,6 +20,8 @@
 #include "Character/PipouCharacterStateWalk.h"
 #include "Tools/VillagePathManager.h"
 #include "MyAnimNotify_PlayCleanseOnce.h"
+#include "LandscapeComponent.h"
+#include "LandscapeHeightfieldCollisionComponent.h"
 
 
 UAC_SkeletonFollower::UAC_SkeletonFollower()
@@ -121,8 +123,6 @@ void UAC_SkeletonFollower::EnsureGeneratedSpline()
 
 void UAC_SkeletonFollower::StartPathGeneration()
 {
-    UE_LOG(LogTemp, Warning, TEXT("Starting StartPathGeneration();"));
-
     bOnVillageSpline = false;
     bHasReachedHome = false;
 
@@ -179,16 +179,30 @@ void UAC_SkeletonFollower::GenerateNextPathPoint()
     if (!bFoundNavPoint)
     {
         Adjusted = Mid;
+    }
 
-        if (bSnapToGround)
+
+    if (bSnapToGround)
+    {
+        FVector Grounded;
+        if (TrySnapToGround(Adjusted, Grounded))
         {
-            FVector Grounded = Adjusted;
-            if (TrySnapToGround(Adjusted, Grounded))
+            Adjusted = Grounded;
+        }
+        else
+        {
+            FVector Backtracked;
+            if (BacktrackToGround(SkelPos, Adjusted, Backtracked))
             {
-                Adjusted = Grounded;
+                Adjusted = Backtracked;
+            }
+            else
+            {
+                return;
             }
         }
     }
+
 
     if (SplineToFollow)
     {
@@ -690,13 +704,61 @@ bool UAC_SkeletonFollower::TrySnapToGround(const FVector& In, FVector& Out) cons
     FHitResult Hit;
     FCollisionQueryParams Params(SCENE_QUERY_STAT(SnapToGround), false, GetOwner());
 
-    bool bHit = World->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
-    if (bHit)
+    const bool bHit = World->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
+    if (bHit && Hit.Component.IsValid())
     {
-        Out = In;
-        Out.Z = Hit.ImpactPoint.Z + GroundOffset;
+        if (Hit.Component->IsA(ULandscapeHeightfieldCollisionComponent::StaticClass()))
+        {
+            Out = In;
+            Out.Z = Hit.ImpactPoint.Z + GroundOffset;
+            return true;
+        }
+
+        UE_LOG(LogTemp, Warning, TEXT("[SkeletonFollower] Ignored hit: %s (%s)"),
+            *Hit.Component->GetName(),
+            *Hit.Component->GetClass()->GetName());
+    }
+
+    return false;
+}
+bool UAC_SkeletonFollower::BacktrackToGround(const FVector& Start, const FVector& End, FVector& Out) const
+{
+    if (!bSnapToGround)
+    {
+        return false;
+    }
+
+    const float TotalDist = FVector::Dist(Start, End);
+    if (TotalDist <= KINDA_SMALL_NUMBER)
+    {
+        return false;
+    }
+
+    const float Step = FMath::Max(1.f, BacktrackStepSize);
+    const int32 Steps = FMath::CeilToInt(TotalDist / Step);
+
+    const FVector Dir = (Start - End).GetSafeNormal();
+    FVector Current = End;
+
+    for (int32 i = 0; i <= Steps; ++i)
+    {
+        FVector Grounded;
+        if (TrySnapToGround(Current, Grounded))
+        {
+            Out = Grounded;
+            return true;
+        }
+
+        Current += Dir * Step;
+    }
+
+    FVector GroundedStart;
+    if (TrySnapToGround(Start, GroundedStart))
+    {
+        Out = GroundedStart;
         return true;
     }
+
     return false;
 }
 
@@ -705,18 +767,15 @@ bool UAC_SkeletonFollower::TrySnapToGround(const FVector& In, FVector& Out) cons
 
 void UAC_SkeletonFollower::HandleReachHome()
 {
-    UE_LOG(LogTemp, Log, TEXT("[SkeletonFollower] HandleReachHome called"));
 
     if (!ParentActor)
     {
-        UE_LOG(LogTemp, Warning, TEXT("[SkeletonFollower] ParentActor is null"));
         return;
     }
 
     UWorld* World = GetWorld();
     if (!World)
     {
-        UE_LOG(LogTemp, Warning, TEXT("[SkeletonFollower] World is null"));
         return;
     }
 
@@ -724,15 +783,11 @@ void UAC_SkeletonFollower::HandleReachHome()
     AActor* ManagerActor = UGameplayStatics::GetActorOfClass(World, AVillagePathManager::StaticClass());
     if (!ManagerActor)
     {
-        UE_LOG(LogTemp, Warning, TEXT("[SkeletonFollower] No VillagePathManager found in world"));
         return;
     }
 
     if (AVillagePathManager* Manager = Cast<AVillagePathManager>(ManagerActor))
     {
-        UE_LOG(LogTemp, Log, TEXT("[SkeletonFollower] Notifying VillagePathManager for %s"),
-            *GetNameSafe(ParentActor));
-
         Manager->OnSkeletonReachedEnd(ParentActor);
     }
 }
