@@ -3,6 +3,7 @@
 
 #include "Music/MusicWorldSubsystem.h"
 
+#include "InputAction.h"
 #include "Components/Slider.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
@@ -121,11 +122,22 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			{
 				HasReachFrequency = true;
 
-				if (CurrentWaitingNoteIndexUI < CurrentSkeleton->MySkeleton->Notes.Num() - 1)
+				if (GetCurrentWaitingNoteIndexUI() < CurrentSkeleton->MySkeleton->Notes.Num() - 1)
 				{
+					PreviousCurrentWaitingNoteIndexUI = CurrentWaitingNoteIndexUI;
 					CurrentWaitingNoteIndexUI++;
+					
+					if (CurrentWaitingNoteIndexUI == PreviousCurrentWaitingNoteIndexUI)
+					{
+						CurrentWaitingNoteIndexUI++;
+					}
+					
 					TempoNoteUI = 0;
 				}
+			}
+			else
+			{
+				UE_LOGFMT(LogTemp, Warning, "HasReachPitch : false");
 			}
 			
 			// Check for the exit of the window note, to check if the player HasAchievedQTE.
@@ -299,9 +311,6 @@ void UMusicWorldSubsystem::SucceedMelody()
 	
 	// Reset Music
 	IsInWorldStateMusic = false;
-	Tempo = 0.f;
-	CurrentWaitingNoteIndex = 0;
-	CurrentWaitingNoteIndexUI = 0;
 	// BackgroundAudioComponent->SetActive(false);
 	
 	// UI
@@ -340,9 +349,6 @@ void UMusicWorldSubsystem::LostMelody()
 	
 	// Reset Music
 	IsInWorldStateMusic = false;
-	Tempo = 0.f;
-	CurrentWaitingNoteIndex = 0;
-	CurrentWaitingNoteIndexUI = 0;
 	// BackgroundAudioComponent->SetActive(false);
 	
 	// UI
@@ -529,7 +535,6 @@ void UMusicWorldSubsystem::DecreaseTimerCountdown(float DeltaTime)
 	TimerCountDown -= DeltaTime;
 }
 
-
 bool UMusicWorldSubsystem::HasFinishedCountdown() const
 {
 	return GetTimerCountdown() <= 0.f;
@@ -556,7 +561,7 @@ bool UMusicWorldSubsystem::HasReachPitchSlider() const
 {
 	bool HasReachPitchSlider;
 	
-	if (GetCurrentWaitingNoteIndexUI() <= 0)
+	if (GetCurrentWaitingNoteIndex() <= 0)
 	{
 		HasReachPitchSlider = TempoNoteUI >= (GlobalHUDSubsystem->GetUIOffset() / GlobalHUDSubsystem->GetUISpeed());
 	}

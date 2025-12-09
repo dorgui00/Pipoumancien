@@ -142,28 +142,25 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 {
 	if (CurrentRole == EPipouCharacterRoles::Musician)
 	{
-		if (MusicWorldSubsystem->GetIsAwatingReply() && MusicWorldSubsystem->GetCurrentWaitingNote()->InputAction == InputAction
+		if (MusicWorldSubsystem->GetIsAwatingReply() && MusicWorldSubsystem->GetCurrentWaitingNote()->InputAction == InputAction && !HasPressedNotes
 				&& (MusicWorldSubsystem->GetCurrentWaitingNote()->Pitch >= MusicWorldSubsystem->GetCurrentPitchCursorValue() - MusicWorldSubsystem->GetPitchTolerance()
 				&& MusicWorldSubsystem->GetCurrentWaitingNote()->Pitch <= MusicWorldSubsystem->GetCurrentPitchCursorValue() + MusicWorldSubsystem->GetPitchTolerance()))
 		{
+			HasPressedNotes = true;
+			MusicWorldSubsystem->ReceivedMusicianInput();
+
 			// Set invisibility for the notes.
 			MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->PlayValidationNote({50, 50}, 0);
 			MusicWorldSubsystem->SetNoteFeedbackMusic(FLinearColor::Green);
 		}
-		
-		if (MusicWorldSubsystem->GetIsAwatingReply() && MusicWorldSubsystem->GetCurrentWaitingNote()->InputAction == InputAction && !HasPressedNotes)
-		{
-			HasPressedNotes = true;
-			MusicWorldSubsystem->ReceivedMusicianInput();
-		}
 		else if (!MusicWorldSubsystem->GetIsAwatingReply() && !MusicWorldSubsystem->IsInCountDown && !HasPressedNotes)
 		{
 			HasPressedNotes = true;
-			
+
 			// Negative feedback
 			UGameplayStatics::PlaySound2D(GetWorld(), MusicWorldSubsystem->FailedNoteSound);
 			MusicWorldSubsystem->SetNoteFeedbackMusic(FLinearColor::Red);
-
+			
 			// FAILS
 			MusicWorldSubsystem->SetCurrentFailNotePossible(MusicWorldSubsystem->GetCurrentFailNotePossible() - 1);
 

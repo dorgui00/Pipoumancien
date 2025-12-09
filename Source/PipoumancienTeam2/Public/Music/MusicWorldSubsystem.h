@@ -106,9 +106,10 @@ private:
 	float TimerLerpingOffset = 0.f;
 	bool IsLerpingOffset = true;
 
-	UPROPERTY()
-	int CurrentWaitingNoteIndexUI = 0;
 	bool HasReachFrequency = false;
+	
+	int CurrentWaitingNoteIndexUI = 0;
+	int PreviousCurrentWaitingNoteIndexUI = 0;
 	
 	bool HasFinishedLerpingOffset() const;
 
