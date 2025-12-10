@@ -111,6 +111,9 @@ public:
 
 	//ANIM
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
+	UAnimationAsset* WakeAnimation = nullptr;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
 	UAnimationAsset* IdleAnimation = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
@@ -202,9 +205,11 @@ private :
 	void UpdateAnimation(float DeltaTime);
 	void FogDilet();
 
+	void InitMyVisuals();
 
 	float FootstepTimer = 0.f;
 
+	// SOUNDS
 	UPROPERTY(EditAnywhere, Category = "Audio")
 	float FootstepInterval = .6f;
 
