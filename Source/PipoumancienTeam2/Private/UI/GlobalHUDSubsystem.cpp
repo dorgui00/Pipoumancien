@@ -23,7 +23,6 @@
 #include "Character/PipouCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "PNJ/Bird.h"
-#include "UI/SkeletonInteractionWidget.h"
 #include "UI/BirdWidget.h"
 
 
@@ -330,6 +329,21 @@ void UGlobalHUDSubsystem::SetWidgetVisibility(UUserWidget* Widget, bool Visibili
 		Widget->SetVisibility(ESlateVisibility::Hidden);
 }
 
+void UGlobalHUDSubsystem::ValideWidget()
+{
+	BirdWidget->ToucheV();
+}
+
+void UGlobalHUDSubsystem::FolseWidget()
+{
+	BirdWidget->ToucheF();
+}
+
+void UGlobalHUDSubsystem::RemoveBirdWidget()
+{
+	BirdWidget->RemoveWidget();
+}
+
 
 void UGlobalHUDSubsystem::InitBirdWidget(ABird* Bird)
 {
@@ -349,13 +363,21 @@ void UGlobalHUDSubsystem::ResetBirdWidget()
 
 void UGlobalHUDSubsystem::DisplayNotesForSkeletonInteraction(const UInputAction* InputAction)
 {
-	int index = GlobalGameSubsystem->InputPressed.Num() - 1;
-	
-	// set image
-	UTexture2D* Text = GetImageTextureFromNoteInput(InputAction);
-	BirdWidget->Images[index]->SetBrushFromTexture(Text);
+	if (!GlobalGameSubsystem || !BirdWidget) return;
 
-	// display
-	BirdWidget->Images[index]->SetVisibility(ESlateVisibility::Visible);
+	// Récupérer l’index en le clampant
+	const int32 MaxIndex = BirdWidget->Images.Num() - 1;
+	int32 Index = FMath::Clamp(GlobalGameSubsystem->InputPressed.Num() - 1, 0, MaxIndex);
 
+	// Récupérer l'image
+	if (UTexture2D* Text = GetImageTextureFromNoteInput(InputAction))
+	{
+		BirdWidget->Images[Index]->SetBrushFromTexture(Text);
+	}
+
+	// Couleur (pleine opacité)
+	BirdWidget->Images[Index]->SetColorAndOpacity(FLinearColor::White);
+
+	// Afficher l'image
+	// BirdWidget->Images[Index]->SetVisibility(ESlateVisibility::Visible);
 }

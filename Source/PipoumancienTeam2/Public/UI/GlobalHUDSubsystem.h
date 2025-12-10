@@ -116,6 +116,12 @@ public:
 	void ResetBirdWidget();
 
 	void SetWidgetVisibility(UUserWidget* Widget, bool Visibility);
+
+	void ValideWidget();
+
+	void FolseWidget();
+
+	void RemoveBirdWidget();
 	
 	
 protected:

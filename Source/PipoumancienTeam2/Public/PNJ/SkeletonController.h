@@ -128,7 +128,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ZoneVictoir")
 	UWidgetComponent* WidgetComponentMerci;
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ZoneVictoir")
+	AActor* ZoneBird;
 
 	//SOUNDS
 	UPROPERTY(EditAnywhere, Category = "Audio")

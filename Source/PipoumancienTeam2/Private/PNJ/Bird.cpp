@@ -30,7 +30,7 @@ void ABird::SetWidgetVisibility(bool Visibility)
 	if (Visibility)
 	{
 		SetMyNotes();
-		SetActorLocation(GlobalGameSubsystem->GetCurrentSkeleton()->GetActorLocation());
+		SetActorLocation(GlobalGameSubsystem->GetCurrentSkeleton()->ZoneBird->GetActorLocation());
 	}
 	
 	// if (WidgetComponent->IsVisible() != Visibility)

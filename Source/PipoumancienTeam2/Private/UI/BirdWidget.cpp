@@ -17,35 +17,24 @@ void UBirdWidget::NativeConstruct()
 
 void UBirdWidget::AnimationToucheIdel()
 {
-	PlayAnimation(AnimationTouche, 0.0f, 0, EUMGSequencePlayMode::Forward, 1.0f, false);
+	PlayAnimation(AnimationTouche, 0.0f, 1, EUMGSequencePlayMode::Forward, 1.0f, false);
 }
 
-void UBirdWidget::Touche1V()
+void UBirdWidget::ToucheV()
 {
 	PlayAnimation(Touche1Valide, 0.0f, 1, EUMGSequencePlayMode::Forward, 1.0f, false);
 }
 
-void UBirdWidget::Touche2V()
-{
-	PlayAnimation(Touche2Valide, 0.0f, 1, EUMGSequencePlayMode::Forward, 1.0f, false);
-}
 
-void UBirdWidget::Touche3V()
-{
-	PlayAnimation(Touche3Valide, 0.0f, 1, EUMGSequencePlayMode::Forward, 1.0f, false);
-}
-
-void UBirdWidget::Touche1F()
+void UBirdWidget::ToucheF()
 {
 	PlayAnimation(Touche1Faile, 0.0f, 1, EUMGSequencePlayMode::Forward, 1.0f, false);
 }
 
-void UBirdWidget::Touche2F()
+void UBirdWidget::RemoveWidget()
 {
-	PlayAnimation(Touche1Faile, 0.0f, 1, EUMGSequencePlayMode::Forward, 1.0f, false);
+	PlayAnimation(RemoveAnimation, 0.0f, 1, EUMGSequencePlayMode::Forward, 1.0f, false);
+	//Images = {Image01,Image02,Image03};
+	
 }
 
-void UBirdWidget::Touche3F()
-{
-	PlayAnimation(Touche1Faile, 0.0f, 1, EUMGSequencePlayMode::Forward, 1.0f, false);
-}

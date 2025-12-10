@@ -75,6 +75,8 @@ public :
 
 	void SetWorldDialogueState(APipouCharacter* Interactor, ASkeletonController* Speaker);
 	
+	void RimouveWidget();
+	
 private :
 
 	// World State
@@ -87,6 +89,7 @@ private :
 	// Bird
 	UPROPERTY()
 	TObjectPtr<ABird> Bird = nullptr;
+	
 
 	// ---- UTILITIES ----
 

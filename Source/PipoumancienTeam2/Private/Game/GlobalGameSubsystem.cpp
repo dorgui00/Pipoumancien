@@ -14,6 +14,7 @@
 #include "Tools/Slider/NoteMapping.h"
 #include "UI/GlobalHUDSubsystem.h"
 
+
 // void UGlobalGameSubsystem::Tick(float DeltaTime)
 // {
 // }
@@ -72,20 +73,69 @@ void UGlobalGameSubsystem::AddNoteForSkeletonInteraction(UInputAction* InputActi
 	{
 		if (HasValidFirstNotes())
 		{
-			SetWorldMusicState();
+			GlobalHUDSubsystemIn->ValideWidget();
+			FTimerHandle TimerHandle;
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this,
+			&UGlobalGameSubsystem::SetWorldMusicState,
+				3.f, false);
+			//SetWorldMusicState();
+			
+		}
+		else
+		{
+
+			FTimerHandle DelayHandle;
+			GetWorld()->GetTimerManager().SetTimer(
+				DelayHandle,
+				FTimerDelegate::CreateLambda([this]()
+				{
+					UGlobalHUDSubsystem* GlobalHUDSubsystemIn = 
+						GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
+
+					// 1️⃣ FolseWidget() après 2 secondes
+					GlobalHUDSubsystemIn->FolseWidget();
+
+					// 2️⃣ Ensuite le reste du code
+					ResetInputsArray();
+
+					if (Bird)
+					{
+						Bird->SetMyNotes();
+					}
+
+					GlobalHUDSubsystemIn->RemoveBirdWidget();
+
+				}),
+				1.0f,  // délai AVANT FolseWidget
+				false
+			);
 		}
 
 		// --- RESET ---
 		// Reset 3 Notes
-		ResetInputsArray();
-
+		//ResetInputsArray();
+		
+		
 		// Reset UI
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, GlobalHUDSubsystemIn,
-			&UGlobalHUDSubsystem::ResetBirdWidget,
-			1.f, false);
+		//FTimerHandle TimerHandle;
+		//GetWorld()->GetTimerManager().SetTimer(TimerHandle, GlobalHUDSubsystemIn,
+		//	&UGlobalHUDSubsystem::RimouveWidget(),
+		//	1.f, false);
+
+		//GetWorld()->GetTimerManager().SetTimer(TimerHandle,FTimerDelegate::CreateLambda([this]()
+	//{
+		// Code exécuté après 5s
+		//Bird->SetMyNotes();
+	//}),
+	//2.0f,
+	//false
+//);
+		//GlobalHUDSubsystemIn->RemoveBirdWidget();
+		
 	}
 }
+
+
 
 bool UGlobalGameSubsystem::HasValidFirstNotes()
 {
@@ -246,6 +296,8 @@ void UGlobalGameSubsystem::SetWorldDialogueState(APipouCharacter* Interactor, AS
 	//Open dialogue
 	Speaker->OpenDialogue();
 }
+
+
 
 
 
