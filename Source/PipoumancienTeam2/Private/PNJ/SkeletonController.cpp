@@ -64,14 +64,15 @@ void ASkeletonController::BeginPlay()
 	// ---- SET MYSELF ----
 	MySkeleton = GetGameInstance()->GetSubsystem<UGlobalDataTableSubsystem>()->GetSkeletonByID(ID);
 	
-	// Anims
+	// Mesh
 	if (!TargetMesh)
 	{
 		TargetMesh = FindComponentByClass<USkeletalMeshComponent>();
 	}
 	
-	InitMyVisuals(); 
+	InitMyVisuals();
 
+	// Anims
 	// Start with idle if we have it
 	if (TargetMesh && IdleAnimation)
 	{
