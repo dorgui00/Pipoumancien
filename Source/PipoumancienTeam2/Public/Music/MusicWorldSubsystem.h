@@ -112,6 +112,7 @@ private:
 	int PreviousCurrentWaitingNoteIndexUI = 0;
 	
 	bool HasFinishedLerpingOffset() const;
+	void OnFinishLerpingOffset();
 
 	bool HasReachPitchSlider() const;
 
@@ -163,8 +164,6 @@ private:
 
 	UPROPERTY()
 	int CurrentFailNotePossible;
-
-	void PlayMusic();
 
 	void IncreaseMusicTempo(float DeltaTime);
 	void IncreaseMusicTempoUI(float DeltaTime);

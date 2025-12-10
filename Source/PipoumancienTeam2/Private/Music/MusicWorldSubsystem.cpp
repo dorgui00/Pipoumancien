@@ -90,7 +90,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			
 			if (HasFinishedLerpingOffset())
 			{
-				IsLerpingOffset = false;
+				OnFinishLerpingOffset();
 			}
 		}
 		else
@@ -296,30 +296,38 @@ void UMusicWorldSubsystem::SucceedQTE()
 	// POSITIVE feedback
 	if (GetCurrentWaitingNote()->Sound)
 		UGameplayStatics::PlaySound2D(GetWorld(),GetCurrentWaitingNote()->Sound);
-
+	
 	// Continue
 	GoNextNote();
 }
 
 void UMusicWorldSubsystem::SucceedMelody()
 {
-	// DEBUG
+	// --- DEBUG ---
 	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")), true, FVector2D(2, 2));
 
-	// SUCCEED
+	// --- MY STATE ---
+	// Succeed
 	MelodyState = EMelodyType::SUCCEED;
 	
 	// Reset Music
 	IsInWorldStateMusic = false;
-	// BackgroundAudioComponent->SetActive(false);
+
+	// --- FEEDBACKS ---
+	//Anim
+	CurrentSkeleton->FinishWakeAnim(true);
 	
 	// UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
 
+	// Sound
+	// BackgroundAudioComponent->SetActive(false);
+	
 	// Animation of Enter
 	GlobalHUDSubsystem->DisplayPartitionFinish("SUCCEED MELODY");
 
-	/// TO EDIT don't use delay
+	// --- SWITCH OF WORLD STATE ---
+	// TO EDIT don't use delay
 	FTimerHandle IsAnimationFinished;
 	GetWorld()->GetTimerManager().ClearTimer(IsAnimationFinished);
 
@@ -350,6 +358,10 @@ void UMusicWorldSubsystem::LostMelody()
 	// Reset Music
 	IsInWorldStateMusic = false;
 	// BackgroundAudioComponent->SetActive(false);
+
+	// --- FEEDBACKS ---
+	// Anim
+	CurrentSkeleton->FinishWakeAnim(false);
 	
 	// UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
@@ -357,7 +369,8 @@ void UMusicWorldSubsystem::LostMelody()
 	// Animation of Exit
 	GlobalHUDSubsystem->DisplayPartitionFinish("FAILED MELODY");
 
-	/// TO EDIT don't use delay
+	// --- SWITCH OF WORLD STATE ---
+	// TO EDIT don't use delay
 	FTimerHandle IsAnimationFinished;
 	GetWorld()->GetTimerManager().ClearTimer(IsAnimationFinished);
 
@@ -406,6 +419,7 @@ void UMusicWorldSubsystem::LostQTE()
 	// FAILS 
 	SetCurrentFailNotePossible(GetCurrentFailNotePossible() - 1);
 
+	// Negative Feedbacks
 	if (GetCurrentWaitingNoteWidget() != nullptr)
 	{
 		GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::Red);
@@ -425,6 +439,9 @@ void UMusicWorldSubsystem::LostQTE()
 			false
 			);
 	}
+
+	// Anim
+	CurrentSkeleton->PlayFailAnim();
 	
 	// If the max note possible to fail has been achieved you go out of the music state without the skeletons.
 	if (HasLostAllFaileNotePossible())
@@ -555,6 +572,16 @@ void UMusicWorldSubsystem::IncreaseTimerLerpingOffset(float DeltaTime)
 bool UMusicWorldSubsystem::HasFinishedLerpingOffset() const
 {
 	return GetTimerLerpingOffset() >= (GlobalHUDSubsystem->GetUIOffset() / GlobalHUDSubsystem->GetUISpeed());
+}
+
+void UMusicWorldSubsystem::OnFinishLerpingOffset()
+{
+	// Myself
+	IsLerpingOffset = false;
+
+	// Anim
+	if (CurrentSkeleton)
+		CurrentSkeleton->PlayWakeAnim();
 }
 
 bool UMusicWorldSubsystem::HasReachPitchSlider() const

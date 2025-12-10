@@ -74,10 +74,10 @@ void ASkeletonController::BeginPlay()
 
 	// Anims
 	// Start with idle if we have it
-	if (TargetMesh && IdleAnimation)
-	{
-		TargetMesh->PlayAnimation(IdleAnimation, true);
-	}
+	// if (TargetMesh && IdleAnimation)
+	// {
+	// 	TargetMesh->PlayAnimation(IdleAnimation, true);
+	// }
 
 	LastLocation = GetActorLocation();
 	bHasLastLocation = true;
@@ -125,6 +125,11 @@ void ASkeletonController::EndOverlaps(UPrimitiveComponent* OverlappedComp, AActo
 			WidgetComponent->SetVisibility(false);
 		}
 	}
+}
+
+F_Skeleton ASkeletonController::GetMyData() const
+{
+	return *MySkeleton;
 }
 
 // STATE
@@ -333,33 +338,33 @@ void ASkeletonController::FogDilet()
 void ASkeletonController::InitMyVisuals()
 {
 	if (!MySkeleton) return;
-	if (!MySkeleton->SkeletonVisuals.SkeletonMesh) return;
+	if (!MySkeleton->SkeletonVisuals.Mesh) return;
 	
 	 // -- MESH --
-	TargetMesh->SetSkeletalMeshAsset(MySkeleton->SkeletonVisuals.SkeletonMesh) ;
+	TargetMesh->SetSkeletalMeshAsset(MySkeleton->SkeletonVisuals.Mesh) ;
 
 	// -- ANIMS --
 	
 	//wake
-	WakeAnimation = MySkeleton->SkeletonVisuals.WakeAnim;
-	if (!WakeAnimation)
-		UE_LOG(LogTemp,Error,TEXT("Wake Anim is null"));
-	
-	// transport
-	IdleAnimation = MySkeleton->SkeletonVisuals.IdleAnim;
-	if (!IdleAnimation)
-		UE_LOG(LogTemp,Error,TEXT("Idle Anim is null"));
-	
-	WalkAnimation = MySkeleton->SkeletonVisuals.WalkAnim;
-	if (!WalkAnimation)
-		UE_LOG(LogTemp,Error,TEXT("Walk Anim is null"));
-	
-	WaitAnimation = MySkeleton->SkeletonVisuals.WaitAnim;
-	if (!WaitAnimation)
-	{
-		UE_LOG(LogTemp,Warning,TEXT("Wait Anim is null"));
-		if (IdleAnimation) WaitAnimation = IdleAnimation;
-	}
+	// WakeAnimation = MySkeleton->SkeletonVisuals.WakeAnim;
+	// if (!WakeAnimation)
+	// 	UE_LOG(LogTemp,Error,TEXT("Wake Anim is null"));
+	//
+	// // transport
+	// IdleAnimation = MySkeleton->SkeletonVisuals.IdleAnim;
+	// if (!IdleAnimation)
+	// 	UE_LOG(LogTemp,Error,TEXT("Idle Anim is null"));
+	//
+	// WalkAnimation = MySkeleton->SkeletonVisuals.WalkAnim;
+	// if (!WalkAnimation)
+	// 	UE_LOG(LogTemp,Error,TEXT("Walk Anim is null"));
+	//
+	// WaitAnimation = MySkeleton->SkeletonVisuals.WaitAnim;
+	// if (!WaitAnimation)
+	// {
+	// 	UE_LOG(LogTemp,Warning,TEXT("Wait Anim is null"));
+	// 	if (IdleAnimation) WaitAnimation = IdleAnimation;
+	// }
 }
 
 void ASkeletonController::PlayIdle()
