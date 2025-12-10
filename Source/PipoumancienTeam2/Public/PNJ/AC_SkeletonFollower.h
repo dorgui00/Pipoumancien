@@ -31,7 +31,7 @@ public:
 
     // speed
     UPROPERTY(EditAnywhere, Category = "Follow|Spline", meta = (ClampMin = "0"))
-    float SplineFollowSpeed = 300.f;
+    float SplineFollowSpeed = 280.f;
 
     UPROPERTY(EditAnywhere, Category = "Follow|Spline")
     bool bOrientToSpline = true;
@@ -45,7 +45,7 @@ public:
 
     // delay
     UPROPERTY(EditAnywhere, Category = "PathGen|Timing", meta = (ClampMin = "0.01"))
-    float SegmentDelay = 0.1f;
+    float SegmentDelay = 0.75f;
 
     UPROPERTY(EditAnywhere, Category = "PathGen|Debug")
     bool bDrawDebug = true;
@@ -144,10 +144,10 @@ protected:
     float TargetDistance = 0.f;
 
     UPROPERTY(EditAnywhere, Category = "Follow|Players", meta = (ClampMin = "0"))
-    float PlayerMovingSpeedThreshold = .5f;
+    float PlayerMovingSpeedThreshold = 1.f;
 
     UPROPERTY(EditAnywhere, Category = "Follow|Players", meta = (ClampMin = "0"))
-    float PlayerMovingDistanceThreshold = .5f;
+    float PlayerMovingDistanceThreshold = .75f;
 
     UPROPERTY(Transient)
     TArray<FVector> PreviousPlayerLocations;
