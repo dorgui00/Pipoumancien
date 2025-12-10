@@ -76,7 +76,7 @@ public:
 	// Called when the player performs an action too early or too late.
 	void LostQTE();
 	void LostMelody();
-	void SetNoteFeedbackMusic(FLinearColor NewColor) const;
+	void SetNoteFeedbackMusic(FLinearColor NewColor);
 
 	// Fail Note possible -> Health Bar of the partition.
 	int GetCurrentFailNotePossible() const;
@@ -108,12 +108,15 @@ private:
 
 	bool HasReachFrequency = false;
 	
-	int CurrentWaitingNoteIndexUI = 0;
-	int PreviousCurrentWaitingNoteIndexUI = 0;
+	// int CurrentWaitingNoteIndexUI = 0;
+	// int PreviousCurrentWaitingNoteIndexUI = 0;
+
+	int Ziziew = 0;
+	int PreviousZiziew = 0;
 	
 	bool HasFinishedLerpingOffset() const;
 
-	bool HasReachPitchSlider() const;
+	bool HasReachPitchSlider();
 
 	
 	// ---- MUSIC COUNTDOWN ---- 

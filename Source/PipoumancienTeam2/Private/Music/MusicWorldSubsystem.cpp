@@ -121,23 +121,11 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			if (HasReachPitchSlider() && !HasReachFrequency)
 			{
 				HasReachFrequency = true;
-
-				if (GetCurrentWaitingNoteIndexUI() < CurrentSkeleton->MySkeleton->Notes.Num() - 1)
+				
+				if (Ziziew < CurrentSkeleton->MySkeleton->Notes.Num() - 1)
 				{
-					PreviousCurrentWaitingNoteIndexUI = CurrentWaitingNoteIndexUI;
-					CurrentWaitingNoteIndexUI++;
-					
-					if (CurrentWaitingNoteIndexUI == PreviousCurrentWaitingNoteIndexUI)
-					{
-						CurrentWaitingNoteIndexUI++;
-					}
-					
-					TempoNoteUI = 0;
+					Ziziew++;
 				}
-			}
-			else
-			{
-				UE_LOGFMT(LogTemp, Warning, "HasReachPitch : false");
 			}
 			
 			// Check for the exit of the window note, to check if the player HasAchievedQTE.
@@ -185,6 +173,7 @@ UMusicNote* UMusicWorldSubsystem::GetCurrentWaitingNoteWidget() const
 		UE_LOGFMT(LogTemp, Error, "ERROR: No current waiting note !");
 		return nullptr;
 	}
+	
 	if (GlobalHUDSubsystem->WBPResurrectionInstance == nullptr)
 	{
 		UE_LOGFMT(LogTemp, Error, "ERROR: WBPResurrectionInstance == nullptr !");
@@ -206,13 +195,14 @@ void UMusicWorldSubsystem::SetCurrentWaitingNoteIndex(int NewIndex)
 
 int UMusicWorldSubsystem::GetCurrentWaitingNoteIndexUI() const
 {
-	return CurrentWaitingNoteIndexUI;
+	return Ziziew;
 }
 
 F_Note* UMusicWorldSubsystem::GetCurrentWaitingNoteUI() const
 {
-	if (GetCurrentWaitingNoteIndexUI() > CurrentSkeleton->MySkeleton->Notes.Num() - 1) UE_LOGFMT(LogTemp, Error, "ERROR: Current waiting Note is out of range !");
-	return &CurrentSkeleton->MySkeleton->Notes[GetCurrentWaitingNoteIndexUI()];
+	if (Ziziew > CurrentSkeleton->MySkeleton->Notes.Num() - 1) UE_LOGFMT(LogTemp, Error, "ERROR: Current waiting Note is out of range !");
+	UE_LOGFMT(LogTemp, Warning, "Get Ziziew : {0}", Ziziew);
+	return &CurrentSkeleton->MySkeleton->Notes[Ziziew];
 }
 
 bool UMusicWorldSubsystem::GetIsConductorOnPitch() const
@@ -246,7 +236,8 @@ void UMusicWorldSubsystem::InitMusic(ASkeletonController* Skeleton)
 	TimerCountDown = 3.f;
 
 	CurrentWaitingNoteIndex = 0;
-	CurrentWaitingNoteIndexUI = 0;
+	// CurrentWaitingNoteIndexUI = 0;
+	Ziziew = 0;
 	
 	IsAwaitingReply = false;
 	HasMusicianReceivedInput = false;
@@ -371,12 +362,12 @@ void UMusicWorldSubsystem::LostMelody()
 		);
 }
 
-void UMusicWorldSubsystem::SetNoteFeedbackMusic(FLinearColor NewColor) const
+void UMusicWorldSubsystem::SetNoteFeedbackMusic(FLinearColor NewColor)
 {
 	UResurrectionWidget* ResurrectionWidget = GlobalHUDSubsystem->WBPResurrectionInstance;
 	if (!ResurrectionWidget) return;
 
-	UImage* CurrentNoteFeedback = ResurrectionWidget->GetFeedbackPosFromInputPitch(GetCurrentWaitingNoteUI()->Pitch);
+	UImage* CurrentNoteFeedback = ResurrectionWidget->GetFeedbackPosFromInputPitch(CurrentSkeleton->MySkeleton->Notes[Ziziew].Pitch);
 	GlobalHUDSubsystem->SetImageColor(CurrentNoteFeedback, NewColor);
 }
 
@@ -406,6 +397,8 @@ void UMusicWorldSubsystem::LostQTE()
 	// FAILS 
 	SetCurrentFailNotePossible(GetCurrentFailNotePossible() - 1);
 
+	SetNoteFeedbackMusic(FLinearColor::Red);
+	
 	if (GetCurrentWaitingNoteWidget() != nullptr)
 	{
 		GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::Red);
@@ -557,13 +550,13 @@ bool UMusicWorldSubsystem::HasFinishedLerpingOffset() const
 	return GetTimerLerpingOffset() >= (GlobalHUDSubsystem->GetUIOffset() / GlobalHUDSubsystem->GetUISpeed());
 }
 
-bool UMusicWorldSubsystem::HasReachPitchSlider() const
+bool UMusicWorldSubsystem::HasReachPitchSlider()
 {
 	bool HasReachPitchSlider;
 	
 	if (GetCurrentWaitingNoteIndex() <= 0)
 	{
-		HasReachPitchSlider = TempoNoteUI >= (GlobalHUDSubsystem->GetUIOffset() / GlobalHUDSubsystem->GetUISpeed());
+		HasReachPitchSlider = TempoNoteUI >= (GlobalHUDSubsystem->GetUIOffset() / GlobalHUDSubsystem->GetUISpeed()) + GetCurrentWaitingNote()->Frequency;
 	}
 	else
 	{
