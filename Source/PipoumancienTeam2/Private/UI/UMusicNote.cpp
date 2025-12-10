@@ -20,12 +20,31 @@ void UMusicNote::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
+	Internal_PlayValidationNote(InDeltaTime);
+	Internal_PlayFailNote(InDeltaTime);
+}
+
+void UMusicNote::PlayValidationNote(FVector2D NewTargetSize, float NewOpacity)
+{
+	IsPlayingValidation = true;
+	
+	NoteFinalSize = NewTargetSize;
+
+	NoteTargetSize = NoteFinalSize * 0.5f;
+	NoteImageTargetOpacity = NewOpacity;
+
+	InterpSpeedSize = 20.f; 
+	InterpSpeedOpacity = 7.f;
+}
+
+void UMusicNote::Internal_PlayValidationNote(float DeltaTime)
+{
 	if (!IsPlayingValidation || !NoteImageSlot) return;
 
-	NoteCurrentSize = FMath::Vector2DInterpTo(NoteCurrentSize, NoteTargetSize, InDeltaTime, InterpSpeedSize);
+	NoteCurrentSize = FMath::Vector2DInterpTo(NoteCurrentSize, NoteTargetSize, DeltaTime, InterpSpeedSize);
 	NoteImageSlot->SetSize(NoteCurrentSize);
 
-	NoteImageCurrentOpacity = FMath::FInterpTo(NoteImageCurrentOpacity, NoteImageTargetOpacity, InDeltaTime, InterpSpeedOpacity);
+	NoteImageCurrentOpacity = FMath::FInterpTo(NoteImageCurrentOpacity, NoteImageTargetOpacity, DeltaTime, InterpSpeedOpacity);
 	NoteImage->SetColorAndOpacity({ GetColorAndOpacity().R, 1, GetColorAndOpacity().B, NoteImageCurrentOpacity });
 
 	if (NoteTargetSize == NoteFinalSize * 0.5f && FVector2D::Distance(NoteCurrentSize, NoteTargetSize) < 1.f)
@@ -49,19 +68,40 @@ void UMusicNote::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	}
 }
 
-void UMusicNote::PlayValidationNote(FVector2D NewTargetSize, float NewOpacity)
+
+// ---- FAIL NOTE FEEDBACK ----
+
+void UMusicNote::PlayFailNote()
 {
-	IsPlayingValidation = true;
-	
-	NoteFinalSize = NewTargetSize;
-
-	NoteTargetSize = NoteFinalSize * 0.5f;
-	NoteImageTargetOpacity = NewOpacity;
-
-	InterpSpeedSize = 20.f; 
-	InterpSpeedOpacity = 7.f;
+	IsPlayingFailAnimation = true;
+	NoteTargetRotation = -20.f;
 }
 
+void UMusicNote::Internal_PlayFailNote(float DeltaTime)
+{
+	if (!IsPlayingFailAnimation || !NoteImageSlot) return;
+
+	NoteCurrentRotation = FMath::FInterpTo(NoteCurrentRotation, NoteTargetRotation, DeltaTime, InterpRotationSpeed);
+
+	FWidgetTransform ImageTransform = NoteImage->GetRenderTransform();
+	ImageTransform.Angle = NoteCurrentRotation;
+	NoteImage->SetRenderTransform(ImageTransform);
+
+	const float Tolerance = 0.1f;
+
+	if (FMath::Abs(NoteCurrentRotation - NoteTargetRotation) < Tolerance)
+	{
+		if (NoteTargetRotation == -20.f)
+			NoteTargetRotation = 20.f;
+		else if (NoteTargetRotation == 20.f)
+			NoteTargetRotation = 1.f;
+		else if (NoteTargetRotation == 1.f)
+			IsPlayingFailAnimation = false;
+	}
+}
+
+
+// ---- IMAGE NOTE ----
 void UMusicNote::SetNoteTexture(UTexture2D* NewTexture)
 {
 	UGlobalHUDSubsystem* HUDSub = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();

@@ -2,8 +2,6 @@
 
 
 #include "Music/MusicWorldSubsystem.h"
-
-#include "InputAction.h"
 #include "Components/Slider.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
@@ -122,9 +120,9 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			{
 				HasReachFrequency = true;
 				
-				if (Ziziew < CurrentSkeleton->MySkeleton->Notes.Num() - 1)
+				if (CurrentWaitingNoteIndexUI < CurrentSkeleton->MySkeleton->Notes.Num() - 1)
 				{
-					Ziziew++;
+					CurrentWaitingNoteIndexUI++;
 				}
 			}
 			
@@ -193,18 +191,6 @@ void UMusicWorldSubsystem::SetCurrentWaitingNoteIndex(int NewIndex)
 	CurrentWaitingNoteIndex = NewIndex;	
 }
 
-int UMusicWorldSubsystem::GetCurrentWaitingNoteIndexUI() const
-{
-	return Ziziew;
-}
-
-F_Note* UMusicWorldSubsystem::GetCurrentWaitingNoteUI() const
-{
-	if (Ziziew > CurrentSkeleton->MySkeleton->Notes.Num() - 1) UE_LOGFMT(LogTemp, Error, "ERROR: Current waiting Note is out of range !");
-	UE_LOGFMT(LogTemp, Warning, "Get Ziziew : {0}", Ziziew);
-	return &CurrentSkeleton->MySkeleton->Notes[Ziziew];
-}
-
 bool UMusicWorldSubsystem::GetIsConductorOnPitch() const
 {
 	return IsConductorOnTheRightPitch;
@@ -236,8 +222,7 @@ void UMusicWorldSubsystem::InitMusic(ASkeletonController* Skeleton)
 	TimerCountDown = 3.f;
 
 	CurrentWaitingNoteIndex = 0;
-	// CurrentWaitingNoteIndexUI = 0;
-	Ziziew = 0;
+	CurrentWaitingNoteIndexUI = 0;
 	
 	IsAwaitingReply = false;
 	HasMusicianReceivedInput = false;
@@ -362,12 +347,12 @@ void UMusicWorldSubsystem::LostMelody()
 		);
 }
 
-void UMusicWorldSubsystem::SetNoteFeedbackMusic(FLinearColor NewColor)
+void UMusicWorldSubsystem::SetBehindNoteFeedback(FLinearColor NewColor)
 {
 	UResurrectionWidget* ResurrectionWidget = GlobalHUDSubsystem->WBPResurrectionInstance;
 	if (!ResurrectionWidget) return;
 
-	UImage* CurrentNoteFeedback = ResurrectionWidget->GetFeedbackPosFromInputPitch(CurrentSkeleton->MySkeleton->Notes[Ziziew].Pitch);
+	UImage* CurrentNoteFeedback = ResurrectionWidget->GetFeedbackPosFromInputPitch(CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndexUI].Pitch);
 	GlobalHUDSubsystem->SetImageColor(CurrentNoteFeedback, NewColor);
 }
 
@@ -397,7 +382,8 @@ void UMusicWorldSubsystem::LostQTE()
 	// FAILS 
 	SetCurrentFailNotePossible(GetCurrentFailNotePossible() - 1);
 
-	SetNoteFeedbackMusic(FLinearColor::Red);
+	GetCurrentWaitingNoteWidget()->PlayFailNote();
+	SetBehindNoteFeedback(FLinearColor::Red);
 	
 	if (GetCurrentWaitingNoteWidget() != nullptr)
 	{

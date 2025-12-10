@@ -85,6 +85,14 @@ void UGlobalHUDSubsystem::RemoveResurrectionWidget()
 {
 	if (WBPResurrectionInstance != nullptr)
 	{
+		WBPResurrectionInstance->SetWBPAlphaToZero();
+
+		// Wait for the alpha to go back to 0 (peut-être un peu bancal à voir)
+		while (WBPResurrectionInstance->GetColorAndOpacity().A != 0)
+		{
+			return;
+		}
+		
 		WBPResurrectionInstance->RemoveFromParent();
 		WBPResurrectionInstance = nullptr;
 
