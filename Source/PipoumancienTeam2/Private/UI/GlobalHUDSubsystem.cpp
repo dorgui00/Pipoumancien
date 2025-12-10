@@ -318,8 +318,8 @@ void UGlobalHUDSubsystem::Internal_SetImageColor(UImage* CurrentImage, FLinearCo
 	}
 }
 
-// --- UI WORLD ---
 
+// ---- UI WORLD ----
 void UGlobalHUDSubsystem::SetWidgetVisibility(UUserWidget* Widget, bool Visibility)
 {
 	if (Visibility)
@@ -385,7 +385,6 @@ void UGlobalHUDSubsystem::ResetSkeletonInteractionWidget()
 	{
 		Image->SetVisibility(ESlateVisibility::Hidden);
 	}
-	
 }
 
 void UGlobalHUDSubsystem::DisplayNotesForSkeletonInteraction(const UInputAction* InputAction)
