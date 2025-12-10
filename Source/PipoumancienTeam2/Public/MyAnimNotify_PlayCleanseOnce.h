@@ -12,5 +12,5 @@ class PIPOUMANCIENTEAM2_API UMyAnimNotify_PlayCleanseOnce : public UAnimNotify_P
     GENERATED_BODY()
 
 public:
-    virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
+    virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 };

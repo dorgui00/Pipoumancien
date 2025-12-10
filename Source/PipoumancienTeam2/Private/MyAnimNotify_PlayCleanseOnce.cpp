@@ -5,7 +5,8 @@
 #include "PNJ/SkeletonController.h"
 #include "TimerManager.h"
 
-void UMyAnimNotify_PlayCleanseOnce::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+void UMyAnimNotify_PlayCleanseOnce::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+    const FAnimNotifyEventReference& EventReference)
 {
     if (!MeshComp) return;
 
@@ -46,6 +47,6 @@ void UMyAnimNotify_PlayCleanseOnce::Notify(USkeletalMeshComponent* MeshComp, UAn
             );
         }
     }
-
-    Super::Notify(MeshComp, Animation);
+    
+    Super::Notify(MeshComp, Animation, EventReference);
 }

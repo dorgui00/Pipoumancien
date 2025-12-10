@@ -19,7 +19,9 @@ void AGridGenerator::BeginPlay()
     SetActorHiddenInGame(true);
     SetActorEnableCollision(false);
 
+    #if WITH_EDITOR
     ToggleDebugLines();
+    #endif
 }
 
 void AGridGenerator::Tick(float DeltaTime)
@@ -192,7 +194,6 @@ void AGridGenerator::ToggleDebugLines()
     }
 
     RerunConstructionScripts();
-
 }
 #endif
 
