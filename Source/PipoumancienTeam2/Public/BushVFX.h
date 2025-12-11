@@ -17,6 +17,15 @@ class PIPOUMANCIENTEAM2_API UBushVFX : public UActorComponent
 public:
 	UBushVFX();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
+	UNiagaraSystem* EnterFX;
+
+	void InitializeFromTool(
+		UNiagaraSystem* InEnterFX,
+		TSubclassOf<AActor> InPhantomClass,
+		TSubclassOf<AActor> InNecroClass
+	);
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -25,9 +34,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Trigger")
 	float SphereRadius;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
-	UNiagaraSystem* EnterFX;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX", meta = (ClampMin = "0.0"))
 	float Cooldown;
