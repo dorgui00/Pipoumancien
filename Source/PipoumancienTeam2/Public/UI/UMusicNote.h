@@ -37,6 +37,7 @@ public:
 	UPROPERTY()
 	UCanvasPanelSlot* NoteImageSlot;
 
+	// ---- VALIDATION NOTE FEEDBACK ----
 	FVector2D NoteCurrentSize = {32, 32 };
 	FVector2D NoteTargetSize;
 	FVector2D NoteFinalSize;
@@ -54,6 +55,17 @@ public:
 
 	void PlayValidationNote(FVector2D NewTargetSize, float NewOpacity);
 
+
+	// ---- FAIL NOTE FEEDBACK ----
+	float NoteCurrentRotation = 1;
+	float NoteTargetRotation = 0;
+	float InterpRotationSpeed = 40.f;
+
+	bool IsPlayingFailAnimation = false;
+
+	void PlayFailNote();
+
+	// ---- IMAGE NOTE ----
 	void SetNoteTexture(UTexture2D* NewTexture);
 
 
@@ -64,4 +76,11 @@ public:
 	UPROPERTY()
 	UCanvasPanelSlot* EndPoint;
 
+private:
+	// ---- VALIDATION NOTE FEEDBACK ----
+	void Internal_PlayValidationNote(float DeltaTime);
+
+	// ---- FAIL NOTE FEEDBACK ----
+	void Internal_PlayFailNote(float DeltaTime);
+	
 };
