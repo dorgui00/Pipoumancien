@@ -27,7 +27,7 @@ public:
     UPROPERTY(EditAnywhere, Category = "Grid")
     float GridExtent = 5000.f;
 
-    bool bShowGrid = false;
+    bool bShowGrid = true;
 
     UPROPERTY(EditAnywhere, Category = "Placement", meta = (MetaClass = "Actor", AllowAbstract = "false"))
     TArray<TSoftClassPtr<AActor>> PlaceableItems;

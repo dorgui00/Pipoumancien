@@ -5,7 +5,6 @@
 #include "Components/SplineComponent.h"
 #include "AC_SkeletonFollower.generated.h"
 
-class APipouCharacter;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class PIPOUMANCIENTEAM2_API UAC_SkeletonFollower : public UActorComponent
@@ -31,7 +30,7 @@ public:
 
     // speed
     UPROPERTY(EditAnywhere, Category = "Follow|Spline", meta = (ClampMin = "0"))
-    float SplineFollowSpeed = 280.f;
+    float SplineFollowSpeed = 300.f;
 
     UPROPERTY(EditAnywhere, Category = "Follow|Spline")
     bool bOrientToSpline = true;
@@ -45,7 +44,7 @@ public:
 
     // delay
     UPROPERTY(EditAnywhere, Category = "PathGen|Timing", meta = (ClampMin = "0.01"))
-    float SegmentDelay = 0.75f;
+    float SegmentDelay = 0.1f;
 
     UPROPERTY(EditAnywhere, Category = "PathGen|Debug")
     bool bDrawDebug = true;
@@ -78,23 +77,15 @@ public:
     UPROPERTY(EditAnywhere, Category = "Follow|Ground")
     float GroundOffset = 0.f;
 
-    UPROPERTY(EditAnywhere, Category = "Follow|Ground", meta = (ClampMin = "10"))
-    float BacktrackStepSize = 100.f;
-
 
     UPROPERTY(EditAnywhere, Category = "Follow|Spline")
     bool bYawOnly = true;
-
-
 
     // DELEGATES
     
     // On Enter Village
     DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnterVillage);
-
-    // Waiting for dialogue
-    DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWaitingForDialogue);
-
+    
     UPROPERTY()
     FOnEnterVillage OnEnterVillage;
     
@@ -104,25 +95,6 @@ public:
     
     UPROPERTY()
     FOnReachHome OnReachHome;
-
-    UPROPERTY(EditAnywhere, Category = "Follow|Spline", meta = (ClampMin = "0"))
-    float SplineEntryLerpTime = 0.5f;
-
-    //NIAGARA
-
-    DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
-        FOnPipouFollowEffectChanged,
-        APipouCharacter*, Pipou,
-        bool, bActive);
-
-    UPROPERTY(BlueprintAssignable, Category = "Follow|Events")
-    FOnPipouFollowEffectChanged OnPipouFollowEffectChanged;
-
-    UPROPERTY(BlueprintAssignable, Category = "Events")
-    FOnWaitingForDialogue OnWaitingForDialogue;
-
-    UFUNCTION(BlueprintCallable, Category = "Follow|Spline")
-    void ResumeFollowingSpline();
 
 protected:
     virtual void BeginPlay() override;
@@ -144,10 +116,10 @@ protected:
     float TargetDistance = 0.f;
 
     UPROPERTY(EditAnywhere, Category = "Follow|Players", meta = (ClampMin = "0"))
-    float PlayerMovingSpeedThreshold = 1.f;
+    float PlayerMovingSpeedThreshold = .5f;
 
     UPROPERTY(EditAnywhere, Category = "Follow|Players", meta = (ClampMin = "0"))
-    float PlayerMovingDistanceThreshold = .75f;
+    float PlayerMovingDistanceThreshold = .5f;
 
     UPROPERTY(Transient)
     TArray<FVector> PreviousPlayerLocations;
@@ -170,9 +142,6 @@ protected:
     UFUNCTION()
     void OnParentOverlap(AActor* OverlappedActor, AActor* OtherActor);
 
-    UFUNCTION()
-    void HandleReachHome();
-
 public:
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -191,9 +160,7 @@ private:
 
     void GenerateNextPathPoint();
 
-    void StartFollowingSplineFromClosestPoint(bool bLerpToStart = false);
-
-    void TickLerpToSpline(float DeltaTime);
+    void StartFollowingSplineFromClosestPoint();
 
     void TickFollowSpline(float DeltaTime);
 
@@ -204,11 +171,4 @@ private:
     bool HasLocalClearanceAt(const FVector& Location) const;
 
     bool TrySnapToGround(const FVector& In, FVector& Out) const;
-
-    bool bLerpingToSpline = false;
-    FVector LerpStartLocation = FVector::ZeroVector;
-    FVector LerpTargetLocation = FVector::ZeroVector;
-    float LerpElapsedTime = 0.f;
-
-    bool BacktrackToGround(const FVector& Start, const FVector& End, FVector& Out) const;
 };

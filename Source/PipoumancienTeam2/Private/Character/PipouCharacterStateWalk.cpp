@@ -190,10 +190,3 @@ void UPipouCharacterStateWalk::PlayFootstepsSound(UPhysicalMaterial* PhysMat)
 		return;
 	}
 }
-
-//NIAGARA
-
-void UPipouCharacterStateWalk::SetFollowEffectActive(bool bActive)
-{
-	bFollowEffectActive = bActive;
-}

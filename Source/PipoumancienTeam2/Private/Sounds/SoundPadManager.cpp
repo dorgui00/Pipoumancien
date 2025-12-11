@@ -8,23 +8,20 @@
 #include "Engine/TriggerBox.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
-#include "TimerManager.h"
 
 ASoundPadManager::ASoundPadManager()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	RootComponent = Root;
 
-	AudioA = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioA"));
-	AudioA->SetupAttachment(RootComponent);
-	AudioA->bAutoActivate = false;
+	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
+	AudioComponent->SetupAttachment(RootComponent);
+	AudioComponent->bAutoActivate = false;
 
-	AudioB = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioB"));
-	AudioB->SetupAttachment(RootComponent);
-	AudioB->bAutoActivate = false;
-
+	NecroPlayer = nullptr;
+	PhantomPlayer = nullptr;
 	bNecroInVillage = false;
 	bPhantomInVillage = false;
 }
@@ -33,111 +30,120 @@ void ASoundPadManager::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (NecroCharacterClass)
+	{
+		NecroPlayer = Cast<ACharacter>(
+			UGameplayStatics::GetActorOfClass(GetWorld(), *NecroCharacterClass)
+		);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("[SoundPadManager] NecroCharacterClass not set"));
+	}
+
+	if (PhantomCharacterClass)
+	{
+		PhantomPlayer = Cast<ACharacter>(
+			UGameplayStatics::GetActorOfClass(GetWorld(), *PhantomCharacterClass)
+		);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("[SoundPadManager] PhantomCharacterClass not set"));
+	}
+
+	// Bind overlaps on plain trigger
 	if (VillageTrigger)
 	{
-		VillageTrigger->OnActorBeginOverlap.AddDynamic(this, &ASoundPadManager::OnVillageBeginOverlap);
-		VillageTrigger->OnActorEndOverlap.AddDynamic(this, &ASoundPadManager::OnVillageEndOverlap);
+		VillageTrigger->OnActorBeginOverlap.AddDynamic(
+			this, &ASoundPadManager::OnVillageBeginOverlap);
+		VillageTrigger->OnActorEndOverlap.AddDynamic(
+			this, &ASoundPadManager::OnVillageEndOverlap);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("[SoundPadManager] VillageTrigger not set"));
 	}
 
-	NecroPlayer = Cast<ACharacter>(UGameplayStatics::GetActorOfClass(GetWorld(), NecroCharacterClass));
-	PhantomPlayer = Cast<ACharacter>(UGameplayStatics::GetActorOfClass(GetWorld(), PhantomCharacterClass));
-
+	// Start outside
 	if (OutsidePad)
 	{
-		AudioA->SetSound(OutsidePad);
-		AudioA->Play();
-		AudioA->SetVolumeMultiplier(1.f);
-	}
-}
-
-void ASoundPadManager::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-
-	if (bIsCrossfading)
-	{
-		CrossfadeTimer += DeltaSeconds;
-		float Alpha = FMath::Clamp(CrossfadeTimer / CrossfadeDuration, 0.f, 1.f);
-
-		if (FadingInAudio)
-			FadingInAudio->SetVolumeMultiplier(Alpha);
-
-		if (FadingOutAudio)
-			FadingOutAudio->SetVolumeMultiplier(1.f - Alpha);
-
-		if (Alpha >= 1.f)
-		{
-			// Crossfade complete
-			if (FadingOutAudio)
-			{
-				FadingOutAudio->Stop();
-				FadingOutAudio->SetVolumeMultiplier(0.f);
-			}
-			bIsCrossfading = false;
-			FadingInAudio = nullptr;
-			FadingOutAudio = nullptr;
-			CrossfadeTimer = 0.f;
-		}
+		PlayPad(OutsidePad);
 	}
 }
 
 void ASoundPadManager::OnVillageBeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
 {
-	if (OtherActor == NecroPlayer)
-		bNecroInVillage = true;
-	else if (OtherActor == PhantomPlayer)
-		bPhantomInVillage = true;
+	if (!OtherActor)
+		return;
 
-	UpdatePad();
+	bool bChanged = false;
+
+	if (OtherActor == NecroPlayer)
+	{
+		bNecroInVillage = true;
+		bChanged = true;
+	}
+	else if (OtherActor == PhantomPlayer)
+	{
+		bPhantomInVillage = true;
+		bChanged = true;
+	}
+
+	if (bChanged)
+	{
+		UpdatePad();
+	}
 }
 
 void ASoundPadManager::OnVillageEndOverlap(AActor* OverlappedActor, AActor* OtherActor)
 {
-	if (OtherActor == NecroPlayer)
-		bNecroInVillage = false;
-	else if (OtherActor == PhantomPlayer)
-		bPhantomInVillage = false;
+	if (!OtherActor)
+		return;
 
-	UpdatePad();
+	bool bChanged = false;
+
+	if (OtherActor == NecroPlayer)
+	{
+		bNecroInVillage = false;
+		bChanged = true;
+	}
+	else if (OtherActor == PhantomPlayer)
+	{
+		bPhantomInVillage = false;
+		bChanged = true;
+	}
+
+	if (bChanged)
+	{
+		UpdatePad();
+	}
 }
 
 void ASoundPadManager::UpdatePad()
 {
-	if (bNecroInVillage && bPhantomInVillage)
+	// ONLY when both inside do we play the village pad
+	if (bNecroInVillage && bPhantomInVillage && VillagePad)
 	{
-		StartCrossfade(VillagePad);
+		PlayPad(VillagePad);
 	}
-	else
+	else if (OutsidePad)
 	{
-		StartCrossfade(OutsidePad);
+		PlayPad(OutsidePad);
 	}
 }
 
-void ASoundPadManager::StartCrossfade(USoundBase* NewPad)
+void ASoundPadManager::PlayPad(USoundBase* NewPad)
 {
-	if (!NewPad)
+	if (!AudioComponent || !NewPad)
 		return;
 
-	UAudioComponent* ActiveAudio = nullptr;
-	UAudioComponent* InactiveAudio = nullptr;
-
-	if (AudioA->IsPlaying())
-		ActiveAudio = AudioA;
-	else if (AudioB->IsPlaying())
-		ActiveAudio = AudioB;
-
-	InactiveAudio = (ActiveAudio == AudioA) ? AudioB : AudioA;
-
-	if (ActiveAudio && ActiveAudio->Sound == NewPad)
+	if (AudioComponent->Sound == NewPad && AudioComponent->IsPlaying())
 		return;
 
-	InactiveAudio->SetSound(NewPad);
-	InactiveAudio->Play();
-	InactiveAudio->SetVolumeMultiplier(0.f);
-
-	// Begin crossfade
-	FadingInAudio = InactiveAudio;
-	FadingOutAudio = ActiveAudio;
-	CrossfadeTimer = 0.f;
-	bIsCrossfading = true;
+	AudioComponent->SetSound(NewPad);
+	AudioComponent->Play();
 }

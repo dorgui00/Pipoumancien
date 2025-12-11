@@ -68,15 +68,6 @@ public:
 	UPROPERTY(Transient)
 	UAudioComponent* WalkLoopComponent;
 
-	//NIAGARA
-
-	UPROPERTY(BlueprintReadOnly, Category = "Follow|VFX")
-	bool bFollowEffectActive = false;
-
-	void SetFollowEffectActive(bool bActive);
-
-	// ----- //
-
 private:
 
 	//AUDIO
@@ -85,7 +76,4 @@ private:
 	
 	// --- MUSIC ---
 	virtual void OnCharacterPressedNote(UInputAction* InputAction) override;
-
-	// NIAGARA
-
 };

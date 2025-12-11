@@ -3,7 +3,6 @@
 
 #include "Music/MusicWorldSubsystem.h"
 
-#include "InputAction.h"
 #include "Components/Slider.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
@@ -95,8 +94,10 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 		}
 		else
 		{
+			// UE_LOGFMT(LogTemp, Warning, "CurrentNoteIndex: {0}", GetCurrentWaitingNoteIndex());
+			
 			IncreaseMusicTempo(DeltaTime);
-			IncreaseMusicTempoUI(DeltaTime);
+			TempoNoteUI += DeltaTime;
 
 			// Security Check: The Music Logic can't work if there is no skeleton. 
 			if (!CurrentSkeleton)
@@ -122,22 +123,11 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			{
 				HasReachFrequency = true;
 
-				if (GetCurrentWaitingNoteIndexUI() < CurrentSkeleton->MySkeleton->Notes.Num() - 1)
+				if (CurrentWaitingNoteIndexUI < CurrentSkeleton->MySkeleton->Notes.Num() - 1)
 				{
-					PreviousCurrentWaitingNoteIndexUI = CurrentWaitingNoteIndexUI;
 					CurrentWaitingNoteIndexUI++;
-					
-					if (CurrentWaitingNoteIndexUI == PreviousCurrentWaitingNoteIndexUI)
-					{
-						CurrentWaitingNoteIndexUI++;
-					}
-					
 					TempoNoteUI = 0;
 				}
-			}
-			else
-			{
-				UE_LOGFMT(LogTemp, Warning, "HasReachPitch : false");
 			}
 			
 			// Check for the exit of the window note, to check if the player HasAchievedQTE.
@@ -213,11 +203,6 @@ F_Note* UMusicWorldSubsystem::GetCurrentWaitingNoteUI() const
 {
 	if (GetCurrentWaitingNoteIndexUI() > CurrentSkeleton->MySkeleton->Notes.Num() - 1) UE_LOGFMT(LogTemp, Error, "ERROR: Current waiting Note is out of range !");
 	return &CurrentSkeleton->MySkeleton->Notes[GetCurrentWaitingNoteIndexUI()];
-}
-
-bool UMusicWorldSubsystem::GetIsConductorOnPitch() const
-{
-	return IsConductorOnTheRightPitch;
 }
 
 void UMusicWorldSubsystem::ReceivedMusicianInput()
@@ -297,6 +282,13 @@ void UMusicWorldSubsystem::SucceedQTE()
 	if (GetCurrentWaitingNote()->Sound)
 		UGameplayStatics::PlaySound2D(GetWorld(),GetCurrentWaitingNote()->Sound);
 
+	SetCurrentFailNotePossible(GetCurrentFailNotePossible() + 1);
+	       
+	if (HasCurrentFailNoteReachMaximumValue())
+	{
+		SetCurrentFailNotePossible(MaxFailNotePossible);
+	}
+	
 	// Continue
 	GoNextNote();
 }
@@ -311,6 +303,9 @@ void UMusicWorldSubsystem::SucceedMelody()
 	
 	// Reset Music
 	IsInWorldStateMusic = false;
+	Tempo = 0.f;
+	CurrentWaitingNoteIndex = 0;
+	CurrentWaitingNoteIndexUI = 0;
 	// BackgroundAudioComponent->SetActive(false);
 	
 	// UI
@@ -349,6 +344,9 @@ void UMusicWorldSubsystem::LostMelody()
 	
 	// Reset Music
 	IsInWorldStateMusic = false;
+	Tempo = 0.f;
+	CurrentWaitingNoteIndex = 0;
+	CurrentWaitingNoteIndexUI = 0;
 	// BackgroundAudioComponent->SetActive(false);
 	
 	// UI
@@ -382,9 +380,10 @@ void UMusicWorldSubsystem::SetNoteFeedbackMusic(FLinearColor NewColor) const
 
 bool UMusicWorldSubsystem::HasAchievedQte()
 {
+	UMusicNote* CurrentNoteSlot = GlobalHUDSubsystem->NotesInstanciated[CurrentWaitingNoteIndex];
 	USlider* Slider = GlobalHUDSubsystem->WBPResurrectionInstance->PitchSlider;
 	
-	if (!Slider || !GetCurrentWaitingNoteWidget() || !GetCurrentWaitingNote())
+	if (!Slider || !CurrentNoteSlot || !GetCurrentWaitingNote())
 	{
 		UE_LOGFMT(LogTemp, Error, "ERROR: Has not achieved QTE because one reference or several references are null !");
 		return false;
@@ -454,6 +453,11 @@ void UMusicWorldSubsystem::SetCurrentFailNotePossible(float NewValue)
 	CurrentFailNotePossible = NewValue;
 }
 
+bool UMusicWorldSubsystem::HasCurrentFailNoteReachMaximumValue() const
+{
+	return GetCurrentFailNotePossible() >= MaxFailNotePossible;
+}
+
 bool UMusicWorldSubsystem::HasLostAllFaileNotePossible() const
 {
 	return GetCurrentFailNotePossible() <= 0;
@@ -462,11 +466,6 @@ bool UMusicWorldSubsystem::HasLostAllFaileNotePossible() const
 void UMusicWorldSubsystem::IncreaseMusicTempo(float DeltaTime)
 {
 	Tempo += DeltaTime;
-}
-
-void UMusicWorldSubsystem::IncreaseMusicTempoUI(float DeltaTime)
-{
-	TempoNoteUI += DeltaTime;
 }
 
 void UMusicWorldSubsystem::GoNextNote()
@@ -484,11 +483,6 @@ float UMusicWorldSubsystem::GetCurrentPitchCursorValue() const
 void UMusicWorldSubsystem::SetCurrentPitchCursorValue(float NewPitchCursorValue)
 {
 	CurrentPitchCursorValue = NewPitchCursorValue;
-}
-
-float UMusicWorldSubsystem::GetPitchTolerance() const
-{
-	return PitchTolerance;
 }
 
 bool UMusicWorldSubsystem::GetIsAwatingReply() const
@@ -534,6 +528,7 @@ void UMusicWorldSubsystem::DecreaseTimerCountdown(float DeltaTime)
 {
 	TimerCountDown -= DeltaTime;
 }
+
 
 bool UMusicWorldSubsystem::HasFinishedCountdown() const
 {

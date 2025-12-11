@@ -15,8 +15,7 @@
 #include "Components/AudioComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "DrawDebugHelpers.h"
-#include "MyAnimNotify_PlayCleanseOnce.h"
-#include "Data/FSkeletonVisuals.h"
+
 
 
 // Sets default values
@@ -32,12 +31,9 @@ ASkeletonController::ASkeletonController()
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	SphereComponent->SetupAttachment(RootComponent);
 	SphereComponent->SetSphereRadius(500);
-
-	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
-	WidgetComponent->SetupAttachment(RootComponent);
 	
-	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ASkeletonController::ASkeletonController::BeginOverlaps);
-	SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ASkeletonController::EndOverlaps);
+	//SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ASkeletonController::ASkeletonController::BeginOverlaps);
+	//SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ASkeletonController::EndOverlaps);
 
 	//HUD
 	PlayerWidgetClass = nullptr;
@@ -52,8 +48,6 @@ ASkeletonController::~ASkeletonController()
 		FollowComponent->OnEnterVillage.RemoveDynamic(this, &ASkeletonController::OnEnterVillage);
 		FollowComponent->OnReachHome.RemoveDynamic(this, &ASkeletonController::OnReachHome);
 	}
-
-	
 }
 
 // Called when the game starts or when spawned
@@ -61,16 +55,13 @@ void ASkeletonController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ---- SET MYSELF ----
 	MySkeleton = GetGameInstance()->GetSubsystem<UGlobalDataTableSubsystem>()->GetSkeletonByID(ID);
-	
-	// Anims
+
+	//ANIM
 	if (!TargetMesh)
 	{
 		TargetMesh = FindComponentByClass<USkeletalMeshComponent>();
 	}
-	
-	InitMyVisuals(); 
 
 	// Start with idle if we have it
 	if (TargetMesh && IdleAnimation)
@@ -82,17 +73,6 @@ void ASkeletonController::BeginPlay()
 	bHasLastLocation = true;
 	bWasMoving = false;
 	bWasFollowing = false;
-
-	// UI
-	WidgetComponent->SetVisibility(false);
-}
-
-void ASkeletonController::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
-	
-	SphereComponent->OnComponentBeginOverlap.RemoveDynamic(this, &ASkeletonController::BeginOverlaps);
-	SphereComponent->OnComponentEndOverlap.RemoveDynamic(this, &ASkeletonController::EndOverlaps);
 }
 
 // Called every frame
@@ -106,24 +86,12 @@ void ASkeletonController::Tick(float DeltaTime)
 
 void ASkeletonController::BeginOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor->IsA(APipouCharacter::StaticClass()))
-	{
-		if (MyState == ESkeletonState::Dialogue)
-		{
-			InterationDialogue();
-		}
-	}
+	
 }
 
-void ASkeletonController::EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void ASkeletonController::EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (OtherActor->IsA(APipouCharacter::StaticClass()))
-	{
-		if (MyState == ESkeletonState::Dialogue)
-		{
-			WidgetComponent->SetVisibility(false);
-		}
-	}
 }
 
 // STATE
@@ -158,9 +126,6 @@ void ASkeletonController::OnEnterVillage()
 	// WORLD STATE : Free
 	if (UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>())
 		GlobalGameSubsystem->SetWorldFreeState();
-
-	
-	isDialogVisible = true;
 }
 
 
@@ -177,7 +142,6 @@ void ASkeletonController::OnReachHome()
 
 void ASkeletonController::OpenDialogue()
 {
-	WidgetComponent->SetVisibility(false);
 	PlayerWidget = CreateWidget<UUIDialoge>(GetWorld(), PlayerWidgetClass);
 	PlayerWidget->SetDialogue(MySkeleton,ValutFrase);
 	if (ValutFrase == 0)
@@ -185,20 +149,6 @@ void ASkeletonController::OpenDialogue()
 		ValutFrase = 1;	
 	}
 }
-
-void ASkeletonController::InterationDialogue()
-{
-	if (!WidgetComponent->IsVisible())
-	{
-		WidgetComponent->SetVisibility(true);			
-	}
-}
-
-void ASkeletonController::InterationDialoguenOFF()
-{
-		WidgetComponent->SetVisibility(false);
-}
-
 
 //ANIMATION
 
@@ -318,6 +268,9 @@ void ASkeletonController::UpdateAnimation(float DeltaTime)
 	LastLocation = CurrentLocation;
 }
 
+
+//ANIMATIONS
+
 void ASkeletonController::FogDilet()
 {
 	for (AFog* Fog : FogList)
@@ -326,38 +279,6 @@ void ASkeletonController::FogDilet()
 		{
 			Fog->SupprimerFog(MySkeleton);  // Appel sur chaque élément
 		}
-	}
-}
-
-void ASkeletonController::InitMyVisuals()
-{
-	if (!MySkeleton) return;
-	if (!MySkeleton->SkeletonVisuals.SkeletonMesh) return;
-	
-	 // -- MESH --
-	TargetMesh->SetSkeletalMeshAsset(MySkeleton->SkeletonVisuals.SkeletonMesh) ;
-
-	// -- ANIMS --
-	
-	//wake
-	WakeAnimation = MySkeleton->SkeletonVisuals.WakeAnim;
-	if (!WakeAnimation)
-		UE_LOG(LogTemp,Error,TEXT("Wake Anim is null"));
-	
-	// transport
-	IdleAnimation = MySkeleton->SkeletonVisuals.IdleAnim;
-	if (!IdleAnimation)
-		UE_LOG(LogTemp,Error,TEXT("Idle Anim is null"));
-	
-	WalkAnimation = MySkeleton->SkeletonVisuals.WalkAnim;
-	if (!WalkAnimation)
-		UE_LOG(LogTemp,Error,TEXT("Walk Anim is null"));
-	
-	WaitAnimation = MySkeleton->SkeletonVisuals.WaitAnim;
-	if (!WaitAnimation)
-	{
-		UE_LOG(LogTemp,Warning,TEXT("Wait Anim is null"));
-		if (IdleAnimation) WaitAnimation = IdleAnimation;
 	}
 }
 
@@ -384,33 +305,6 @@ void ASkeletonController::PlayWait()
 		TargetMesh->PlayAnimation(WaitAnimation, true);
 	}
 }
-
-//NIAGARA SFX
-
-void ASkeletonController::StartCleanseWindow()
-{
-	if (bCleanseFXPlayed)
-		return;
-
-	bCleanseWindowActive = true;
-
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().SetTimer(
-			CleanseWindowTimerHandle,
-			this,
-			&ASkeletonController::EndCleanseWindow,
-			CleanseWindowDuration,
-			false
-		);
-	}
-}
-
-void ASkeletonController::EndCleanseWindow()
-{
-	bCleanseWindowActive = false;
-}
-
 
 // ------------------ //
 

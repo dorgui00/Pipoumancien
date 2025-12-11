@@ -23,14 +23,7 @@ public class PipoumancienTeam2 : ModuleRules
                 
             "NavigationSystem",
             "AIModule", 
-
             //"NiagaraUIRenderer"
-            "Niagara",
-            "NiagaraAnimNotifies",
-            //niagaraaaaaa......????
-
-            "Landscape"
-
         });
 
         if (Target.bBuildEditor)

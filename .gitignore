@@ -55,19 +55,13 @@ SourceArt/**/*.tga
 
 # Binary Files
 Binaries/*
+Plugins/*/Binaries/*
 !Binaries/Win64
 Binaries/Win64/*
 !Binaries/Win64/PipoumancienTeam2Editor.target
 !Binaries/Win64/UnrealEditor.modules
 !Binaries/Win64/UnrealEditor-PipoumancienTeam2.dll
 !Binaries/Win64/UnrealEditor-LocalMultiplayer.dll
-
-# Plugins
-Plugins/*/Binaries/*
-!Plugins/*/Binaries/Win64
-Plugins/*/Binaries/Win64/*
-!Plugins/*/Binaries/Win64/*.dll
-!Plugins/*/Binaries/Win64/*.modules
 
 # Builds
 Build/*

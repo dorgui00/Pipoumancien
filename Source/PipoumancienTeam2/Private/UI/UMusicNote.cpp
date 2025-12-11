@@ -26,7 +26,7 @@ void UMusicNote::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	NoteImageSlot->SetSize(NoteCurrentSize);
 
 	NoteImageCurrentOpacity = FMath::FInterpTo(NoteImageCurrentOpacity, NoteImageTargetOpacity, InDeltaTime, InterpSpeedOpacity);
-	NoteImage->SetColorAndOpacity({ GetColorAndOpacity().R, 1, GetColorAndOpacity().B, NoteImageCurrentOpacity });
+	NoteImage->SetColorAndOpacity({ GetColorAndOpacity().R, GetColorAndOpacity().G, GetColorAndOpacity().B, NoteImageCurrentOpacity });
 
 	if (NoteTargetSize == NoteFinalSize * 0.5f && FVector2D::Distance(NoteCurrentSize, NoteTargetSize) < 1.f)
 	{
@@ -52,7 +52,7 @@ void UMusicNote::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 void UMusicNote::PlayValidationNote(FVector2D NewTargetSize, float NewOpacity)
 {
 	IsPlayingValidation = true;
-	
+    
 	NoteFinalSize = NewTargetSize;
 
 	NoteTargetSize = NoteFinalSize * 0.5f;

@@ -5,7 +5,6 @@
 #include "Tools/PathManager.h"
 #include "Components/SplineComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Components/LightComponent.h"
 
 AVillagePathManager::AVillagePathManager()
 {
@@ -74,31 +73,4 @@ USplineComponent* AVillagePathManager::GetSplineForSkeleton(AActor* Skeleton) co
     }
 
     return PathManager->GetSplineForIndices(StartIdx, EndIdx);
-}
-
-void AVillagePathManager::OnSkeletonReachedEnd(AActor* Skeleton)
-{
-    if (!Skeleton)
-    {
-        return;
-    }
-
-    for (const FSkeletonVillageRoute& Route : SkeletonRoutes)
-    {
-        if (Route.Skeleton == Skeleton && Route.HouseLight)
-        {
-            if (ULightComponent* LightComp =
-                Route.HouseLight->FindComponentByClass<ULightComponent>())
-            {
-                LightComp->SetVisibility(true);
-                LightComp->SetHiddenInGame(false);
-            }
-            else
-            {
-                Route.HouseLight->SetActorHiddenInGame(false);
-            }
-
-            break;
-        }
-    }
 }

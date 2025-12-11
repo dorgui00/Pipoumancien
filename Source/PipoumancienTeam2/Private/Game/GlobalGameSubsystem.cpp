@@ -113,9 +113,6 @@ bool UGlobalGameSubsystem::PlayersOverlapSameSkeleton()
 	// first player doesn't overlap a skeleton => cancel checking
 	if (!CurrentSkeletonIn) return false;
 
-	// For music interaction
-	if (CurrentSkeletonIn->GetState()!=ESkeletonState::Dead) return false;
-
 	for (auto Character : PipouCharacters)
 	{
 		// doesn't overlap the same skel
