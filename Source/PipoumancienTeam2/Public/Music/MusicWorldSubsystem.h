@@ -106,6 +106,7 @@ private:
 	bool HasReachFrequency = false;
 	
 	int CurrentWaitingNoteIndexUI = 0;
+	int LastUIIndexReachedSlider = 0; 
 	
 	bool HasFinishedLerpingOffset() const;
 

@@ -24,6 +24,7 @@
 #include "UI/PartitionFinish.h"
 #include "Character/PipouCharacter.h"
 #include "Kismet/GameplayStatics.h"
+#include "Music/MusicWorldSubsystem.h"
 #include "PNJ/Bird.h"
 #include "UI/BirdWidget.h"
 
@@ -51,13 +52,18 @@ void UGlobalHUDSubsystem::Tick(float DeltaTime)
 	}
 
 	// Manage Mistake Render.
-	if (CurrentDynamicMistakeMaterialInstance != nullptr && (TargetMaterialRadius != CurrentMaterialRadius && TargetMaterialThickness != CurrentMaterialThickness))
+	if (!CurrentMistakeMaterialInstance) return;
+
+	bool MistakeAnimationShouldBeUpdated = !FMath::IsNearlyEqual(CurrentMaterialRadius, TargetMaterialRadius, 0.001f) ||
+		  !FMath::IsNearlyEqual(CurrentMaterialThickness, TargetMaterialThickness, 0.001f);
+	
+	if (MistakeAnimationShouldBeUpdated)
 	{
 		CurrentMaterialThickness = FMath::FInterpTo(CurrentMaterialThickness, TargetMaterialThickness, DeltaTime, ThicknessInterpolationSpeed);
 		CurrentMaterialRadius = FMath::FInterpTo(CurrentMaterialRadius, TargetMaterialRadius, DeltaTime, RadiusInterpolationSpeed);
 
-		CurrentDynamicMistakeMaterialInstance->SetScalarParameterValue("Thickness", CurrentMaterialThickness);
-		CurrentDynamicMistakeMaterialInstance->SetScalarParameterValue("Radius", CurrentMaterialRadius);
+		CurrentMistakeMaterialInstance->SetScalarParameterValue("Thickness", CurrentMaterialThickness);
+		CurrentMistakeMaterialInstance->SetScalarParameterValue("Radius", CurrentMaterialRadius);
 	}
 }
 
@@ -70,22 +76,15 @@ void UGlobalHUDSubsystem::DisplayResurrectionWidget()
 	APlayerController* PC = Cast<APlayerController>(GlobalGameSubsystem->PipouCharacters[0]->GetController());
 	if (!PC) return;
 
-	UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
-	if (!CameraWorldSubsystem) return;
-	
 	WBPResurrectionInstance = CreateWidget<UResurrectionWidget>(PC, WBPResurrectionClass);
 	
 	if (WBPResurrectionInstance != nullptr)
 	{
 		WBPResurrectionInstance->AddToViewport();
-		
-		CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(1.f);
-		CurrentDynamicMistakeMaterialInstance = UMaterialInstanceDynamic::Create(MistakeMaterialInstance, this);
-		CurrentDynamicMistakeMaterialInstance->GetScalarParameterValue(FHashedMaterialParameterInfo("Radius"), CurrentMaterialRadius);
-		CurrentDynamicMistakeMaterialInstance->GetScalarParameterValue(FHashedMaterialParameterInfo("Thickness"), CurrentMaterialThickness);
-		TargetMaterialRadius = 0.1f;
-		TargetMaterialThickness = 0.1f;
 
+		// Manage Mistake PostProcess
+		InitMistakeMaterial();
+		
 		UCanvasPanelSlot* PartitionSlot = Cast<UCanvasPanelSlot>(WBPResurrectionInstance->PartitionBox->Slot);
 		if (!PartitionSlot) return;
 
@@ -105,18 +104,9 @@ void UGlobalHUDSubsystem::RemoveResurrectionWidget()
 	
 	if (WBPResurrectionInstance != nullptr)
 	{
-		WBPResurrectionInstance->SetWBPAlphaToZero();
-
-		// Wait for the alpha to go back to 0 (peut-être un peu bancal à voir)
-		while (WBPResurrectionInstance->GetColorAndOpacity().A != 0)
-		{
-			return;
-		}
-		
-		WBPResurrectionInstance->RemoveFromParent();
-
 		CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(0.f);
-		CurrentDynamicMistakeMaterialInstance = nullptr;
+		CurrentMistakeMaterialInstance = nullptr;
+		WBPResurrectionInstance->RemoveFromParent();
 		WBPResurrectionInstance = nullptr;
 
 		// Clear the array of notes spawned during the music.
@@ -267,6 +257,7 @@ float UGlobalHUDSubsystem::GetUIOffset() const
 }
 
 
+
 // ---- UTILITIES ----
 void UGlobalHUDSubsystem::Init()
 {
@@ -297,7 +288,7 @@ void UGlobalHUDSubsystem::Init()
 	HUDData = SubsystemSettings->HUDData.LoadSynchronous();
 
 	// init image from input
-	TextureFromNoteInput =
+	TextureFromNoteInput=
 	{
 		{ InputData->InputNoteY, HUDData->NoteUp },
 		{ InputData->InputNoteB, HUDData->NoteRight },
@@ -305,13 +296,26 @@ void UGlobalHUDSubsystem::Init()
 		{ InputData->InputNoteX, HUDData->NoteLeft },
 	};
 
+	BirdTextureFromNoteInput =
+	{
+		{ InputData->InputNoteY, HUDData->NoteUpInteraction },
+		{ InputData->InputNoteB, HUDData->NoteRightInteraction },
+		{ InputData->InputNoteA, HUDData->NoteDownInteraction },
+		{ InputData->InputNoteX, HUDData->NoteLeftInteraction },
+	};
+
 	// Init Material Instance
-	MistakeMaterialInstance = HUDData->MistakeMaterialInstance;
+	// MistakeMaterialInstance = HUDData->MistakeMaterialInstance;
 }
 
 UTexture2D* UGlobalHUDSubsystem::GetImageTextureFromNoteInput(const UInputAction* NoteInput) const
 {
 	return TextureFromNoteInput[NoteInput];
+}
+
+UTexture2D* UGlobalHUDSubsystem::GetImageBirdTextureFromNoteInput(const UInputAction* NoteInput) const
+{
+	return BirdTextureFromNoteInput[NoteInput];
 }
 
 void UGlobalHUDSubsystem::SetMusicWorldSubsystem(UMusicWorldSubsystem* NewMusicSubsystem)
@@ -378,12 +382,73 @@ void UGlobalHUDSubsystem::RemoveBirdWidget()
 }
 
 
+// ---- MISTAKE POST PROCESS ---- 
+void UGlobalHUDSubsystem::InitMistakeMaterial()
+{
+	UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
+	if (!CameraWorldSubsystem) return;
+	
+	FPostProcessSettings& CameraPostProcess= CameraWorldSubsystem->CameraMain->PostProcessSettings;
+	if (CameraPostProcess.WeightedBlendables.Array.Num() > 0)
+	{
+		UObject* BlendableObj = CameraPostProcess.WeightedBlendables.Array[0].Object;
+		UMaterialInterface* BaseMaterial = Cast<UMaterialInterface>(BlendableObj);
+		
+		if (!BaseMaterial) return;
+		
+		CurrentMistakeMaterialInstance = UMaterialInstanceDynamic::Create(BaseMaterial, this);
+		if (!CurrentMistakeMaterialInstance) return;
+
+		CameraPostProcess.WeightedBlendables.Array[0].Object = CurrentMistakeMaterialInstance;
+		
+		CurrentMistakeMaterialInstance->GetScalarParameterValue(FHashedMaterialParameterInfo(TEXT("Radius")), CurrentMaterialRadius);
+		CurrentMistakeMaterialInstance->GetScalarParameterValue(FHashedMaterialParameterInfo(TEXT("Thickness")), CurrentMaterialThickness);
+		TargetMaterialRadius = MaxRadius;
+		TargetMaterialThickness = MinThickness;
+
+		CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(1.f);
+	}
+}
+
+
+void UGlobalHUDSubsystem::ApplyMistakeIncrease(int CurrentFail, int MaxFail)
+{
+	if (!CurrentMistakeMaterialInstance) return;
+
+	float FailRatio = 1.f - (CurrentFail / MaxFail); 
+
+	TargetMaterialRadius = FMath::Lerp(MinRadius, MaxRadius, FailRatio);
+	TargetMaterialThickness = FMath::Lerp(MinThickness, MaxThickness, FailRatio);
+}
+
+void UGlobalHUDSubsystem::ResetMistakeEffect()
+{
+	TargetMaterialRadius = MinRadius;
+	TargetMaterialThickness = MinThickness;
+}
+
+void UGlobalHUDSubsystem::ForceMistakeCollapse()
+{
+	TargetMaterialRadius = MinRadius;
+	TargetMaterialThickness = MaxThickness;
+
+	FTimerHandle IsCollapsed;
+	GetWorld()->GetTimerManager().ClearTimer(IsCollapsed);
+
+	GetWorld()->GetTimerManager().SetTimer(
+		IsCollapsed, [this]()
+		{
+			ResetMistakeEffect();
+		},
+		1.5f,
+		false
+		);
+}
+
 void UGlobalHUDSubsystem::InitBirdWidget(ABird* Bird)
 {
 	BirdWidget = Cast<UBirdWidget>(Bird->FindComponentByClass<UWidgetComponent>()->GetWidget());
 }
-
-
 
 void UGlobalHUDSubsystem::ResetBirdWidget()
 {
@@ -402,7 +467,7 @@ void UGlobalHUDSubsystem::DisplayNotesForSkeletonInteraction(const UInputAction*
 	int32 Index = FMath::Clamp(GlobalGameSubsystem->InputPressed.Num() - 1, 0, MaxIndex);
 
 	// Récupérer l'image
-	if (UTexture2D* Text = GetImageTextureFromNoteInput(InputAction))
+	if (UTexture2D* Text = GetImageBirdTextureFromNoteInput(InputAction))
 	{
 		BirdWidget->Images[Index]->SetBrushFromTexture(Text);
 	}

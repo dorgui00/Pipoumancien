@@ -5,11 +5,9 @@
 #include "InputActionValue.h"
 #include "Character/PipouCharacter.h"
 #include "Character/PipouCharacterInputData.h"
-#include "Components/CanvasPanelSlot.h"
 #include "Data/F_Note.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
-#include "Logging/StructuredLog.h"
 #include "Music/MusicWorldSubsystem.h"
 #include "Sound/SoundCue.h"
 #include "UI/GlobalHUDSubsystem.h"
@@ -142,6 +140,9 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 {
 	if (CurrentRole == EPipouCharacterRoles::Musician)
 	{
+		UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
+		if (!HUDSubsystem || !HUDSubsystem->WBPResurrectionInstance) return;
+		
 		if (MusicWorldSubsystem->GetIsAwatingReply() && MusicWorldSubsystem->GetCurrentWaitingNote()->InputAction == InputAction && !HasPressedNotes
 				&& (MusicWorldSubsystem->GetCurrentWaitingNote()->Pitch >= MusicWorldSubsystem->GetCurrentPitchCursorValue() - MusicWorldSubsystem->GetPitchTolerance()
 				&& MusicWorldSubsystem->GetCurrentWaitingNote()->Pitch <= MusicWorldSubsystem->GetCurrentPitchCursorValue() + MusicWorldSubsystem->GetPitchTolerance()))
@@ -164,6 +165,7 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 			
 			// FAILS
 			MusicWorldSubsystem->SetCurrentFailNotePossible(MusicWorldSubsystem->GetCurrentFailNotePossible() - 1);
+			HUDSubsystem->ApplyMistakeIncrease(MusicWorldSubsystem->GetCurrentFailNotePossible(), MusicWorldSubsystem->MaxFailNotePossible);
 
 			// Defeat
 			if (MusicWorldSubsystem->HasLostAllFaileNotePossible())

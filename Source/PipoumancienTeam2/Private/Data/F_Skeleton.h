@@ -22,6 +22,9 @@ struct F_Skeleton : public FTableRowBase
 	TArray<F_Note> Notes;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int MaxFailNotePossible = 3;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	USoundCue* BackgroundMusic;
 
 	// DIALOGUE
