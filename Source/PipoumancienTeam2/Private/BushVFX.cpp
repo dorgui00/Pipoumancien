@@ -20,6 +20,17 @@ UBushVFX::UBushVFX()
 	EnterFX = nullptr;
 }
 
+void UBushVFX::InitializeFromTool(
+	UNiagaraSystem* InEnterFX,
+	TSubclassOf<AActor> InPhantomClass,
+	TSubclassOf<AActor> InNecroClass)
+{
+	EnterFX = InEnterFX;
+	PhantomCharacterClass = InPhantomClass;
+	NecroCharacterClass = InNecroClass;
+}
+
+
 void UBushVFX::BeginPlay()
 {
 	Super::BeginPlay();
