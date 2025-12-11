@@ -133,6 +133,7 @@ protected:
 private:
 	// ---- MUSIC UI ----
 	float UISpeed = 0;
+
 	
 	// Size of the partition UI.
 	float UIOffset;
@@ -147,6 +148,7 @@ private:
 	// ---- FEEDBACK COLORS NOTES ----
 	void Internal_SetImageColor(UImage* CurrentImage, FLinearColor NewColor);
 
+	
 	// ---- UI WORLD ----
 	UPROPERTY()
 	TObjectPtr<AActor> SkeletonInteractionWidgetActor = nullptr;
@@ -156,7 +158,23 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<USkeletonInteractionWidget> SkeletonInteractionWidget = nullptr;
-	
+
+	// Mistake Renderer
+	UPROPERTY()
+	UMaterialInterface* MistakeMaterialInstance;
+
+	UPROPERTY()
+	UMaterialInstanceDynamic* CurrentDynamicMistakeMaterialInstance;
+
+	float TargetMaterialThickness = 0.f;
+	float CurrentMaterialThickness = 0.f;
+
+	float TargetMaterialRadius = 0.f;
+	float CurrentMaterialRadius = 0.f;
+
+	float ThicknessInterpolationSpeed = 2.f; 
+	float RadiusInterpolationSpeed = 2.f;
+
 	// ---- UTILITIES ----
 	UPROPERTY()
 	UMusicWorldSubsystem* MusicWorldSubsystem;

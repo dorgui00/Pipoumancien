@@ -106,6 +106,6 @@ private:
 	// ---- ANIMATION POP UI ----
 	float TargetWBPAlpha = 0.f;
 	float CurrentWBPAlpha = 0.f;
-	float WBPAlphaInterpolation = 5.f;
+	float WBPAlphaInterpolation = 2.f;
 	
 };

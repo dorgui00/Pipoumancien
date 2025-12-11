@@ -12,7 +12,7 @@ void UMusicNote::NativeConstruct()
 {
 	Super::NativeConstruct();
 	NoteImageSlot = Cast<UCanvasPanelSlot>(NoteImage->Slot);
-	NoteCurrentSize = {32, 32 };
+	NoteCurrentValidationScale = {32, 32 };
 	NoteImageCurrentOpacity = 1.f;
 }
 
@@ -28,12 +28,12 @@ void UMusicNote::PlayValidationNote(FVector2D NewTargetSize, float NewOpacity)
 {
 	IsPlayingValidation = true;
 	
-	NoteFinalSize = NewTargetSize;
+	NoteValidationFinalScale = NewTargetSize;
 
-	NoteTargetSize = NoteFinalSize * 0.5f;
+	NoteTargetValidationScale = NoteValidationFinalScale * 0.5f;
 	NoteImageTargetOpacity = NewOpacity;
 
-	InterpSpeedSize = 20.f; 
+	InterpValidationSpeedScale = 20.f; 
 	InterpSpeedOpacity = 7.f;
 }
 
@@ -41,25 +41,25 @@ void UMusicNote::Internal_PlayValidationNote(float DeltaTime)
 {
 	if (!IsPlayingValidation || !NoteImageSlot) return;
 
-	NoteCurrentSize = FMath::Vector2DInterpTo(NoteCurrentSize, NoteTargetSize, DeltaTime, InterpSpeedSize);
-	NoteImageSlot->SetSize(NoteCurrentSize);
+	NoteCurrentValidationScale = FMath::Vector2DInterpTo(NoteCurrentValidationScale, NoteTargetValidationScale, DeltaTime, InterpValidationSpeedScale);
+	NoteImageSlot->SetSize(NoteCurrentValidationScale);
 
 	NoteImageCurrentOpacity = FMath::FInterpTo(NoteImageCurrentOpacity, NoteImageTargetOpacity, DeltaTime, InterpSpeedOpacity);
 	NoteImage->SetColorAndOpacity({ GetColorAndOpacity().R, 1, GetColorAndOpacity().B, NoteImageCurrentOpacity });
 
-	if (NoteTargetSize == NoteFinalSize * 0.5f && FVector2D::Distance(NoteCurrentSize, NoteTargetSize) < 1.f)
+	if (NoteTargetValidationScale == NoteValidationFinalScale * 0.5f && FVector2D::Distance(NoteCurrentValidationScale, NoteTargetValidationScale) < 1.f)
 	{
-		NoteTargetSize = NoteFinalSize * 1.3f;
-		InterpSpeedSize = 12.f;
+		NoteTargetValidationScale = NoteValidationFinalScale * 1.3f;
+		InterpValidationSpeedScale = 12.f;
 	}
-	else if (NoteTargetSize == NoteFinalSize * 1.3f && FVector2D::Distance(NoteCurrentSize, NoteTargetSize) < 1.f)
+	else if (NoteTargetValidationScale == NoteValidationFinalScale * 1.3f && FVector2D::Distance(NoteCurrentValidationScale, NoteTargetValidationScale) < 1.f)
 	{
-		NoteTargetSize = NoteFinalSize;
-		InterpSpeedSize = 8.f;
+		NoteTargetValidationScale = NoteValidationFinalScale;
+		InterpValidationSpeedScale = 8.f;
 	}
 
 	// Stop Animation
-	bool IsSizeDone = FVector2D::Distance(NoteCurrentSize, NoteFinalSize) < 0.5f;
+	bool IsSizeDone = FVector2D::Distance(NoteCurrentValidationScale, NoteValidationFinalScale) < 0.5f;
 	bool IsOpacityDone = FMath::Abs(NoteImageCurrentOpacity - NoteImageTargetOpacity) < 0.01f;
 
 	if (IsSizeDone && IsOpacityDone)
@@ -70,18 +70,21 @@ void UMusicNote::Internal_PlayValidationNote(float DeltaTime)
 
 
 // ---- FAIL NOTE FEEDBACK ----
-
 void UMusicNote::PlayFailNote()
 {
 	IsPlayingFailAnimation = true;
-	NoteTargetRotation = -20.f;
+	NoteTargetRotation = -30.f;
+	NoteTargetFailScale = NoteCurrentFailScale * 1.2f;
 }
 
 void UMusicNote::Internal_PlayFailNote(float DeltaTime)
 {
 	if (!IsPlayingFailAnimation || !NoteImageSlot) return;
 
+	NoteCurrentFailScale = FMath::Vector2DInterpTo(NoteCurrentFailScale, NoteTargetFailScale, DeltaTime, InterpFailScaleSpeed);
 	NoteCurrentRotation = FMath::FInterpTo(NoteCurrentRotation, NoteTargetRotation, DeltaTime, InterpRotationSpeed);
+
+	NoteImageSlot->SetSize(NoteCurrentFailScale);
 
 	FWidgetTransform ImageTransform = NoteImage->GetRenderTransform();
 	ImageTransform.Angle = NoteCurrentRotation;
@@ -91,12 +94,19 @@ void UMusicNote::Internal_PlayFailNote(float DeltaTime)
 
 	if (FMath::Abs(NoteCurrentRotation - NoteTargetRotation) < Tolerance)
 	{
-		if (NoteTargetRotation == -20.f)
-			NoteTargetRotation = 20.f;
-		else if (NoteTargetRotation == 20.f)
+		if (NoteTargetRotation == -30.f)
+		{
+			NoteTargetRotation = 30.f;
+		}
+		else if (NoteTargetRotation == 30.f)
+		{
 			NoteTargetRotation = 1.f;
-		else if (NoteTargetRotation == 1.f)
+			NoteTargetFailScale = {50, 50};
+		}
+		else if (NoteTargetRotation == 1.f && NoteTargetFailScale == NoteCurrentFailScale)
+		{
 			IsPlayingFailAnimation = false;
+		}
 	}
 }
 
