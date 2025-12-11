@@ -65,7 +65,10 @@ public:
 	TMap<float, UUserWidget*> SpawnPointFromInputPitch;
 
 	UUserWidget* GetSpawnPointFromInputPitch(float InputPitch);
+
 	
+	// ---- ANIMATION POP UI ----
+	void SetWBPAlphaToZero();
 
 private:
 	// ---- NOTES SPAWN POINTS ----
@@ -99,5 +102,10 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UImage* NoteFeedBackFive;
+
+	// ---- ANIMATION POP UI ----
+	float TargetWBPAlpha = 0.f;
+	float CurrentWBPAlpha = 0.f;
+	float WBPAlphaInterpolation = 2.f;
 	
 };

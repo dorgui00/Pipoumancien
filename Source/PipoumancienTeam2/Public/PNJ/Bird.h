@@ -22,6 +22,10 @@ public:
 
 	void SetWidgetVisibility(bool Visibility);
 	
+	void SetMyNotes() const; // update bird notes
+
+	void SetWidgetINVisible();
+	
 
 protected:
 	// Called when the game starts or when spawned
@@ -40,7 +44,7 @@ private :
 	UPROPERTY()
 	UBirdWidget* BirdWidget;
 	
-	void SetMyNotes() const; // update bird notes 
+	
 
 	// --- UTILITES ---
 	UPROPERTY()

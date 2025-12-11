@@ -14,6 +14,7 @@
 #include "Tools/Slider/NoteMapping.h"
 #include "UI/GlobalHUDSubsystem.h"
 
+
 // void UGlobalGameSubsystem::Tick(float DeltaTime)
 // {
 // }
@@ -39,6 +40,14 @@ void UGlobalGameSubsystem::SetCurrentSkeleton(ASkeletonController* Skeleton)
 void UGlobalGameSubsystem::SetBird(ABird* InBird)
 {
 	Bird = InBird;
+	
+	UGlobalHUDSubsystem* GlobalHUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
+	GlobalHUDSubsystem->InitBirdWidget(Bird);
+}
+
+ABird* UGlobalGameSubsystem::GetBird()
+{
+	return Bird;
 }
 
 
@@ -48,33 +57,120 @@ void UGlobalGameSubsystem::AddNoteForSkeletonInteraction(UInputAction* InputActi
 	// HUD 
 	UGlobalHUDSubsystem* GlobalHUDSubsystemIn = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
 
-	// First Note
-	if (InputPressed.Num() == 0)
-	{
-		GlobalHUDSubsystemIn->CallSkeletonInteractionWidget();
-	}
+	// TO EDIT
+	//// First Note
+	// if (InputPressed.Num() == 0)
+	// {
+	// 	GlobalHUDSubsystemIn->CallSkeletonInteractionWidget();
+	// }
 
+	
+if (IsTouch)
+{
 	// Add Notes
 	InputPressed.Add(InputAction);
 	GlobalHUDSubsystemIn->DisplayNotesForSkeletonInteraction(InputAction);
-
-	// Compare notes
+	
 	if (InputPressed.Num() >= SkeletonNotesToCheck)
 	{
+		IsTouch = false;
 		if (HasValidFirstNotes())
 		{
-			SetWorldMusicState();
-		}
+			//GlobalHUDSubsystemIn->ValideWidget();
+			//FTimerHandle TimerHandle;
+			//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this,
+			//&UGlobalGameSubsystem::SetWorldMusicState,
+			//3.f, false);
+			//SetWorldMusicState();
+			//Bird->SetWidgetINVisible();
+			
 
+
+			GlobalHUDSubsystemIn->ValideWidget();
+
+			FTimerHandle TimerHandle;
+			GetWorld()->GetTimerManager().SetTimer(
+				TimerHandle,
+				[this]()
+				{
+					//Bird->SetWidgetINVisible();
+					SetWorldMusicState();
+					ResetInputsArray();
+				},
+				3.f,
+				false
+			);
+			IsTouch = true;
+		}
+		else
+		{
+
+			FTimerHandle DelayHandle;
+			GetWorld()->GetTimerManager().SetTimer(
+				DelayHandle,
+				FTimerDelegate::CreateLambda([this]()
+				{
+					UGlobalHUDSubsystem* GlobalHUDSubsystemIn = 
+						GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
+
+					// 1️⃣ FolseWidget() après 2 secondes
+					GlobalHUDSubsystemIn->FolseWidget();
+
+					// 2️⃣ Ensuite le reste du code
+					ResetInputsArray();
+
+					if (Bird)
+					{
+						Bird->SetMyNotes();
+					}
+
+					GlobalHUDSubsystemIn->RemoveBirdWidget();
+					
+
+				}),
+				1.0f,  // délai AVANT FolseWidget
+				false
+				);
+			
+			FTimerHandle delayHandle;
+		GetWorld()->GetTimerManager().SetTimer(
+		   		delayHandle,
+		   		FTimerDelegate::CreateLambda([this]()
+			{
+					IsTouch = true;
+				}),
+				5.0f,  // délai AVANT FolseWidget
+				false
+				);
+		}
+	
+}
+
+		// --- RESET ---
 		// Reset 3 Notes
-		ResetInputsArray();
+		//ResetInputsArray();
 		
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, GlobalHUDSubsystemIn,
-			&UGlobalHUDSubsystem::ResetSkeletonInteractionWidget,
-			1.f, false);
+		
+		// Reset UI
+		//FTimerHandle TimerHandle;
+		//GetWorld()->GetTimerManager().SetTimer(TimerHandle, GlobalHUDSubsystemIn,
+		//	&UGlobalHUDSubsystem::RimouveWidget(),
+		//	1.f, false);
+
+		//GetWorld()->GetTimerManager().SetTimer(TimerHandle,FTimerDelegate::CreateLambda([this]()
+	//{
+		// Code exécuté après 5s
+		//Bird->SetMyNotes();
+	//}),
+	//2.0f,
+	//false
+//);
+		//GlobalHUDSubsystemIn->RemoveBirdWidget();
+		
 	}
 }
+
+
 
 bool UGlobalGameSubsystem::HasValidFirstNotes()
 {
@@ -235,6 +331,8 @@ void UGlobalGameSubsystem::SetWorldDialogueState(APipouCharacter* Interactor, AS
 	//Open dialogue
 	Speaker->OpenDialogue();
 }
+
+
 
 
 

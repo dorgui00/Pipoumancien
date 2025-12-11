@@ -85,6 +85,9 @@ public:
 	//Skeleton Controller
 	F_Skeleton* MySkeleton;
 
+	UFUNCTION(BlueprintCallable)
+	F_Skeleton GetMyData() const;
+
 	// STATE
 	ESkeletonState GetState() const;
 	
@@ -101,18 +104,15 @@ public:
 	UFUNCTION()
 	void OnReachHome();
 
-	void OpenDialogue();
 
-	void InterationDialogue();
-	void InterationDialoguenOFF();
-
-	UPROPERTY()
-	UUIDialoge* PlayerWidget;
-
-	//ANIM
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
-	UAnimationAsset* WakeAnimation = nullptr;
+	// --- VISUALS ---
+#pragma region Visuals
 	
+	// Mesh
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
+	USkeletalMeshComponent* TargetMesh = nullptr;
+
+	// Anims
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
 	UAnimationAsset* IdleAnimation = nullptr;
 
@@ -121,20 +121,52 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
 	UAnimationAsset* WaitAnimation = nullptr;
-
+	
+	// Wake Anim
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
-	USkeletalMeshComponent* TargetMesh = nullptr;
+	TArray<UAnimationAsset*> WakeAnims ;
+
+	// UPROPERTY()
+	// TObjectPtr<UAnimationAsset> WakeAnimToPlay;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int CurrentAnimationIndex = 0;
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayWakeAnim();
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void FinishWakeAnim(bool HasSucceed);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayFailAnim();
+	
+#pragma endregion
+	
+	// --- UI ---
+	void OpenDialogue();
+
+	void InterationDialogue();
+	void InterationDialoguenOFF();
+
+	UPROPERTY()
+	UUIDialoge* PlayerWidget;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ZoneVictoir")
 	UWidgetComponent* WidgetComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ZoneVictoir")
+	UWidgetComponent* WidgetComponentMerci;
 
-
-
-	//SOUNDS
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ZoneVictoir")
+	AActor* ZoneBird;
+	
+	// --- SOUNDS ---
 	UPROPERTY(EditAnywhere, Category = "Audio")
 	TObjectPtr<USoundBase> FootstepCue;
 
-	//niagara?
+	// --- VFX ---
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
 	float CleanseWindowDuration = 1.0f;
 

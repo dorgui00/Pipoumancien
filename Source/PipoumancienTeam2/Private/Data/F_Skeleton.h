@@ -1,10 +1,9 @@
 ﻿#pragma once
 #include "Data/FSkeletonVisuals.h"
+#include "Data/F_Note.h"
 #include "F_Skeleton.generated.h"
 
-struct FSkeletonVisuals;
 class USoundCue;
-struct F_Note;
 
 USTRUCT(BlueprintType)
 struct F_Skeleton : public FTableRowBase

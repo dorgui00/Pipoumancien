@@ -8,6 +8,8 @@
 #include "Components/TextBlock.h"
 #include "GlobalHUDSubsystem.generated.h"
 
+class ABird;
+class UBirdWidget;
 class USkeletonInteractionWidget;
 class UWidgetComponent;
 class APipouCharacter;
@@ -106,17 +108,20 @@ public:
 	void SetImageColor(UImage* CurrentImage, FLinearColor NewColor);
 
 	// ----- UI WORLD -----
-	TObjectPtr<UWidgetComponent> GetSkeletonInteractionWidgetComponent() const;
-	
-	void FindSkeletonInteractionWidget(); // call at init in game mode
+
+	void InitBirdWidget(ABird* Bird);
 	
 	void DisplayNotesForSkeletonInteraction(const UInputAction* InputAction);
 
-	void CallSkeletonInteractionWidget();
-
-	void ResetSkeletonInteractionWidget();
+	void ResetBirdWidget();
 
 	void SetWidgetVisibility(UUserWidget* Widget, bool Visibility);
+
+	void ValideWidget();
+
+	void FolseWidget();
+
+	void RemoveBirdWidget();
 	
 	
 protected:
@@ -133,6 +138,7 @@ protected:
 private:
 	// ---- MUSIC UI ----
 	float UISpeed = 0;
+
 	
 	// Size of the partition UI.
 	float UIOffset;
@@ -147,15 +153,34 @@ private:
 	// ---- FEEDBACK COLORS NOTES ----
 	void Internal_SetImageColor(UImage* CurrentImage, FLinearColor NewColor);
 
+	
 	// ---- UI WORLD ----
 	UPROPERTY()
 	TObjectPtr<AActor> SkeletonInteractionWidgetActor = nullptr;
 	
 	UPROPERTY()
 	TObjectPtr<UWidgetComponent> SkeletonInteractionWidgetComponent = nullptr;
-
+	
 	UPROPERTY()
 	TObjectPtr<USkeletonInteractionWidget> SkeletonInteractionWidget = nullptr;
+
+	// Mistake Renderer
+	UPROPERTY()
+	UMaterialInterface* MistakeMaterialInstance;
+
+	UPROPERTY()
+	UMaterialInstanceDynamic* CurrentDynamicMistakeMaterialInstance;
+
+	float TargetMaterialThickness = 0.f;
+	float CurrentMaterialThickness = 0.f;
+
+	float TargetMaterialRadius = 0.f;
+	float CurrentMaterialRadius = 0.f;
+
+	float ThicknessInterpolationSpeed = 2.f; 
+	float RadiusInterpolationSpeed = 2.f;
+
+	TObjectPtr<UBirdWidget> BirdWidget = nullptr;
 	
 	// ---- UTILITIES ----
 	UPROPERTY()

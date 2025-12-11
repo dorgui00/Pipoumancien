@@ -43,9 +43,6 @@ public:
 
 	int GetCurrentWaitingNoteIndex() const;
 
-	int GetCurrentWaitingNoteIndexUI() const;
-	F_Note* GetCurrentWaitingNoteUI() const;
-
 	bool GetIsConductorOnPitch() const;	
 	
 	// Tell the Music Logic the player HAS pressed an input.
@@ -76,7 +73,7 @@ public:
 	// Called when the player performs an action too early or too late.
 	void LostQTE();
 	void LostMelody();
-	void SetNoteFeedbackMusic(FLinearColor NewColor) const;
+	void SetBehindNoteFeedback(FLinearColor NewColor);
 
 	// Fail Note possible -> Health Bar of the partition.
 	int GetCurrentFailNotePossible() const;
@@ -109,11 +106,11 @@ private:
 	bool HasReachFrequency = false;
 	
 	int CurrentWaitingNoteIndexUI = 0;
-	int PreviousCurrentWaitingNoteIndexUI = 0;
 	
 	bool HasFinishedLerpingOffset() const;
+	void OnFinishLerpingOffset();
 
-	bool HasReachPitchSlider() const;
+	bool HasReachPitchSlider();
 
 	
 	// ---- MUSIC COUNTDOWN ---- 
@@ -163,8 +160,6 @@ private:
 
 	UPROPERTY()
 	int CurrentFailNotePossible;
-
-	void PlayMusic();
 
 	void IncreaseMusicTempo(float DeltaTime);
 	void IncreaseMusicTempoUI(float DeltaTime);

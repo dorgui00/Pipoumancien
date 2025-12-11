@@ -36,6 +36,9 @@ ASkeletonController::ASkeletonController()
 	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
 	WidgetComponent->SetupAttachment(RootComponent);
 	
+	WidgetComponentMerci = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponentMerci"));
+	WidgetComponentMerci->SetupAttachment(RootComponent);
+	
 	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ASkeletonController::ASkeletonController::BeginOverlaps);
 	SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ASkeletonController::EndOverlaps);
 
@@ -62,21 +65,25 @@ void ASkeletonController::BeginPlay()
 	Super::BeginPlay();
 
 	// ---- SET MYSELF ----
+	WidgetComponentMerci->SetVisibility(false);
+	WidgetComponent->SetVisibility(false);
+
 	MySkeleton = GetGameInstance()->GetSubsystem<UGlobalDataTableSubsystem>()->GetSkeletonByID(ID);
 	
-	// Anims
+	// Mesh
 	if (!TargetMesh)
 	{
 		TargetMesh = FindComponentByClass<USkeletalMeshComponent>();
 	}
 	
-	InitMyVisuals(); 
+	InitMyVisuals();
 
+	// Anims
 	// Start with idle if we have it
-	if (TargetMesh && IdleAnimation)
-	{
-		TargetMesh->PlayAnimation(IdleAnimation, true);
-	}
+	// if (TargetMesh && IdleAnimation)
+	// {
+	// 	TargetMesh->PlayAnimation(IdleAnimation, true);
+	// }
 
 	LastLocation = GetActorLocation();
 	bHasLastLocation = true;
@@ -126,6 +133,11 @@ void ASkeletonController::EndOverlaps(UPrimitiveComponent* OverlappedComp, AActo
 	}
 }
 
+F_Skeleton ASkeletonController::GetMyData() const
+{
+	return *MySkeleton;
+}
+
 // STATE
 ESkeletonState ASkeletonController::GetState() const
 {
@@ -159,8 +171,8 @@ void ASkeletonController::OnEnterVillage()
 	if (UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>())
 		GlobalGameSubsystem->SetWorldFreeState();
 
+	WidgetComponentMerci->SetVisibility(true);
 	
-	isDialogVisible = true;
 }
 
 
@@ -205,6 +217,7 @@ void ASkeletonController::InterationDialoguenOFF()
 void ASkeletonController::UpdateAnimation(float DeltaTime)
 {
 	// no mesh, no animation / footsteps
+	 
 	if (!TargetMesh)
 	{
 		TargetMesh = FindComponentByClass<USkeletalMeshComponent>();
@@ -332,33 +345,33 @@ void ASkeletonController::FogDilet()
 void ASkeletonController::InitMyVisuals()
 {
 	if (!MySkeleton) return;
-	if (!MySkeleton->SkeletonVisuals.SkeletonMesh) return;
+	if (!MySkeleton->SkeletonVisuals.Mesh) return;
 	
 	 // -- MESH --
-	TargetMesh->SetSkeletalMeshAsset(MySkeleton->SkeletonVisuals.SkeletonMesh) ;
+	TargetMesh->SetSkeletalMeshAsset(MySkeleton->SkeletonVisuals.Mesh) ;
 
 	// -- ANIMS --
 	
 	//wake
-	WakeAnimation = MySkeleton->SkeletonVisuals.WakeAnim;
-	if (!WakeAnimation)
-		UE_LOG(LogTemp,Error,TEXT("Wake Anim is null"));
-	
-	// transport
-	IdleAnimation = MySkeleton->SkeletonVisuals.IdleAnim;
-	if (!IdleAnimation)
-		UE_LOG(LogTemp,Error,TEXT("Idle Anim is null"));
-	
-	WalkAnimation = MySkeleton->SkeletonVisuals.WalkAnim;
-	if (!WalkAnimation)
-		UE_LOG(LogTemp,Error,TEXT("Walk Anim is null"));
-	
-	WaitAnimation = MySkeleton->SkeletonVisuals.WaitAnim;
-	if (!WaitAnimation)
-	{
-		UE_LOG(LogTemp,Warning,TEXT("Wait Anim is null"));
-		if (IdleAnimation) WaitAnimation = IdleAnimation;
-	}
+	// WakeAnimation = MySkeleton->SkeletonVisuals.WakeAnim;
+	// if (!WakeAnimation)
+	// 	UE_LOG(LogTemp,Error,TEXT("Wake Anim is null"));
+	//
+	// // transport
+	// IdleAnimation = MySkeleton->SkeletonVisuals.IdleAnim;
+	// if (!IdleAnimation)
+	// 	UE_LOG(LogTemp,Error,TEXT("Idle Anim is null"));
+	//
+	// WalkAnimation = MySkeleton->SkeletonVisuals.WalkAnim;
+	// if (!WalkAnimation)
+	// 	UE_LOG(LogTemp,Error,TEXT("Walk Anim is null"));
+	//
+	// WaitAnimation = MySkeleton->SkeletonVisuals.WaitAnim;
+	// if (!WaitAnimation)
+	// {
+	// 	UE_LOG(LogTemp,Warning,TEXT("Wait Anim is null"));
+	// 	if (IdleAnimation) WaitAnimation = IdleAnimation;
+	// }
 }
 
 void ASkeletonController::PlayIdle()

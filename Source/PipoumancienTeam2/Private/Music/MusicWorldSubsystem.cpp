@@ -2,8 +2,6 @@
 
 
 #include "Music/MusicWorldSubsystem.h"
-
-#include "InputAction.h"
 #include "Components/Slider.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
@@ -90,7 +88,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			
 			if (HasFinishedLerpingOffset())
 			{
-				IsLerpingOffset = false;
+				OnFinishLerpingOffset();
 			}
 		}
 		else
@@ -121,23 +119,11 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			if (HasReachPitchSlider() && !HasReachFrequency)
 			{
 				HasReachFrequency = true;
-
-				if (GetCurrentWaitingNoteIndexUI() < CurrentSkeleton->MySkeleton->Notes.Num() - 1)
+				
+				if (CurrentWaitingNoteIndexUI < CurrentSkeleton->MySkeleton->Notes.Num() - 1)
 				{
-					PreviousCurrentWaitingNoteIndexUI = CurrentWaitingNoteIndexUI;
 					CurrentWaitingNoteIndexUI++;
-					
-					if (CurrentWaitingNoteIndexUI == PreviousCurrentWaitingNoteIndexUI)
-					{
-						CurrentWaitingNoteIndexUI++;
-					}
-					
-					TempoNoteUI = 0;
 				}
-			}
-			else
-			{
-				UE_LOGFMT(LogTemp, Warning, "HasReachPitch : false");
 			}
 			
 			// Check for the exit of the window note, to check if the player HasAchievedQTE.
@@ -185,6 +171,7 @@ UMusicNote* UMusicWorldSubsystem::GetCurrentWaitingNoteWidget() const
 		UE_LOGFMT(LogTemp, Error, "ERROR: No current waiting note !");
 		return nullptr;
 	}
+	
 	if (GlobalHUDSubsystem->WBPResurrectionInstance == nullptr)
 	{
 		UE_LOGFMT(LogTemp, Error, "ERROR: WBPResurrectionInstance == nullptr !");
@@ -202,17 +189,6 @@ int UMusicWorldSubsystem::GetCurrentWaitingNoteIndex() const
 void UMusicWorldSubsystem::SetCurrentWaitingNoteIndex(int NewIndex)
 {
 	CurrentWaitingNoteIndex = NewIndex;	
-}
-
-int UMusicWorldSubsystem::GetCurrentWaitingNoteIndexUI() const
-{
-	return CurrentWaitingNoteIndexUI;
-}
-
-F_Note* UMusicWorldSubsystem::GetCurrentWaitingNoteUI() const
-{
-	if (GetCurrentWaitingNoteIndexUI() > CurrentSkeleton->MySkeleton->Notes.Num() - 1) UE_LOGFMT(LogTemp, Error, "ERROR: Current waiting Note is out of range !");
-	return &CurrentSkeleton->MySkeleton->Notes[GetCurrentWaitingNoteIndexUI()];
 }
 
 bool UMusicWorldSubsystem::GetIsConductorOnPitch() const
@@ -296,30 +272,38 @@ void UMusicWorldSubsystem::SucceedQTE()
 	// POSITIVE feedback
 	if (GetCurrentWaitingNote()->Sound)
 		UGameplayStatics::PlaySound2D(GetWorld(),GetCurrentWaitingNote()->Sound);
-
+	
 	// Continue
 	GoNextNote();
 }
 
 void UMusicWorldSubsystem::SucceedMelody()
 {
-	// DEBUG
+	// --- DEBUG ---
 	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString::Printf(TEXT("Melodie finie et réussie")), true, FVector2D(2, 2));
 
-	// SUCCEED
+	// --- MY STATE ---
+	// Succeed
 	MelodyState = EMelodyType::SUCCEED;
 	
 	// Reset Music
 	IsInWorldStateMusic = false;
-	// BackgroundAudioComponent->SetActive(false);
+
+	// --- FEEDBACKS ---
+	//Anim
+	CurrentSkeleton->FinishWakeAnim(true);
 	
 	// UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
 
+	// Sound
+	// BackgroundAudioComponent->SetActive(false);
+	
 	// Animation of Enter
 	GlobalHUDSubsystem->DisplayPartitionFinish("SUCCEED MELODY");
 
-	/// TO EDIT don't use delay
+	// --- SWITCH OF WORLD STATE ---
+	// TO EDIT don't use delay
 	FTimerHandle IsAnimationFinished;
 	GetWorld()->GetTimerManager().ClearTimer(IsAnimationFinished);
 
@@ -350,6 +334,10 @@ void UMusicWorldSubsystem::LostMelody()
 	// Reset Music
 	IsInWorldStateMusic = false;
 	// BackgroundAudioComponent->SetActive(false);
+
+	// --- FEEDBACKS ---
+	// Anim
+	CurrentSkeleton->FinishWakeAnim(false);
 	
 	// UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
@@ -357,7 +345,8 @@ void UMusicWorldSubsystem::LostMelody()
 	// Animation of Exit
 	GlobalHUDSubsystem->DisplayPartitionFinish("FAILED MELODY");
 
-	/// TO EDIT don't use delay
+	// --- SWITCH OF WORLD STATE ---
+	// TO EDIT don't use delay
 	FTimerHandle IsAnimationFinished;
 	GetWorld()->GetTimerManager().ClearTimer(IsAnimationFinished);
 
@@ -371,12 +360,12 @@ void UMusicWorldSubsystem::LostMelody()
 		);
 }
 
-void UMusicWorldSubsystem::SetNoteFeedbackMusic(FLinearColor NewColor) const
+void UMusicWorldSubsystem::SetBehindNoteFeedback(FLinearColor NewColor)
 {
 	UResurrectionWidget* ResurrectionWidget = GlobalHUDSubsystem->WBPResurrectionInstance;
 	if (!ResurrectionWidget) return;
 
-	UImage* CurrentNoteFeedback = ResurrectionWidget->GetFeedbackPosFromInputPitch(GetCurrentWaitingNoteUI()->Pitch);
+	UImage* CurrentNoteFeedback = ResurrectionWidget->GetFeedbackPosFromInputPitch(CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndexUI].Pitch);
 	GlobalHUDSubsystem->SetImageColor(CurrentNoteFeedback, NewColor);
 }
 
@@ -406,6 +395,10 @@ void UMusicWorldSubsystem::LostQTE()
 	// FAILS 
 	SetCurrentFailNotePossible(GetCurrentFailNotePossible() - 1);
 
+	// Negative Feedbacks
+	GetCurrentWaitingNoteWidget()->PlayFailNote();
+	SetBehindNoteFeedback(FLinearColor::Red);
+	
 	if (GetCurrentWaitingNoteWidget() != nullptr)
 	{
 		GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::Red);
@@ -425,6 +418,9 @@ void UMusicWorldSubsystem::LostQTE()
 			false
 			);
 	}
+
+	// Anim
+	CurrentSkeleton->PlayFailAnim();
 	
 	// If the max note possible to fail has been achieved you go out of the music state without the skeletons.
 	if (HasLostAllFaileNotePossible())
@@ -557,13 +553,23 @@ bool UMusicWorldSubsystem::HasFinishedLerpingOffset() const
 	return GetTimerLerpingOffset() >= (GlobalHUDSubsystem->GetUIOffset() / GlobalHUDSubsystem->GetUISpeed());
 }
 
-bool UMusicWorldSubsystem::HasReachPitchSlider() const
+void UMusicWorldSubsystem::OnFinishLerpingOffset()
+{
+	// Myself
+	IsLerpingOffset = false;
+
+	// Anim
+	if (CurrentSkeleton)
+		CurrentSkeleton->PlayWakeAnim();
+}
+
+bool UMusicWorldSubsystem::HasReachPitchSlider()
 {
 	bool HasReachPitchSlider;
 	
 	if (GetCurrentWaitingNoteIndex() <= 0)
 	{
-		HasReachPitchSlider = TempoNoteUI >= (GlobalHUDSubsystem->GetUIOffset() / GlobalHUDSubsystem->GetUISpeed());
+		HasReachPitchSlider = TempoNoteUI >= (GlobalHUDSubsystem->GetUIOffset() / GlobalHUDSubsystem->GetUISpeed()) + GetCurrentWaitingNote()->Frequency;
 	}
 	else
 	{

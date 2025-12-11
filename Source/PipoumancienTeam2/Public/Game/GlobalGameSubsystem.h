@@ -45,6 +45,7 @@ public :
 
 	// Bird
 	void SetBird(ABird* InBird);
+	ABird* GetBird();
 	
 	// --- MUSIC ---
 	// Skeleton Interaction
@@ -74,6 +75,10 @@ public :
 
 	void SetWorldDialogueState(APipouCharacter* Interactor, ASkeletonController* Speaker);
 	
+	void RimouveWidget();
+
+	bool IsTouch = true;
+	
 private :
 
 	// World State
@@ -86,6 +91,7 @@ private :
 	// Bird
 	UPROPERTY()
 	TObjectPtr<ABird> Bird = nullptr;
+	
 
 	// ---- UTILITIES ----
 
