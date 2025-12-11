@@ -87,6 +87,12 @@ void ABird::SetMyNotes() const
 		UTexture2D* Text = GlobalHUDSubsystem->GetImageTextureFromNoteInput(Skeleton->Notes[i].InputAction);
 		
 		BirdWidget->Images[i]->SetBrushFromTexture(Text);
+		BirdWidget->Images[i]->SetColorAndOpacity(FLinearColor::Green);
 	}
+}
+
+void ABird::SetWidgetINVisible()
+{
+	WidgetComponent->SetVisibility(false);
 }
 

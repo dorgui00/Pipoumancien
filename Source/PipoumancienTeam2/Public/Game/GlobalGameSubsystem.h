@@ -76,6 +76,8 @@ public :
 	void SetWorldDialogueState(APipouCharacter* Interactor, ASkeletonController* Speaker);
 	
 	void RimouveWidget();
+
+	bool IsTouch = true;
 	
 private :
 

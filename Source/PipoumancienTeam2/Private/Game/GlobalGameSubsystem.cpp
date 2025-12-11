@@ -64,22 +64,43 @@ void UGlobalGameSubsystem::AddNoteForSkeletonInteraction(UInputAction* InputActi
 	// 	GlobalHUDSubsystemIn->CallSkeletonInteractionWidget();
 	// }
 
+	
+if (IsTouch)
+{
 	// Add Notes
 	InputPressed.Add(InputAction);
 	GlobalHUDSubsystemIn->DisplayNotesForSkeletonInteraction(InputAction);
-
-	// Compare notes
+	
 	if (InputPressed.Num() >= SkeletonNotesToCheck)
 	{
+		IsTouch = false;
 		if (HasValidFirstNotes())
 		{
-			GlobalHUDSubsystemIn->ValideWidget();
-			FTimerHandle TimerHandle;
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this,
-			&UGlobalGameSubsystem::SetWorldMusicState,
-				3.f, false);
+			//GlobalHUDSubsystemIn->ValideWidget();
+			//FTimerHandle TimerHandle;
+			//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this,
+			//&UGlobalGameSubsystem::SetWorldMusicState,
+			//3.f, false);
 			//SetWorldMusicState();
+			//Bird->SetWidgetINVisible();
 			
+
+
+			GlobalHUDSubsystemIn->ValideWidget();
+
+			FTimerHandle TimerHandle;
+			GetWorld()->GetTimerManager().SetTimer(
+				TimerHandle,
+				[this]()
+				{
+					//Bird->SetWidgetINVisible();
+					SetWorldMusicState();
+					ResetInputsArray();
+				},
+				3.f,
+				false
+			);
+			IsTouch = true;
 		}
 		else
 		{
@@ -104,12 +125,26 @@ void UGlobalGameSubsystem::AddNoteForSkeletonInteraction(UInputAction* InputActi
 					}
 
 					GlobalHUDSubsystemIn->RemoveBirdWidget();
+					
 
 				}),
 				1.0f,  // délai AVANT FolseWidget
 				false
-			);
+				);
+			
+			FTimerHandle delayHandle;
+		GetWorld()->GetTimerManager().SetTimer(
+		   		delayHandle,
+		   		FTimerDelegate::CreateLambda([this]()
+			{
+					IsTouch = true;
+				}),
+				5.0f,  // délai AVANT FolseWidget
+				false
+				);
 		}
+	
+}
 
 		// --- RESET ---
 		// Reset 3 Notes

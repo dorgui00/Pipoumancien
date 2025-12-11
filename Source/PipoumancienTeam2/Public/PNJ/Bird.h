@@ -22,7 +22,9 @@ public:
 
 	void SetWidgetVisibility(bool Visibility);
 	
-	void SetMyNotes() const; // update bird notes 
+	void SetMyNotes() const; // update bird notes
+
+	void SetWidgetINVisible();
 	
 
 protected:
