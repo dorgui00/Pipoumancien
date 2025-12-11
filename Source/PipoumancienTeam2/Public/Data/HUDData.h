@@ -27,4 +27,8 @@ public :
 
 	UPROPERTY(EditAnywhere, Category="Note Images")
 	UTexture2D* NoteLeft;
+
+	UPROPERTY(EditAnywhere, Category="Material Mistake")
+	UMaterialInterface* MistakeMaterialInstance;
+	
 };

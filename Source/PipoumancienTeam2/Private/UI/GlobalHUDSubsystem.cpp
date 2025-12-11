@@ -4,6 +4,8 @@
 #include "UI/GlobalHUDSubsystem.h"
 #include "UResurrectionWidget.h"
 #include "Blueprint/UserWidget.h"
+#include "Camera/CameraComponent.h"
+#include "Camera/CameraWorldSubsystem.h"
 #include "Character/PipouCharacterInputData.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
@@ -37,15 +39,25 @@ void UGlobalHUDSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UGlobalHUDSubsystem::Tick(float DeltaTime)
 {
+	// Manage reset color.
 	if (TimerBeforeResetingColor > 0)
 	{
 		TimerBeforeResetingColor -= DeltaTime;
 
 		if (TimerBeforeResetingColor >= 0.2f)
 		{
-			
 			TimerBeforeResetingColor = 0;
 		}
+	}
+
+	// Manage Mistake Render.
+	if (CurrentDynamicMistakeMaterialInstance != nullptr && (TargetMaterialRadius != CurrentMaterialRadius && TargetMaterialThickness != CurrentMaterialThickness))
+	{
+		CurrentMaterialThickness = FMath::FInterpTo(CurrentMaterialThickness, TargetMaterialThickness, DeltaTime, ThicknessInterpolationSpeed);
+		CurrentMaterialRadius = FMath::FInterpTo(CurrentMaterialRadius, TargetMaterialRadius, DeltaTime, RadiusInterpolationSpeed);
+
+		CurrentDynamicMistakeMaterialInstance->SetScalarParameterValue("Thickness", CurrentMaterialThickness);
+		CurrentDynamicMistakeMaterialInstance->SetScalarParameterValue("Radius", CurrentMaterialRadius);
 	}
 }
 
@@ -57,12 +69,22 @@ void UGlobalHUDSubsystem::DisplayResurrectionWidget()
 
 	APlayerController* PC = Cast<APlayerController>(GlobalGameSubsystem->PipouCharacters[0]->GetController());
 	if (!PC) return;
+
+	UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
+	if (!CameraWorldSubsystem) return;
 	
 	WBPResurrectionInstance = CreateWidget<UResurrectionWidget>(PC, WBPResurrectionClass);
 	
 	if (WBPResurrectionInstance != nullptr)
 	{
 		WBPResurrectionInstance->AddToViewport();
+		
+		CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(1.f);
+		CurrentDynamicMistakeMaterialInstance = UMaterialInstanceDynamic::Create(MistakeMaterialInstance, this);
+		CurrentDynamicMistakeMaterialInstance->GetScalarParameterValue(FHashedMaterialParameterInfo("Radius"), CurrentMaterialRadius);
+		CurrentDynamicMistakeMaterialInstance->GetScalarParameterValue(FHashedMaterialParameterInfo("Thickness"), CurrentMaterialThickness);
+		TargetMaterialRadius = 0.1f;
+		TargetMaterialThickness = 0.1f;
 
 		UCanvasPanelSlot* PartitionSlot = Cast<UCanvasPanelSlot>(WBPResurrectionInstance->PartitionBox->Slot);
 		if (!PartitionSlot) return;
@@ -72,18 +94,15 @@ void UGlobalHUDSubsystem::DisplayResurrectionWidget()
 
 		float MiddleOfPitchSliderPosX = SliderBoxSlot->GetPosition().X + (SliderBoxSlot->GetSize().X / 2);
 		float BoundsXMaxPartitionBox = PartitionSlot->GetSize().X;
-		// // How many of my slider I can put in the partition : 110 * 9,35px (result of PartitionSlot->GetSize().X / SliderSlot->GetSize().X).
-		// float PartitionInSliderRatio = PartitionSlot->GetSize().X / SliderBoxSlot->GetSize().X;
-		// // How many 9,35 are in my slider (110px) = 11,8. I can put 11,8 of 9,35 in my slider.
-		// float EffectiveSliderPartSize = (SliderBoxSlot->GetSize().X / MiddleOfPitchSliderPosX);
-		// // UiOffset is all the partition size minus the size of the slider for it to time for the qte when the note is the middle of the circle of the slider.
-		// UIOffset = PartitionInSliderRatio * (SliderBoxSlot->GetSize().X - EffectiveSliderPartSize);
 		UIOffset = (BoundsXMaxPartitionBox - MiddleOfPitchSliderPosX);
 	}
 }
 
 void UGlobalHUDSubsystem::RemoveResurrectionWidget()
 {
+	UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
+	if (!CameraWorldSubsystem) return;
+	
 	if (WBPResurrectionInstance != nullptr)
 	{
 		WBPResurrectionInstance->SetWBPAlphaToZero();
@@ -95,6 +114,9 @@ void UGlobalHUDSubsystem::RemoveResurrectionWidget()
 		}
 		
 		WBPResurrectionInstance->RemoveFromParent();
+
+		CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(0.f);
+		CurrentDynamicMistakeMaterialInstance = nullptr;
 		WBPResurrectionInstance = nullptr;
 
 		// Clear the array of notes spawned during the music.
@@ -282,6 +304,9 @@ void UGlobalHUDSubsystem::Init()
 		{ InputData->InputNoteA, HUDData->NoteDown },
 		{ InputData->InputNoteX, HUDData->NoteLeft },
 	};
+
+	// Init Material Instance
+	MistakeMaterialInstance = HUDData->MistakeMaterialInstance;
 }
 
 UTexture2D* UGlobalHUDSubsystem::GetImageTextureFromNoteInput(const UInputAction* NoteInput) const
