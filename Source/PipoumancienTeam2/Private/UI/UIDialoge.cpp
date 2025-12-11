@@ -23,9 +23,9 @@ void UUIDialoge::NativeConstruct()
 	{
 		FInputModeUIOnly InputMode;
 		InputMode.SetWidgetToFocus(TakeWidget());
-		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		//InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 		PC->SetInputMode(InputMode);
-		PC->bShowMouseCursor = true;
+		//PC->bShowMouseCursor = true;
 	}
 
 	// On ne lit PLUS la DataTable ici → c’est SetDialogue() qui charge le texte
@@ -67,7 +67,6 @@ void UUIDialoge::SetDialogue(F_Skeleton* Skeleton , int Valut)
 
 		AddToViewport();
 	}
-	
 }
 
 void UUIDialoge::GoToNextDialogue()
