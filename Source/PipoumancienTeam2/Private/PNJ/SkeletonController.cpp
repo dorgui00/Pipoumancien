@@ -36,6 +36,9 @@ ASkeletonController::ASkeletonController()
 	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
 	WidgetComponent->SetupAttachment(RootComponent);
 	
+	WidgetComponentMerci = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponentMerci"));
+	WidgetComponentMerci->SetupAttachment(RootComponent);
+	
 	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ASkeletonController::ASkeletonController::BeginOverlaps);
 	SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ASkeletonController::EndOverlaps);
 
@@ -62,6 +65,9 @@ void ASkeletonController::BeginPlay()
 	Super::BeginPlay();
 
 	// ---- SET MYSELF ----
+	WidgetComponentMerci->SetVisibility(false);
+	WidgetComponent->SetVisibility(false);
+
 	MySkeleton = GetGameInstance()->GetSubsystem<UGlobalDataTableSubsystem>()->GetSkeletonByID(ID);
 	
 	// Anims
@@ -159,8 +165,8 @@ void ASkeletonController::OnEnterVillage()
 	if (UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>())
 		GlobalGameSubsystem->SetWorldFreeState();
 
+	WidgetComponentMerci->SetVisibility(true);
 	
-	isDialogVisible = true;
 }
 
 

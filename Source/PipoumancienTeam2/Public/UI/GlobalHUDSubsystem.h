@@ -8,6 +8,8 @@
 #include "Components/TextBlock.h"
 #include "GlobalHUDSubsystem.generated.h"
 
+class ABird;
+class UBirdWidget;
 class USkeletonInteractionWidget;
 class UWidgetComponent;
 class APipouCharacter;
@@ -106,17 +108,20 @@ public:
 	void SetImageColor(UImage* CurrentImage, FLinearColor NewColor);
 
 	// ----- UI WORLD -----
-	TObjectPtr<UWidgetComponent> GetSkeletonInteractionWidgetComponent() const;
-	
-	void FindSkeletonInteractionWidget(); // call at init in game mode
+
+	void InitBirdWidget(ABird* Bird);
 	
 	void DisplayNotesForSkeletonInteraction(const UInputAction* InputAction);
 
-	void CallSkeletonInteractionWidget();
-
-	void ResetSkeletonInteractionWidget();
+	void ResetBirdWidget();
 
 	void SetWidgetVisibility(UUserWidget* Widget, bool Visibility);
+
+	void ValideWidget();
+
+	void FolseWidget();
+
+	void RemoveBirdWidget();
 	
 	
 protected:
@@ -153,9 +158,9 @@ private:
 	
 	UPROPERTY()
 	TObjectPtr<UWidgetComponent> SkeletonInteractionWidgetComponent = nullptr;
-
+	
 	UPROPERTY()
-	TObjectPtr<USkeletonInteractionWidget> SkeletonInteractionWidget = nullptr;
+	TObjectPtr<UBirdWidget> BirdWidget = nullptr;
 	
 	// ---- UTILITIES ----
 	UPROPERTY()

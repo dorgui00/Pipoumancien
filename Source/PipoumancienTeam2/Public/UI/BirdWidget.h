@@ -41,4 +41,24 @@ public :
 
 	UPROPERTY()
 	TArray<UImage*> Images;
+
+	void AnimationToucheIdel();
+	void ToucheV();
+	void ToucheF();
+	void RemoveWidget();
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* AnimationTouche;
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* Touche1Valide;
+	
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* Touche1Faile;
+	
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* RemoveAnimation;
+	
+	
+
 };

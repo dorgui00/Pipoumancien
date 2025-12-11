@@ -22,7 +22,8 @@
 #include "UI/PartitionFinish.h"
 #include "Character/PipouCharacter.h"
 #include "Kismet/GameplayStatics.h"
-#include "UI/SkeletonInteractionWidget.h"
+#include "PNJ/Bird.h"
+#include "UI/BirdWidget.h"
 
 
 // ---- GAME INSTANCE SUBSYSTEM ---- 
@@ -336,60 +337,32 @@ void UGlobalHUDSubsystem::SetWidgetVisibility(UUserWidget* Widget, bool Visibili
 		Widget->SetVisibility(ESlateVisibility::Hidden);
 }
 
-void UGlobalHUDSubsystem::FindSkeletonInteractionWidget()
+void UGlobalHUDSubsystem::ValideWidget()
 {
-	TArray<AActor*> SkeletonInteractionWidgetIn;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), "SkeletonInteractionWidget",SkeletonInteractionWidgetIn);
-	
-	if (SkeletonInteractionWidgetIn.Num() > 0)
-	{
-		SkeletonInteractionWidgetActor = SkeletonInteractionWidgetIn[0];
-		if (!SkeletonInteractionWidgetActor)
-			UE_LOG(LogTemp, Error, TEXT("SkeletonInteractionWidgetActor is nullptr"));
-		
-		SkeletonInteractionWidgetComponent = SkeletonInteractionWidgetActor->FindComponentByClass<UWidgetComponent>();
-		if (!SkeletonInteractionWidgetComponent)
-			UE_LOG(LogTemp, Error, TEXT("SkeletonInteractionWidgetComponent is nullptr"));
-		
-		SkeletonInteractionWidget =  Cast<USkeletonInteractionWidget>(SkeletonInteractionWidgetComponent->GetWidget());
-		if (!SkeletonInteractionWidget)
-		{
-			UE_LOG(LogTemp, Error, TEXT("SkeletonInteractionWidget is nullptr"));
-		}
-		else
-		{
-			ResetSkeletonInteractionWidget();
-		}
-	}
+	BirdWidget->ToucheV();
 }
 
-TObjectPtr<UWidgetComponent> UGlobalHUDSubsystem::GetSkeletonInteractionWidgetComponent() const
+void UGlobalHUDSubsystem::FolseWidget()
 {
-	return SkeletonInteractionWidgetComponent;
+	BirdWidget->ToucheF();
+}
+
+void UGlobalHUDSubsystem::RemoveBirdWidget()
+{
+	BirdWidget->RemoveWidget();
 }
 
 
-void UGlobalHUDSubsystem::CallSkeletonInteractionWidget()
+void UGlobalHUDSubsystem::InitBirdWidget(ABird* Bird)
 {
-	FVector Tot;
-	TArray<APipouCharacter*> Characters = GlobalGameSubsystem->PipouCharacters;
-	
-	for (auto Target : Characters)
-	{
-		Tot += Target->GetActorLocation();
-	}
-	FVector Moy = Tot/Characters.Num();
-
-	SkeletonInteractionWidgetActor->SetActorLocation(Moy);
-	
-	// For now hide all image not widget
-	//SetWidgetVisibility(SkeletonInteractionWidget, true);
-	
+	BirdWidget = Cast<UBirdWidget>(Bird->FindComponentByClass<UWidgetComponent>()->GetWidget());
 }
 
-void UGlobalHUDSubsystem::ResetSkeletonInteractionWidget()
+
+
+void UGlobalHUDSubsystem::ResetBirdWidget()
 {
-	for (auto Image : SkeletonInteractionWidget->Images)
+	for (auto Image : BirdWidget->Images)
 	{
 		Image->SetVisibility(ESlateVisibility::Hidden);
 	}
@@ -397,13 +370,21 @@ void UGlobalHUDSubsystem::ResetSkeletonInteractionWidget()
 
 void UGlobalHUDSubsystem::DisplayNotesForSkeletonInteraction(const UInputAction* InputAction)
 {
-	int index = GlobalGameSubsystem->InputPressed.Num() - 1;
-	
-	// set image
-	UTexture2D* Text = GetImageTextureFromNoteInput(InputAction);
-	SkeletonInteractionWidget->Images[index]->SetBrushFromTexture(Text);
+	if (!GlobalGameSubsystem || !BirdWidget) return;
 
-	// display
-	SkeletonInteractionWidget->Images[index]->SetVisibility(ESlateVisibility::Visible);
+	// Récupérer l’index en le clampant
+	const int32 MaxIndex = BirdWidget->Images.Num() - 1;
+	int32 Index = FMath::Clamp(GlobalGameSubsystem->InputPressed.Num() - 1, 0, MaxIndex);
 
+	// Récupérer l'image
+	if (UTexture2D* Text = GetImageTextureFromNoteInput(InputAction))
+	{
+		BirdWidget->Images[Index]->SetBrushFromTexture(Text);
+	}
+
+	// Couleur (pleine opacité)
+	BirdWidget->Images[Index]->SetColorAndOpacity(FLinearColor::White);
+
+	// Afficher l'image
+	// BirdWidget->Images[Index]->SetVisibility(ESlateVisibility::Visible);
 }
