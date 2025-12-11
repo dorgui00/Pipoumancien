@@ -14,21 +14,24 @@ struct FSkeletonVisuals
 	
 	// MESH
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<USkeletalMesh> SkeletonMesh;
+	TObjectPtr<USkeletalMesh> Mesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UMaterial> Material;
 
 	// ANIMS
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UAnimationAsset> WakeAnim;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UAnimationAsset> IdleAnim;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UAnimationAsset> WalkAnim;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UAnimationAsset> WaitAnim;
+	//
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	// TObjectPtr<UAnimationAsset> WakeAnim;
+	//
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	// TObjectPtr<UAnimationAsset> IdleAnim;
+	//
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	// TObjectPtr<UAnimationAsset> WalkAnim;
+	//
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	// TObjectPtr<UAnimationAsset> WaitAnim;
 
 	
 };
