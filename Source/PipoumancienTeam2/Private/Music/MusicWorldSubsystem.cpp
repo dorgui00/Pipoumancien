@@ -45,9 +45,6 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	// Initialize TimeTolerance.
 	TimeTolerance = MusicGenericData->TimeTolerance;
 
-	// Initialize MaxFailNotePossible.
-	MaxFailNotePossible = MusicGenericData->MaxFailNotePossible;
-
 	// Initialize PitchTolerance.
 	PitchTolerance = MusicGenericData->PitchTolerance;
 
@@ -240,6 +237,9 @@ void UMusicWorldSubsystem::InitMusic(ASkeletonController* Skeleton)
 	
 	// Spawn Notes in UI.
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->SpawnNotesPartition(CurrentSkeleton);
+
+	// Initialize MaxFailNotePossible.
+	MaxFailNotePossible = CurrentSkeleton->MySkeleton->MaxFailNotePossible;
 	
 	// Initialize CurrentFailNotePossible.
 	SetCurrentFailNotePossible(MaxFailNotePossible);
@@ -296,6 +296,8 @@ void UMusicWorldSubsystem::SucceedMelody()
 	// UI
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
 
+	GlobalHUDSubsystem->ResetMistakeEffect();
+	
 	// Sound
 	// BackgroundAudioComponent->SetActive(false);
 	
@@ -335,6 +337,12 @@ void UMusicWorldSubsystem::LostMelody()
 	IsInWorldStateMusic = false;
 	// BackgroundAudioComponent->SetActive(false);
 
+	GlobalHUDSubsystem->ForceMistakeCollapse();
+	if (GlobalHUDSubsystem->WBPResurrectionInstance)
+	{
+		GlobalHUDSubsystem->WBPResurrectionInstance->SetWBPAlphaToZero();
+	}
+
 	// --- FEEDBACKS ---
 	// Anim
 	CurrentSkeleton->FinishWakeAnim(false);
@@ -343,7 +351,7 @@ void UMusicWorldSubsystem::LostMelody()
 	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
 
 	// Animation of Exit
-	GlobalHUDSubsystem->DisplayPartitionFinish("FAILED MELODY");
+	// GlobalHUDSubsystem->DisplayPartitionFinish("FAILED MELODY");
 
 	// --- SWITCH OF WORLD STATE ---
 	// TO EDIT don't use delay
@@ -353,9 +361,10 @@ void UMusicWorldSubsystem::LostMelody()
 	GetWorld()->GetTimerManager().SetTimer(
 		IsAnimationFinished, [this]()
 		{
+			UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
 			GlobalGameSubsystem->SetLostMelody();
 		},
-		2.f,
+		4.f,
 		false
 		);
 }
@@ -394,6 +403,7 @@ void UMusicWorldSubsystem::LostQTE()
 {
 	// FAILS 
 	SetCurrentFailNotePossible(GetCurrentFailNotePossible() - 1);
+	GlobalHUDSubsystem->ApplyMistakeIncrease(GetCurrentFailNotePossible(), MaxFailNotePossible);
 
 	// Negative Feedbacks
 	GetCurrentWaitingNoteWidget()->PlayFailNote();

@@ -91,6 +91,7 @@ public:
 	TObjectPtr<UHUDData> HUDData;
 
 	UTexture2D* GetImageTextureFromNoteInput(const UInputAction* NoteInput) const;
+	UTexture2D* GetImageBirdTextureFromNoteInput(const UInputAction* NoteInput) const;
 
 	void SetMusicWorldSubsystem(UMusicWorldSubsystem* NewMusicSubsystem);
 
@@ -107,8 +108,8 @@ public:
 
 	void SetImageColor(UImage* CurrentImage, FLinearColor NewColor);
 
+	
 	// ----- UI WORLD -----
-
 	void InitBirdWidget(ABird* Bird);
 	
 	void DisplayNotesForSkeletonInteraction(const UInputAction* InputAction);
@@ -122,6 +123,12 @@ public:
 	void FolseWidget();
 
 	void RemoveBirdWidget();
+
+	
+	// ---- MISTAKE POST PROCESS ----
+	void ApplyMistakeIncrease(int CurrentFail, int MaxFail);
+	void ResetMistakeEffect();
+	void ForceMistakeCollapse();
 	
 	
 protected:
@@ -164,23 +171,34 @@ private:
 	UPROPERTY()
 	TObjectPtr<USkeletonInteractionWidget> SkeletonInteractionWidget = nullptr;
 
+	TObjectPtr<UBirdWidget> BirdWidget = nullptr;
+	
+	// ---- MISTAKE POST PROCESS ----
 	// Mistake Renderer
-	UPROPERTY()
-	UMaterialInterface* MistakeMaterialInstance;
+	// UPROPERTY()
+	// UMaterialInterface* MistakeMaterialInstance;
 
 	UPROPERTY()
-	UMaterialInstanceDynamic* CurrentDynamicMistakeMaterialInstance;
+	UMaterialInstanceDynamic* CurrentMistakeMaterialInstance;
 
-	float TargetMaterialThickness = 0.f;
+	float CurrentMaterialRadius = 0.f;
 	float CurrentMaterialThickness = 0.f;
 
 	float TargetMaterialRadius = 0.f;
-	float CurrentMaterialRadius = 0.f;
+	float TargetMaterialThickness = 0.f;
 
-	float ThicknessInterpolationSpeed = 2.f; 
+	float MinRadius = 0.1f;
+	float MaxRadius = 1.2f;
+
+	float MinThickness = 0.1f;
+	float MaxThickness = 2.f;
+
 	float RadiusInterpolationSpeed = 2.f;
+	float ThicknessInterpolationSpeed = 2.f;
 
-	TObjectPtr<UBirdWidget> BirdWidget = nullptr;
+	void InitMistakeMaterial(); 
+
+	
 	
 	// ---- UTILITIES ----
 	UPROPERTY()
@@ -196,6 +214,10 @@ private:
 	UPROPERTY()
 	TMap<UInputAction*, UTexture2D*> TextureFromNoteInput;
 
+	UPROPERTY()
+	TMap<UInputAction*, UTexture2D*> BirdTextureFromNoteInput;
+
+	
 	UPROPERTY()
 	UGlobalGameSubsystem* GlobalGameSubsystem;
 	

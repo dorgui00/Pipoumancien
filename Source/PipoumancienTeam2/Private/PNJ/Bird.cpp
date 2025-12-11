@@ -84,7 +84,7 @@ void ABird::SetMyNotes() const
 	for (int i = 0; i<3;i++)
 	{
 		// Set text from input 
-		UTexture2D* Text = GlobalHUDSubsystem->GetImageTextureFromNoteInput(Skeleton->Notes[i].InputAction);
+		UTexture2D* Text = GlobalHUDSubsystem->GetImageBirdTextureFromNoteInput(Skeleton->Notes[i].InputAction);
 		
 		BirdWidget->Images[i]->SetBrushFromTexture(Text);
 		BirdWidget->Images[i]->SetColorAndOpacity(FLinearColor::Green);

@@ -12,7 +12,6 @@ void UBirdWidget::NativeConstruct()
 	UE_LOG(LogTemp, Warning, TEXT("Image03 = %s"), Image03 ? TEXT("OK") : TEXT("NULL"));
 	Images = {Image01,Image02,Image03};
 	AnimationToucheIdel();
-	
 }
 
 void UBirdWidget::AnimationToucheIdel()

@@ -63,7 +63,6 @@ void UGlobalGameSubsystem::AddNoteForSkeletonInteraction(UInputAction* InputActi
 	// {
 	// 	GlobalHUDSubsystemIn->CallSkeletonInteractionWidget();
 	// }
-
 	
 if (IsTouch)
 {
@@ -83,8 +82,6 @@ if (IsTouch)
 			//3.f, false);
 			//SetWorldMusicState();
 			//Bird->SetWidgetINVisible();
-			
-
 
 			GlobalHUDSubsystemIn->ValideWidget();
 
