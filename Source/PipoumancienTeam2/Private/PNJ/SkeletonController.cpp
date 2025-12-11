@@ -211,6 +211,7 @@ void ASkeletonController::InterationDialoguenOFF()
 void ASkeletonController::UpdateAnimation(float DeltaTime)
 {
 	// no mesh, no animation / footsteps
+	 
 	if (!TargetMesh)
 	{
 		TargetMesh = FindComponentByClass<USkeletalMeshComponent>();
