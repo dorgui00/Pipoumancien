@@ -101,7 +101,7 @@ if (IsTouch)
 			//SetWorldMusicState();
 			//Bird->SetWidgetINVisible();
 
-			GlobalHUDSubsystemIn->ValideWidget();
+			GlobalHUDSubsystem->ValideWidget();
 			SetWorldMusicState();
 			ResetInputsArray();
 

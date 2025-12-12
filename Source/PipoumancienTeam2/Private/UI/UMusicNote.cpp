@@ -3,7 +3,6 @@
 
 #include "UI/UMusicNote.h"
 
-#include "AssetTypeCategories.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Kismet/GameplayStatics.h"
 #include "Logging/StructuredLog.h"
