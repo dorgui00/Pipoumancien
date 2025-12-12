@@ -171,6 +171,19 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 			UGameplayStatics::PlaySound2D(GetWorld(), MusicWorldSubsystem->FailedNoteSound);
 			MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->PlayFailNote();
 			MusicWorldSubsystem->SetBehindNoteFeedback(FLinearColor::Red);
+			MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::Red);
+
+			FTimerHandle TimeToSetNotBackToWhite;
+			GetWorld()->GetTimerManager().ClearTimer(TimeToSetNotBackToWhite);
+
+			GetWorld()->GetTimerManager().SetTimer(
+				TimeToSetNotBackToWhite, [this]()
+				{
+					MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::White);
+				},
+				0.5f,
+				false
+				);
 			
 			// FAILS
 			MusicWorldSubsystem->SetCurrentFailNotePossible(MusicWorldSubsystem->GetCurrentFailNotePossible() - 1);

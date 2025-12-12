@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "NiagaraSystem.h"
+#include "NiagaraSystemWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/Image.h"
 #include "UMusicNote.generated.h"
@@ -80,6 +82,10 @@ public:
 
 	UPROPERTY()
 	UCanvasPanelSlot* EndPoint;
+
+	// ---- NIAGARA FEEDBACK ----
+	UPROPERTY(meta = (BindWidget))
+	UNiagaraSystemWidget* UINiagaraSystem;
 
 private:
 	// ---- VALIDATION NOTE FEEDBACK ----

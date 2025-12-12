@@ -24,7 +24,7 @@ public class PipoumancienTeam2 : ModuleRules
             "NavigationSystem",
             "AIModule", 
 
-            //"NiagaraUIRenderer"
+            "NiagaraUIRenderer",
             "Niagara",
             "NiagaraAnimNotifies",
             //niagaraaaaaa......????
@@ -48,7 +48,7 @@ public class PipoumancienTeam2 : ModuleRules
                 "Engine",
                 "Slate",
                 "SlateCore",
-                //"NiagaraUIRendererEditor"
+                "NiagaraUIRendererEditor"
             });
         }
         //jusqu'ici

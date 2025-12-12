@@ -101,20 +101,21 @@ if (IsTouch)
 			//SetWorldMusicState();
 			//Bird->SetWidgetINVisible();
 
-			GlobalHUDSubsystem->ValideWidget();
+			GlobalHUDSubsystemIn->ValideWidget();
+			SetWorldMusicState();
+			ResetInputsArray();
 
-			FTimerHandle TimerHandle;
-			GetWorld()->GetTimerManager().SetTimer(
-				TimerHandle,
-				[this]()
-				{
-					//Bird->SetWidgetINVisible();
-					SetWorldMusicState();
-					ResetInputsArray();
-				},
-				3.f,
-				false
-			);
+			// FTimerHandle TimerHandle;
+			// GetWorld()->GetTimerManager().SetTimer(
+			// 	TimerHandle,
+			// 	[this]()
+			// 	{
+			// 		//Bird->SetWidgetINVisible();
+			// 		
+			// 	},
+			// 	2.f,
+			// 	false
+			// );
 			IsTouch = true;
 		}
 		else

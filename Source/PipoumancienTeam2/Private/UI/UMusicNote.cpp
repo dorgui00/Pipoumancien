@@ -3,6 +3,7 @@
 
 #include "UI/UMusicNote.h"
 
+#include "AssetTypeCategories.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Kismet/GameplayStatics.h"
 #include "Logging/StructuredLog.h"
@@ -27,6 +28,8 @@ void UMusicNote::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 void UMusicNote::PlayValidationNote(FVector2D NewTargetSize, float NewOpacity)
 {
 	IsPlayingValidation = true;
+
+	UINiagaraSystem->ActivateSystem(true);
 	
 	NoteValidationFinalScale = NewTargetSize;
 
