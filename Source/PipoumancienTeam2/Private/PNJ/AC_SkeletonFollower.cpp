@@ -43,7 +43,29 @@ void UAC_SkeletonFollower::BeginPlay()
         ParentActor->OnActorHit.AddDynamic(this, &UAC_SkeletonFollower::OnParentHit);
         ParentActor->OnActorBeginOverlap.AddDynamic(this, &UAC_SkeletonFollower::OnParentOverlap);
 
-        ControlledMesh = ParentActor->FindComponentByClass<UMeshComponent>();
+        if (TargetComponentName != NAME_None)
+        {
+            UActorComponent* FoundComp = nullptr;
+
+            for (UActorComponent* Comp : ParentActor->GetComponents())
+            {
+                if (Comp && Comp->GetFName() == TargetComponentName)
+                {
+                    FoundComp = Comp;
+                    break;
+                }
+            }
+
+            if (FoundComp)
+            {
+                ControlledMesh = Cast<UMeshComponent>(FoundComp);
+            }
+        }
+
+        if (!ControlledMesh)
+        {
+            ControlledMesh = ParentActor->FindComponentByClass<UMeshComponent>();
+        }
 
         if (ControlledMesh && ControlledMesh != ParentActor->GetRootComponent())
         {
@@ -53,6 +75,7 @@ void UAC_SkeletonFollower::BeginPlay()
             bLerpMeshRotation = true;
         }
     }
+
 
     OnReachHome.AddDynamic(this, &UAC_SkeletonFollower::HandleReachHome);
 }

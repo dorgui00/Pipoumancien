@@ -217,6 +217,9 @@ private:
     UPROPERTY(Transient)
     UMeshComponent* ControlledMesh = nullptr;
 
+    UPROPERTY(EditAnywhere, Category = "SkeletonFollower")
+    FName TargetComponentName = "SkeletalMesh";
+
     bool bLerpMeshRotation = false;
     float MeshRotationLerpAlpha = 0.f;
 
