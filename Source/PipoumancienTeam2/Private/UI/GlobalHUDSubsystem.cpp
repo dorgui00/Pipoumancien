@@ -101,11 +101,12 @@ void UGlobalHUDSubsystem::RemoveResurrectionWidget()
 {
 	UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
 	if (!CameraWorldSubsystem) return;
+
+	CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(0.f);
+	CurrentMistakeMaterialInstance = nullptr;
 	
 	if (WBPResurrectionInstance != nullptr)
 	{
-		CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(0.f);
-		CurrentMistakeMaterialInstance = nullptr;
 		WBPResurrectionInstance->RemoveFromParent();
 		WBPResurrectionInstance = nullptr;
 
