@@ -101,11 +101,12 @@ void UGlobalHUDSubsystem::RemoveResurrectionWidget()
 {
 	UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
 	if (!CameraWorldSubsystem) return;
+
+	CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(0.f);
+	CurrentMistakeMaterialInstance = nullptr;
 	
 	if (WBPResurrectionInstance != nullptr)
 	{
-		CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(0.f);
-		CurrentMistakeMaterialInstance = nullptr;
 		WBPResurrectionInstance->RemoveFromParent();
 		WBPResurrectionInstance = nullptr;
 
@@ -392,7 +393,7 @@ void UGlobalHUDSubsystem::InitMistakeMaterial()
 
 	CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(1.f);
 	
-	FPostProcessSettings& CameraPostProcess= CameraWorldSubsystem->CameraMain->PostProcessSettings;
+	FPostProcessSettings& CameraPostProcess = CameraWorldSubsystem->CameraMain->PostProcessSettings;
 	if (CameraPostProcess.WeightedBlendables.Array.Num() > 0)
 	{
 		UObject* BlendableObj = CameraPostProcess.WeightedBlendables.Array[0].Object;

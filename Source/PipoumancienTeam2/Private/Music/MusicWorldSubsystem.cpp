@@ -402,7 +402,7 @@ void UMusicWorldSubsystem::LostQTE()
 
 	// Negative Feedbacks
 	GetCurrentWaitingNoteWidget()->PlayFailNote();
-	SetBehindNoteFeedback(FLinearColor::Black);
+	SetBehindNoteFeedback(FLinearColor::Gray);
 	
 	// if (GetCurrentWaitingNoteWidget() != nullptr)
 	// {
