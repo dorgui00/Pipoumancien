@@ -161,7 +161,7 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 			// Negative feedback
 			UGameplayStatics::PlaySound2D(GetWorld(), MusicWorldSubsystem->FailedNoteSound);
 			MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->PlayFailNote();
-			MusicWorldSubsystem->SetBehindNoteFeedback(FLinearColor::Black);
+			MusicWorldSubsystem->SetBehindNoteFeedback(FLinearColor::Gray);
 			// MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::Black);
 
 			// FTimerHandle TimeToSetNotBackToWhite;
