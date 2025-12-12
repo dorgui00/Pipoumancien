@@ -272,6 +272,8 @@ void UGlobalHUDSubsystem::Init()
 {
 	// Init Global Game Subsystem.
 	GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
+	// Init Myself in Global Game Subsystem
+	if (GlobalGameSubsystem) GlobalGameSubsystem->SetHUD(this);
 
 	// Init Subsystem Settings.
 	const USubsystemSettings* SubsystemSettings = GetDefault<USubsystemSettings>();
@@ -412,4 +414,6 @@ void UGlobalHUDSubsystem::DisplayNotesForSkeletonInteraction(const UInputAction*
 
 	// Afficher l'image
 	// BirdWidget->Images[Index]->SetVisibility(ESlateVisibility::Visible);
+	
+	
 }
