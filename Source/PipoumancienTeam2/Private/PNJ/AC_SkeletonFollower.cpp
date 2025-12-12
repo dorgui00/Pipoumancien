@@ -406,7 +406,7 @@ void UAC_SkeletonFollower::TickLerpToSpline(float DeltaTime)
                 }
             }
 
-            OnWaitingForDialogue.Broadcast();
+            //OnWaitingForDialogue.Broadcast();
 
             ParentActor->SetActorRotation(FRotator(0.f, 180.f, 0.f));
         };
@@ -458,13 +458,6 @@ void UAC_SkeletonFollower::TickLerpToSpline(float DeltaTime)
     else
     {
         ParentActor->SetActorLocation(NewLoc);
-    }
-
-    if (bWillReachThisFrame)
-    {
-        HandleLerpFinished();
-
-        ResumeFollowingSpline();
     }
 }
 
@@ -837,7 +830,7 @@ void UAC_SkeletonFollower::ResumeFollowingSpline()
     UE_LOG(LogTemp, Log, TEXT("[SkeletonFollower] Dialogue finished, resuming spline follow."));
 }
 
-//lerp
+//lerp on init
 
 void UAC_SkeletonFollower::TickMeshRotationLerp(float DeltaTime)
 {
