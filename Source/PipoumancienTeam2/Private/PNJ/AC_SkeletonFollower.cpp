@@ -12,6 +12,7 @@
 #include "TimerManager.h"
 #include "CollisionShape.h" 
 #include "Components/LightComponent.h"
+#include "Components/MeshComponent.h"
 
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
@@ -41,10 +42,43 @@ void UAC_SkeletonFollower::BeginPlay()
     {
         ParentActor->OnActorHit.AddDynamic(this, &UAC_SkeletonFollower::OnParentHit);
         ParentActor->OnActorBeginOverlap.AddDynamic(this, &UAC_SkeletonFollower::OnParentOverlap);
+
+        if (TargetComponentName != NAME_None)
+        {
+            UActorComponent* FoundComp = nullptr;
+
+            for (UActorComponent* Comp : ParentActor->GetComponents())
+            {
+                if (Comp && Comp->GetFName() == TargetComponentName)
+                {
+                    FoundComp = Comp;
+                    break;
+                }
+            }
+
+            if (FoundComp)
+            {
+                ControlledMesh = Cast<UMeshComponent>(FoundComp);
+            }
+        }
+
+        if (!ControlledMesh)
+        {
+            ControlledMesh = ParentActor->FindComponentByClass<UMeshComponent>();
+        }
+
+        if (ControlledMesh && ControlledMesh != ParentActor->GetRootComponent())
+        {
+            MeshRotationStart = ControlledMesh->GetRelativeRotation();
+            MeshRotationLerpAlpha = 0.f;
+            bLerpMeshRotation = true;
+        }
     }
+
 
     OnReachHome.AddDynamic(this, &UAC_SkeletonFollower::HandleReachHome);
 }
+
 
 void UAC_SkeletonFollower::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -64,6 +98,8 @@ void UAC_SkeletonFollower::TickComponent(float DeltaTime, ELevelTick TickType, F
 
     CheckPlayerRange();
     UpdatePlayerMovement(DeltaTime);
+
+    TickMeshRotationLerp(DeltaTime);
 }
 
 
@@ -370,9 +406,9 @@ void UAC_SkeletonFollower::TickLerpToSpline(float DeltaTime)
                 }
             }
 
-            OnWaitingForDialogue.Broadcast();
+            //OnWaitingForDialogue.Broadcast();
 
-            ParentActor->SetActorRotation(FRotator(0.f, 180.f, 0.f));
+            //ParentActor->SetActorRotation(FRotator(0.f, 180.f, 0.f));
         };
 
     if (DistToTarget <= KINDA_SMALL_NUMBER)
@@ -422,13 +458,6 @@ void UAC_SkeletonFollower::TickLerpToSpline(float DeltaTime)
     else
     {
         ParentActor->SetActorLocation(NewLoc);
-    }
-
-    if (bWillReachThisFrame)
-    {
-        HandleLerpFinished();
-
-        ResumeFollowingSpline();
     }
 }
 
@@ -800,6 +829,37 @@ void UAC_SkeletonFollower::ResumeFollowingSpline()
 
     UE_LOG(LogTemp, Log, TEXT("[SkeletonFollower] Dialogue finished, resuming spline follow."));
 }
+
+//lerp on init
+
+void UAC_SkeletonFollower::TickMeshRotationLerp(float DeltaTime)
+{
+    if (!bLerpMeshRotation || !ControlledMesh)
+    {
+        return;
+    }
+
+    const float LerpSpeed = 3.f;
+
+    MeshRotationLerpAlpha = FMath::Clamp(
+        MeshRotationLerpAlpha + DeltaTime * LerpSpeed,
+        0.f,
+        1.f
+    );
+
+    const FQuat StartQuat = MeshRotationStart.Quaternion();
+    const FQuat TargetQuat = MeshRotationTarget.Quaternion();
+    const FQuat NewQuat = FQuat::Slerp(StartQuat, TargetQuat, MeshRotationLerpAlpha);
+
+    ControlledMesh->SetRelativeRotation(NewQuat);
+
+    if (MeshRotationLerpAlpha >= 1.f - KINDA_SMALL_NUMBER)
+    {
+        ControlledMesh->SetRelativeRotation(MeshRotationTarget);
+        bLerpMeshRotation = false;
+    }
+}
+
 
 /*
 FollowerComponent->OnWaitingForDialogue.AddDynamic(this, &AMyDialogueManager::StartDialogue);

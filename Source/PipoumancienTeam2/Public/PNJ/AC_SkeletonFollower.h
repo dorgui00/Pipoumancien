@@ -6,6 +6,7 @@
 #include "AC_SkeletonFollower.generated.h"
 
 class APipouCharacter;
+class UMeshComponent;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class PIPOUMANCIENTEAM2_API UAC_SkeletonFollower : public UActorComponent
@@ -211,4 +212,24 @@ private:
     float LerpElapsedTime = 0.f;
 
     bool BacktrackToGround(const FVector& Start, const FVector& End, FVector& Out) const;
+
+    //lerp rotation de ambre la, ptn ambre, pitié genre, ALEEEEEED
+    UPROPERTY(Transient)
+    UMeshComponent* ControlledMesh = nullptr;
+
+    UPROPERTY(EditAnywhere, Category = "SkeletonFollower")
+    FName TargetComponentName = "SkeletalMesh";
+
+    bool bLerpMeshRotation = false;
+
+    UPROPERTY(EditAnywhere, Category = "SkeletonFollower")
+    float MeshRotationLerpAlpha = 2.f;
+
+    UPROPERTY(VisibleAnywhere, Category = "SkeletonFollower")
+    FRotator MeshRotationStart = FRotator::ZeroRotator;
+
+    UPROPERTY(EditAnywhere, Category = "SkeletonFollower")
+    FRotator MeshRotationTarget = FRotator(0.f, -90.f, 0.f);
+
+    void TickMeshRotationLerp(float DeltaTime);
 };

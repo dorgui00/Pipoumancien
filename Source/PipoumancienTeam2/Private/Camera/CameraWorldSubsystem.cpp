@@ -95,6 +95,11 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	//TickUpdateCameraZoom(DeltaTime);
 
+	if (bCinematicPlaying)
+	{
+		return;
+	}
+
 	// --- SETTING + ZOOM ---
 	if (IsSettingCamera)
 	{

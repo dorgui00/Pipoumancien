@@ -39,8 +39,16 @@ public :
 #pragma region Init
 public :
 	
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UCameraComponent> CameraMain;
+
+	UFUNCTION(BlueprintCallable)
+	UCameraComponent* GetMainCamera() const { return CameraMain; }
+
+	bool bCinematicPlaying = false;
+
+	UFUNCTION(BlueprintCallable)
+	void SetCinematicPlaying(bool bPlaying) { bCinematicPlaying = bPlaying; }
 	
 	void InitCameraSubsystem();
 	
