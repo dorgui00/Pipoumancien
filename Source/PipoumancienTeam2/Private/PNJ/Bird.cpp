@@ -62,10 +62,10 @@ void ABird::Init()
 		UE_LOG(LogTemp, Error, TEXT("BirdData is null"));
 	
 	SoundFromImage = {
-		{HudData->NoteUp, BirdData->UpSound},
-		{HudData->NoteRight, BirdData->RightSound},
-		{HudData->NoteDown, BirdData->DownSound},
-		{HudData->NoteLeft, BirdData->LeftSound},
+		{HudData->NoteUpInteraction, BirdData->UpSound},
+		{HudData->NoteRightInteraction, BirdData->RightSound},
+		{HudData->NoteDownInteraction, BirdData->DownSound},
+		{HudData->NoteLeftInteraction, BirdData->LeftSound},
 	};
 	
 	// Utilities
@@ -129,12 +129,17 @@ void ABird::SetMyNotes()
 		
 		// // SOUNDS
 		// // TO EDIT (PLACE HOLDER)
-		// float Delay = 2.f*i;
-		//
-		// FTimerHandle TimerHandle;
-		// GetWorld()->GetTimerManager().SetTimer(
-		// 	TimerHandle,	[this, Text](){PlaySound(Text);},Delay,false
-		// );
+		 float Delay =0.5f*i;
+		if (i==0)
+		{
+			//PlaySound(Text);
+		}
+		else
+		{
+			//FTimerHandle TimerHandle;
+			//GetWorld()->GetTimerManager().SetTimer(
+			// TimerHandle,	[this, Text](){PlaySound(Text);},Delay,false );
+		}
 	}
 }
 
