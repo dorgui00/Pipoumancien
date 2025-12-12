@@ -87,6 +87,9 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UNiagaraSystemWidget* UINiagaraSystem;
 
+	UPROPERTY(meta = (BindWidget))
+	UNiagaraSystemWidget* UINiagaraSystemFail;
+
 private:
 	// ---- VALIDATION NOTE FEEDBACK ----
 	void Internal_PlayValidationNote(float DeltaTime);
