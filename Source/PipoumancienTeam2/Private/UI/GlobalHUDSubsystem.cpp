@@ -406,8 +406,12 @@ void UGlobalHUDSubsystem::InitMistakeMaterial()
 		
 		CurrentMistakeMaterialInstance->GetScalarParameterValue(FHashedMaterialParameterInfo(TEXT("Radius")), CurrentMaterialRadius);
 		CurrentMistakeMaterialInstance->GetScalarParameterValue(FHashedMaterialParameterInfo(TEXT("Thickness")), CurrentMaterialThickness);
+		
 		TargetMaterialRadius = MaxRadius;
 		TargetMaterialThickness = MinThickness;
+		
+		CurrentMistakeMaterialInstance->SetScalarParameterValue(TEXT("Radius"), MinRadius);
+		CurrentMistakeMaterialInstance->SetScalarParameterValue(TEXT("Thickness"), MinThickness);
 	}
 }
 
