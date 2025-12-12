@@ -68,7 +68,8 @@ void UPipouCharacterStateIdle::OnCharacterPressedNote(UInputAction* InputAction)
 {
 	Super::OnCharacterPressedNote(InputAction);
 
-	Character->GetMesh()->PlayAnimation(MusicIdleAnim,false);
+	if (MusicIdleAnim)
+		Character->GetMesh()->PlayAnimation(MusicIdleAnim,false);
 }
 
 void UPipouCharacterStateIdle::OnCharacterTriggeredNote(UInputAction* InputAction)

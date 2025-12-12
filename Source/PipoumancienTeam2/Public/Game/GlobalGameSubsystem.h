@@ -78,8 +78,19 @@ public :
 	void RimouveWidget();
 
 	bool IsTouch = true;
+
+	// --- UTILITIES ---
+	// HUd global subsystem
+	void SetHUD(TObjectPtr<UGlobalHUDSubsystem> HUDSubsystem);
 	
+protected :
+
+	// ---- SUBSYSTEM OVERRIDE ----
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+
 private :
+	// Subsystem
+	void Init();
 
 	// World State
 	EWorldState WorldState = EWorldState::WorldFree; // TO EDIT
@@ -87,16 +98,14 @@ private :
 	// Skeleton
 	UPROPERTY()
 	ASkeletonController* CurrentSkeleton = nullptr;
-
+	
 	// Bird
 	UPROPERTY()
 	TObjectPtr<ABird> Bird = nullptr;
 	
 
 	// ---- UTILITIES ----
-
-	// to init (not yet done)
-	// UPROPERTY()
-	// UGlobalHUDSubsystem* GlobalHUDSubsystem;
+	UPROPERTY()
+	UGlobalHUDSubsystem* GlobalHUDSubsystem;
 	
 };

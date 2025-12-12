@@ -11,6 +11,8 @@
 #include "UI/PipouHUD.h"
 #include "PipouCharacter.generated.h"
 
+class UNiagaraComponent;
+class UNiagaraSystem;
 class UInputSoundData;
 class UCameraComponent;
 class ASkeletonController;
@@ -128,6 +130,10 @@ public:
 	UPROPERTY()
 	FInputPitchCompleted InputPitchCompleted;
 
+	// --- FEEDBACKS ---
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayMusicFeedbacks(bool Play);
+
 	#pragma endregion
 
 	#pragma region Interaction
@@ -204,6 +210,7 @@ protected:
 
 	UPROPERTY()
 	float InputPitch = 0;
+
 
 	#pragma endregion
 	

@@ -15,9 +15,30 @@
 #include "UI/GlobalHUDSubsystem.h"
 
 
+void UGlobalGameSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+
+	Init();
+}
+
+void UGlobalGameSubsystem::Init()
+{
+	GlobalHUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
+	if (!GlobalHUDSubsystem)
+		UE_LOG(LogTemp, Error, TEXT("Global HUD Subsystem is null"))
+}
+
 // void UGlobalGameSubsystem::Tick(float DeltaTime)
 // {
 // }
+
+// Called In HUD
+void UGlobalGameSubsystem::SetHUD(TObjectPtr<UGlobalHUDSubsystem> HUDSubsystem)
+{
+	GlobalHUDSubsystem =  HUDSubsystem;
+}
+
 
 // to call in init pipou chara
 void UGlobalGameSubsystem::SetCharacters(APipouCharacter* Character)
@@ -41,7 +62,6 @@ void UGlobalGameSubsystem::SetBird(ABird* InBird)
 {
 	Bird = InBird;
 	
-	UGlobalHUDSubsystem* GlobalHUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
 	GlobalHUDSubsystem->InitBirdWidget(Bird);
 }
 
@@ -54,8 +74,6 @@ ABird* UGlobalGameSubsystem::GetBird()
 // Music
 void UGlobalGameSubsystem::AddNoteForSkeletonInteraction(UInputAction* InputAction)
 {
-	// HUD 
-	UGlobalHUDSubsystem* GlobalHUDSubsystemIn = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
 
 	// TO EDIT
 	//// First Note
@@ -68,7 +86,7 @@ if (IsTouch)
 {
 	// Add Notes
 	InputPressed.Add(InputAction);
-	GlobalHUDSubsystemIn->DisplayNotesForSkeletonInteraction(InputAction);
+	GlobalHUDSubsystem->DisplayNotesForSkeletonInteraction(InputAction);
 	
 	if (InputPressed.Num() >= SkeletonNotesToCheck)
 	{
@@ -83,7 +101,7 @@ if (IsTouch)
 			//SetWorldMusicState();
 			//Bird->SetWidgetINVisible();
 
-			GlobalHUDSubsystemIn->ValideWidget();
+			GlobalHUDSubsystem->ValideWidget();
 
 			FTimerHandle TimerHandle;
 			GetWorld()->GetTimerManager().SetTimer(
@@ -107,11 +125,8 @@ if (IsTouch)
 				DelayHandle,
 				FTimerDelegate::CreateLambda([this]()
 				{
-					UGlobalHUDSubsystem* GlobalHUDSubsystemIn = 
-						GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
-
 					// 1️⃣ FolseWidget() après 2 secondes
-					GlobalHUDSubsystemIn->FolseWidget();
+					GlobalHUDSubsystem->FolseWidget();
 
 					// 2️⃣ Ensuite le reste du code
 					ResetInputsArray();
@@ -121,7 +136,7 @@ if (IsTouch)
 						Bird->SetMyNotes();
 					}
 
-					GlobalHUDSubsystemIn->RemoveBirdWidget();
+					GlobalHUDSubsystem->RemoveBirdWidget();
 					
 
 				}),
@@ -234,10 +249,10 @@ void UGlobalGameSubsystem::CancelOverlapSameSkeleton()
 	Bird->SetWidgetVisibility(false);
 }
 
+
 void UGlobalGameSubsystem::SetLostMelody()
 {
-	UGlobalHUDSubsystem* HUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
-	HUDSubsystem->RemovePartitionFinish();
+	GlobalHUDSubsystem->RemovePartitionFinish();
 
 	SetWorldFreeState();
 
@@ -265,15 +280,12 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 
 	// CAMERA
 	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetMusicCamera() ;
-	
-	UGlobalHUDSubsystem* HUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
-	if (!HUDSubsystem) return;
 
 	// VISUELS
 	Bird->SetWidgetVisibility(false);
 	
 	// Display UI
-	HUDSubsystem->DisplayResurrectionWidget();
+	GlobalHUDSubsystem->DisplayResurrectionWidget();
 	
 	GetWorld()->GetSubsystem<UMusicWorldSubsystem>()->InitMusic(CurrentSkeleton);
 }
@@ -328,6 +340,7 @@ void UGlobalGameSubsystem::SetWorldDialogueState(APipouCharacter* Interactor, AS
 	//Open dialogue
 	Speaker->OpenDialogue();
 }
+
 
 
 

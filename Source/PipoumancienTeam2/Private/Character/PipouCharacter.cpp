@@ -3,6 +3,8 @@
 #include "Character/PipouCharacterStateMachine.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
 #include "Camera/CameraComponent.h"
 #include "Camera/CameraVisibleTarget.h"
 #include "Character/PipouCharacterInputData.h"
@@ -16,6 +18,7 @@
 #include "Interaction/Interact.h"
 #include "Kismet/GameplayStatics.h"
 #include "Music/MusicWorldSubsystem.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "PNJ/SkeletonController.h"
 
 #pragma region Default Constructors
@@ -23,9 +26,11 @@ APipouCharacter::APipouCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	// COLLIDER
 	InteractionCollider = CreateDefaultSubobject<USphereComponent>(TEXT("InteractColl"));
 	InteractionCollider->InitSphereRadius(100.0f);
 	InteractionCollider->SetupAttachment(GetRootComponent());
+
 }
 
 APipouCharacter::~APipouCharacter()

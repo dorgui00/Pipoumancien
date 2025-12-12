@@ -32,8 +32,14 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 	Character->InputPitchEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);
 	Character->InputPitchCompleted.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitchCompleted);
 
+	// --- FEEDBACKS ---
+	
 	// ANIMS
-	Character->GetMesh()->PlayAnimation(MusicAnim,true);
+	if (MusicAnim)
+		Character->GetMesh()->PlayAnimation(MusicAnim,true);
+
+	// Music  Particle System
+	Character->PlayMusicFeedbacks(true);
 }
 
 void UPipouCharacterStateMusic::StateTick(float Deltatime)
@@ -49,6 +55,9 @@ void UPipouCharacterStateMusic::StateExit(EPipouCharacterStateID NextStateID)
 	Character->InputTriggeredNoteEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputPitchEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);
 	Character->InputPitchCompleted.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitchCompleted);
+
+	// Music  Particle System
+	Character->PlayMusicFeedbacks(false);
 }
 
 // Music
