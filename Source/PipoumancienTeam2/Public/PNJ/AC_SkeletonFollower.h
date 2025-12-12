@@ -216,16 +216,13 @@ private:
     //lerp rotation de ambre la, ptn ambre, pitié genre, ALEEEEEED
     UPROPERTY(Transient)
     UMeshComponent* ControlledMesh = nullptr;
-
-    UPROPERTY(EditAnywhere, Category = "SkeletonFollower")
     FName TargetComponentName = "SkeletalMesh";
 
     bool bLerpMeshRotation = false;
-    float MeshRotationLerpAlpha = 0.f;
 
+    float MeshRotationLerpAlpha = 0.f;
     FRotator MeshRotationStart = FRotator::ZeroRotator;
-    FRotator MeshRotationTarget = FRotator::ZeroRotator;
-    //FRotator MeshRotationTarget = FRotator(0.f, 180.f, 0.f);
+    FRotator MeshRotationTarget = FRotator(0.f, 0.f, -90.f);
 
     void TickMeshRotationLerp(float DeltaTime);
 };

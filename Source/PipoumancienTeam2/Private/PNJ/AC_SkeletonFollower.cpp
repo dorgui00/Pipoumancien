@@ -70,7 +70,6 @@ void UAC_SkeletonFollower::BeginPlay()
         if (ControlledMesh && ControlledMesh != ParentActor->GetRootComponent())
         {
             MeshRotationStart = ControlledMesh->GetRelativeRotation();
-            MeshRotationTarget = FRotator::ZeroRotator;
             MeshRotationLerpAlpha = 0.f;
             bLerpMeshRotation = true;
         }
@@ -847,7 +846,7 @@ void UAC_SkeletonFollower::TickMeshRotationLerp(float DeltaTime)
         return;
     }
 
-    const float LerpSpeed = 1.f;
+    const float LerpSpeed = 3.f;
 
     MeshRotationLerpAlpha = FMath::Clamp(
         MeshRotationLerpAlpha + DeltaTime * LerpSpeed,
