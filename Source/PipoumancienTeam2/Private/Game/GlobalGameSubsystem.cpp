@@ -105,18 +105,17 @@ if (IsTouch)
 			SetWorldMusicState();
 			ResetInputsArray();
 
-			// FTimerHandle TimerHandle;
-			// GetWorld()->GetTimerManager().SetTimer(
-			// 	TimerHandle,
-			// 	[this]()
-			// 	{
-			// 		//Bird->SetWidgetINVisible();
-			// 		
-			// 	},
-			// 	2.f,
-			// 	false
-			// );
-			IsTouch = true;
+			FTimerHandle TimerHandle;
+			 GetWorld()->GetTimerManager().SetTimer(
+			 	TimerHandle,
+			 	[this]()
+			 	{
+			 		//Bird->SetWidgetINVisible();
+					IsTouch = true;
+			 	},
+			 	2.f,
+			 	false
+			 );
 		}
 		else
 		{
