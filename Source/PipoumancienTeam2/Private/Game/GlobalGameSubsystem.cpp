@@ -131,10 +131,7 @@ if (IsTouch)
 					// 2️⃣ Ensuite le reste du code
 					ResetInputsArray();
 
-					if (Bird)
-					{
-						Bird->SetMyNotes();
-					}
+					
 
 					GlobalHUDSubsystem->RemoveBirdWidget();
 					
@@ -149,6 +146,10 @@ if (IsTouch)
 		   		delayHandle,
 		   		FTimerDelegate::CreateLambda([this]()
 			{
+		   			if (Bird)
+		   			{
+						   Bird->SetMyNotes();
+		   			}
 					IsTouch = true;
 				}),
 				5.0f,  // délai AVANT FolseWidget
