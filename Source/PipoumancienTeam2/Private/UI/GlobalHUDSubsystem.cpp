@@ -391,7 +391,7 @@ void UGlobalHUDSubsystem::InitMistakeMaterial()
 
 	CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(1.f);
 	
-	FPostProcessSettings& CameraPostProcess= CameraWorldSubsystem->CameraMain->PostProcessSettings;
+	FPostProcessSettings& CameraPostProcess = CameraWorldSubsystem->CameraMain->PostProcessSettings;
 	if (CameraPostProcess.WeightedBlendables.Array.Num() > 0)
 	{
 		UObject* BlendableObj = CameraPostProcess.WeightedBlendables.Array[0].Object;
