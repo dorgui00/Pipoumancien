@@ -229,7 +229,7 @@ bool UGlobalGameSubsystem::PlayersOverlapSameSkeleton()
 void UGlobalGameSubsystem::CancelOverlapSameSkeleton()
 {
 	SetCurrentSkeleton(nullptr);
-
+	ResetInputsArray();
 	// FEEDBACKS
 	Bird->SetWidgetVisibility(false);
 }
