@@ -474,7 +474,10 @@ void UGlobalHUDSubsystem::DisplayNotesForSkeletonInteraction(const UInputAction*
 
 	// Couleur (pleine opacité)
 	BirdWidget->Images[Index]->SetColorAndOpacity(FLinearColor::White);
+	
 
 	// Afficher l'image
 	// BirdWidget->Images[Index]->SetVisibility(ESlateVisibility::Visible);
 }
+
+

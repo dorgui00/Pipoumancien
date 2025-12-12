@@ -93,11 +93,12 @@ if (IsTouch)
 					//Bird->SetWidgetINVisible();
 					SetWorldMusicState();
 					ResetInputsArray();
+					IsTouch = true;
 				},
 				3.f,
 				false
 			);
-			IsTouch = true;
+			
 		}
 		else
 		{

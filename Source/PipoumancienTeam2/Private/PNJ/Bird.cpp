@@ -3,6 +3,8 @@
 
 #include "PNJ/Bird.h"
 
+#include <dsound.h>
+
 #include "Components/WidgetComponent.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
@@ -88,6 +90,20 @@ void ABird::SetMyNotes() const
 		
 		BirdWidget->Images[i]->SetBrushFromTexture(Text);
 		BirdWidget->Images[i]->SetColorAndOpacity(FLinearColor::Green);
+
+		for (int i = 0; i<3;i++)
+		{
+
+
+			// SOUNDS
+			// TO EDIT (PLACE HOLDER)
+			float Delay = 2.f*i;
+
+			FTimerHandle TimerHandle;
+			GetWorld()->GetTimerManager().SetTimer(
+				TimerHandle,    [this, Text](){PlaySound(Text);},Delay,false
+			);
+		} 
 	}
 }
 
