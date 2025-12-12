@@ -127,14 +127,14 @@ void ABird::SetMyNotes()
 		BirdWidget->Images[i]->SetColorAndOpacity(FLinearColor::Green);
 
 		
-		// SOUNDS
-		// TO EDIT (PLACE HOLDER)
-		float Delay = 2.f*i;
-		
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(
-			TimerHandle,	[this, Text](){PlaySound(Text);},Delay,false
-		);
+		// // SOUNDS
+		// // TO EDIT (PLACE HOLDER)
+		// float Delay = 2.f*i;
+		//
+		// FTimerHandle TimerHandle;
+		// GetWorld()->GetTimerManager().SetTimer(
+		// 	TimerHandle,	[this, Text](){PlaySound(Text);},Delay,false
+		// );
 	}
 }
 
