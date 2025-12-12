@@ -402,27 +402,27 @@ void UMusicWorldSubsystem::LostQTE()
 
 	// Negative Feedbacks
 	GetCurrentWaitingNoteWidget()->PlayFailNote();
-	SetBehindNoteFeedback(FLinearColor::Red);
+	SetBehindNoteFeedback(FLinearColor::Black);
 	
-	if (GetCurrentWaitingNoteWidget() != nullptr)
-	{
-		GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::Red);
-
-		FTimerHandle NoteChangeBackColor;
-		GetWorld()->GetTimerManager().ClearTimer(NoteChangeBackColor);
-
-		GetWorld()->GetTimerManager().SetTimer(
-			NoteChangeBackColor, [this]()
-			{
-				if (GetCurrentWaitingNoteWidget() != nullptr)
-				{
-					GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::White);
-				}
-			},
-			2.f,
-			false
-			);
-	}
+	// if (GetCurrentWaitingNoteWidget() != nullptr)
+	// {
+	// 	// GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::Black);
+	//
+	// 	FTimerHandle NoteChangeBackColor;
+	// 	GetWorld()->GetTimerManager().ClearTimer(NoteChangeBackColor);
+	//
+	// 	GetWorld()->GetTimerManager().SetTimer(
+	// 		NoteChangeBackColor, [this]()
+	// 		{
+	// 			if (GetCurrentWaitingNoteWidget() != nullptr)
+	// 			{
+	// 				GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::White);
+	// 			}
+	// 		},
+	// 		2.f,
+	// 		false
+	// 		);
+	// }
 
 	// Anim
 	CurrentSkeleton->PlayFailAnim();
