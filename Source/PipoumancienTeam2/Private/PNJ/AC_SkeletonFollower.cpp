@@ -408,7 +408,7 @@ void UAC_SkeletonFollower::TickLerpToSpline(float DeltaTime)
 
             //OnWaitingForDialogue.Broadcast();
 
-            ParentActor->SetActorRotation(FRotator(0.f, 180.f, 0.f));
+            //ParentActor->SetActorRotation(FRotator(0.f, 180.f, 0.f));
         };
 
     if (DistToTarget <= KINDA_SMALL_NUMBER)
