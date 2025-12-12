@@ -129,6 +129,7 @@ public:
 	void ApplyMistakeIncrease(int CurrentFail, int MaxFail);
 	void ResetMistakeEffect();
 	void ForceMistakeCollapse();
+	void SetMistakeToZero();
 	
 	
 protected:
@@ -193,8 +194,8 @@ private:
 	float MinThickness = 0.1f;
 	float MaxThickness = 2.f;
 
-	float RadiusInterpolationSpeed = 2.f;
-	float ThicknessInterpolationSpeed = 2.f;
+	float RadiusInterpolationSpeed = 5.f;
+	float ThicknessInterpolationSpeed = 5.f;
 
 	void InitMistakeMaterial(); 
 

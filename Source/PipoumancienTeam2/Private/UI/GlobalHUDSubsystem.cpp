@@ -387,6 +387,8 @@ void UGlobalHUDSubsystem::InitMistakeMaterial()
 {
 	UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
 	if (!CameraWorldSubsystem) return;
+
+	CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(1.f);
 	
 	FPostProcessSettings& CameraPostProcess= CameraWorldSubsystem->CameraMain->PostProcessSettings;
 	if (CameraPostProcess.WeightedBlendables.Array.Num() > 0)
@@ -405,8 +407,6 @@ void UGlobalHUDSubsystem::InitMistakeMaterial()
 		CurrentMistakeMaterialInstance->GetScalarParameterValue(FHashedMaterialParameterInfo(TEXT("Thickness")), CurrentMaterialThickness);
 		TargetMaterialRadius = MaxRadius;
 		TargetMaterialThickness = MinThickness;
-
-		CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(1.f);
 	}
 }
 
@@ -431,18 +431,12 @@ void UGlobalHUDSubsystem::ForceMistakeCollapse()
 {
 	TargetMaterialRadius = MinRadius;
 	TargetMaterialThickness = MaxThickness;
+}
 
-	FTimerHandle IsCollapsed;
-	GetWorld()->GetTimerManager().ClearTimer(IsCollapsed);
-
-	GetWorld()->GetTimerManager().SetTimer(
-		IsCollapsed, [this]()
-		{
-			ResetMistakeEffect();
-		},
-		1.5f,
-		false
-		);
+void UGlobalHUDSubsystem::SetMistakeToZero()
+{
+	TargetMaterialRadius = 3.f;
+	TargetMaterialThickness = 0.f;
 }
 
 void UGlobalHUDSubsystem::InitBirdWidget(ABird* Bird)

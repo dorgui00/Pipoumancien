@@ -293,16 +293,13 @@ void UMusicWorldSubsystem::SucceedMelody()
 	//Anim
 	CurrentSkeleton->FinishWakeAnim(true);
 	
-	// UI
-	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
-
-	GlobalHUDSubsystem->ResetMistakeEffect();
+	GlobalHUDSubsystem->SetMistakeToZero();
 	
 	// Sound
 	// BackgroundAudioComponent->SetActive(false);
 	
 	// Animation of Enter
-	GlobalHUDSubsystem->DisplayPartitionFinish("SUCCEED MELODY");
+	// GlobalHUDSubsystem->DisplayPartitionFinish("SUCCEED MELODY");
 
 	// --- SWITCH OF WORLD STATE ---
 	// TO EDIT don't use delay
@@ -312,7 +309,8 @@ void UMusicWorldSubsystem::SucceedMelody()
 	GetWorld()->GetTimerManager().SetTimer(
 		IsAnimationFinished, [this]()
 		{
-			GlobalHUDSubsystem->RemovePartitionFinish();
+			UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
+			// GlobalHUDSubsystem->RemovePartitionFinish();
 
 			// Camera
 			GlobalGameSubsystem->SetWorldTransportState();
@@ -346,9 +344,6 @@ void UMusicWorldSubsystem::LostMelody()
 	// --- FEEDBACKS ---
 	// Anim
 	CurrentSkeleton->FinishWakeAnim(false);
-	
-	// UI
-	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
 
 	// Animation of Exit
 	// GlobalHUDSubsystem->DisplayPartitionFinish("FAILED MELODY");
@@ -364,7 +359,7 @@ void UMusicWorldSubsystem::LostMelody()
 			UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
 			GlobalGameSubsystem->SetLostMelody();
 		},
-		4.f,
+		2.f,
 		false
 		);
 }
@@ -511,7 +506,7 @@ EMelodyType UMusicWorldSubsystem::GetMelodyType() const
 // ---- MUSIC COUNTDOWN ----
 void UMusicWorldSubsystem::StartCountDown()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Start CountDown de 3 sec")), true, FVector2D(2, 2));
+	// GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Start CountDown de 3 sec")), true, FVector2D(2, 2));
 	
 	Tempo = 0.f;
 	IsLerpingOffset = true;
@@ -522,7 +517,7 @@ void UMusicWorldSubsystem::StartCountDown()
 
 void UMusicWorldSubsystem::FinishCountDown()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Finish CountDown")), true, FVector2D(2, 2));
+	// GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("Finish CountDown")), true, FVector2D(2, 2));
 	IsInCountDown = false;
 	TimerCountDown = 3.f;
 
