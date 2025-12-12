@@ -6,7 +6,6 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "Components/SceneComponent.h"
-#include "ScopedTransaction.h"
 
 // Sets default values
 AAssignActorComponent::AAssignActorComponent()

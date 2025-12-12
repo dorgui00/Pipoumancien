@@ -109,6 +109,7 @@ private:
 	int LastUIIndexReachedSlider = 0; 
 	
 	bool HasFinishedLerpingOffset() const;
+	void OnFinishLerpingOffset();
 
 	bool HasReachPitchSlider();
 
