@@ -24,7 +24,7 @@ enum class EWorldState : uint8{
 	Menus = 5,
 };
 
-UCLASS()
+UCLASS(Blueprintable)
 class PIPOUMANCIENTEAM2_API UGlobalGameSubsystem : public UGameInstanceSubsystem //, public FTickableGameObject
 {
 	GENERATED_BODY()
@@ -40,7 +40,9 @@ public :
 	void SetCharacters(APipouCharacter* Character);
 
 	// Skeleton
+	UFUNCTION(BlueprintCallable)
 	ASkeletonController* GetCurrentSkeleton() const;
+	
 	void SetCurrentSkeleton(ASkeletonController* Skeleton); // TO EDIT ? Switch to private ?
 
 	// Bird
@@ -58,7 +60,8 @@ public :
 	bool HasValidFirstNotes();
 	void ResetInputsArray();
 
-	bool PlayersOverlapSameSkeleton();
+	bool ArePlayersOverlapingSameSkeleton();
+	void StartOverlapSameSkeleton(ASkeletonController* NewSkeleton);
 	void CancelOverlapSameSkeleton(); // no longer overlap same skeleton
 
 	//melody
