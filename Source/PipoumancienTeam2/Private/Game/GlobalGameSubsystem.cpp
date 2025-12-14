@@ -299,7 +299,7 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 	}
 
 	// CAMERA
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetMusicCamera() ;
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetMusicCamera(CurrentSkeleton) ;
 
 	// VISUELS
 	Bird->SetWidgetVisibility(false);
