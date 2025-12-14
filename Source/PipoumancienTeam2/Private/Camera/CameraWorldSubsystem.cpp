@@ -94,13 +94,18 @@ void UCameraWorldSubsystem::InitMainCamera()
 void UCameraWorldSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	//TickUpdateCameraZoom(DeltaTime);
 
+	// --- CINE ---
 	if (bCinematicPlaying)
 	{
 		return;
 	}
-
+	
+	// --- TICK ---
+	
+	//TickUpdateCameraZoom(DeltaTime);
+	TickUpdateCameraVisibility(DeltaTime);
+	
 	// --- SETTING + ZOOM ---
 	if (IsSettingCamera)
 	{
@@ -114,7 +119,6 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 	{
 		TickUpdateCameraPosition(DeltaTime);
 		
-		TickUpdateCameraVisibility(DeltaTime);
 	}
 }
 
