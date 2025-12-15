@@ -125,7 +125,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			}
 			
 			// Check for the exit of the window note, to check if the player HasAchievedQTE.
-			if (HasExitedWindowNote())
+			if (HasExitedWindowNote() && IsAwaitingReply)
 			{
 				// Not Time for the QTE anymore.
 				IsAwaitingReply = false;
