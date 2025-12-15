@@ -395,7 +395,12 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 	
 	IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch >= Pitch - PitchTolerance
 	   && GetCurrentWaitingNote()->Pitch <= Pitch + PitchTolerance;
-	
+
+	if (!IsConductorOnTheRightPitch)
+	{
+		GlobalHUDSubsystem->WBPResurrectionInstance->PlaySliderFailAnimation(2.f);
+	}
+
 	if (HasMusicianReceivedInput && IsConductorOnTheRightPitch)
 	{
 		return true;
@@ -414,11 +419,11 @@ void UMusicWorldSubsystem::LostQTE()
 	if (!GetCurrentWaitingNoteWidget()) return;
 	
 	GetCurrentWaitingNoteWidget()->PlayFailNote();
-	SetBehindNoteFeedback(FLinearColor::Red);
+	SetBehindNoteFeedback(FLinearColor(0.208, 0.078, 0.588));
 	
 	if (GetCurrentWaitingNoteWidget() != nullptr)
 	{
-		GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::Red);
+		GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor(0.208, 0.078, 0.588));
 	
 		FTimerHandle NoteChangeBackColor;
 		GetWorld()->GetTimerManager().ClearTimer(NoteChangeBackColor);
@@ -431,7 +436,7 @@ void UMusicWorldSubsystem::LostQTE()
 					GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::White);
 				}
 			},
-			0.5f,
+			0.2f,
 			false
 			);
 	}

@@ -2,6 +2,9 @@
 
 
 #include "UResurrectionWidget.h"
+
+#include "Components/CanvasPanel.h"
+#include "Components/CanvasPanelSlot.h"
 #include "Components/Slider.h"
 
 // ---- USER WIDGET FUNCTIONS ----
@@ -54,11 +57,15 @@ void UResurrectionWidget::SetSliderPitch(float NewPitch)
 	TargetPitch = NewPitch;
 }
 
-
 // ---- NOTES SPAWN POINTS ----
 UUserWidget* UResurrectionWidget::GetSpawnPointFromInputPitch(float InputPitch)
 {
 	return SpawnPointFromInputPitch[InputPitch];
+}
+
+void UResurrectionWidget::PlaySliderFailAnimation(float PlaybackSpeed)
+{
+	PlayAnimation(SliderFail, 0, 1, EUMGSequencePlayMode::Forward, PlaybackSpeed);
 }
 
 // ---- ANIMATION POP UI ----
