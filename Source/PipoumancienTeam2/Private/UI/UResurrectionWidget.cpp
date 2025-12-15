@@ -2,6 +2,9 @@
 
 
 #include "UResurrectionWidget.h"
+
+#include "Components/CanvasPanel.h"
+#include "Components/CanvasPanelSlot.h"
 #include "Components/Slider.h"
 
 // ---- USER WIDGET FUNCTIONS ----
@@ -27,6 +30,15 @@ void UResurrectionWidget::NativeConstruct()
 		{ 0.f, NoteFeedBackThree }, 
 		{ 0.5f, NoteFeedBackFour }, 
 		{ 1.f, NoteFeedBackFive }, 
+	};
+
+	NiagaraFeedbackFromPitch =
+	{
+		{ -1.f, NiagaraSystemWidgetOne },
+		{ -0.5f, NiagaraSystemWidgetTwo },
+		{ 0.f, NiagaraSystemWidgetThree }, 
+		{ 0.5f, NiagaraSystemWidgetFour }, 
+		{ 1.f, NiagaraSystemWidgetFive }, 
 	};
 }
 
@@ -54,17 +66,28 @@ void UResurrectionWidget::SetSliderPitch(float NewPitch)
 	TargetPitch = NewPitch;
 }
 
-
 // ---- NOTES SPAWN POINTS ----
 UUserWidget* UResurrectionWidget::GetSpawnPointFromInputPitch(float InputPitch)
 {
 	return SpawnPointFromInputPitch[InputPitch];
 }
 
+void UResurrectionWidget::PlaySliderFailAnimation(float PlaybackSpeed)
+{
+	PlayAnimation(SliderFail, 0, 1, EUMGSequencePlayMode::Forward, PlaybackSpeed);
+}
+
 // ---- ANIMATION POP UI ----
 void UResurrectionWidget::SetWBPAlphaToZero()
 {
 	TargetWBPAlpha = 0;
+}
+
+
+// ---- FEEDBACK NIAGARA UI ----
+UNiagaraSystemWidget* UResurrectionWidget::GetNiagaraSystemFromPitch(float InputPitch)
+{
+	return NiagaraFeedbackFromPitch[InputPitch];
 }
 
 

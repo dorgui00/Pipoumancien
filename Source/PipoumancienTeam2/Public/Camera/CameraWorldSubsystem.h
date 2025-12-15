@@ -182,6 +182,12 @@ private :
 	
 	void CompareCurrentFromPreviousInvisibleObjects();
 
+	UPROPERTY()
+	TArray<AActor*> CurrentBlockingTest;
+	
+	UPROPERTY()
+	TArray<AActor*> PreviousInvisibleTest;
+
 
 	UPROPERTY()
 	UMaterialInterface* InvisibleMaterial;
@@ -260,7 +266,7 @@ private :
 #pragma region MusicCamera
 
 public :
-	void SetMusicCamera();
+	void SetMusicCamera(ASkeletonController* Skeleton);
 
 private :	
 

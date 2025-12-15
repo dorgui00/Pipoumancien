@@ -8,6 +8,7 @@
 #include "Game/GlobalGameSubsystem.h"
 #include "PNJ/AC_SkeletonFollower.h"
 #include "UI/UIDialoge.h"
+#include "UI/UI_Merci.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimationAsset.h"
 #include "BP/Fog.h"
@@ -161,18 +162,37 @@ void ASkeletonController::SetSkeletonForTransport()
 
 }
 
+
 void ASkeletonController::OnEnterVillage()
 {
 	FogDilet();
+
 	// MY STATE
 	MyState = ESkeletonState::BackToHome;
 
 	// WORLD STATE : Free
-	if (UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>())
+	if (UGlobalGameSubsystem* GlobalGameSubsystem =
+		GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>())
+	{
 		GlobalGameSubsystem->SetWorldFreeState();
+	}
 
-	WidgetComponentMerci->SetVisibility(true);
-	
+	// Création du widget
+	if (PlayerWidgetMerciClass)
+	{
+		PlayerWidgetMerci = CreateWidget<UUIMerci>(GetWorld(), PlayerWidgetMerciClass);
+
+		if (PlayerWidgetMerci)
+		{
+			PlayerWidgetMerci->SetMerci(MySkeleton);
+
+			if (WidgetComponentMerci)
+			{
+				WidgetComponentMerci->SetWidget(PlayerWidgetMerci);
+				WidgetComponentMerci->SetVisibility(true);
+			}
+		}
+	}
 }
 
 
@@ -202,7 +222,7 @@ void ASkeletonController::InterationDialogue()
 {
 	if (!WidgetComponent->IsVisible())
 	{
-		WidgetComponent->SetVisibility(true);			
+		WidgetComponent->SetVisibility(false);			
 	}
 }
 

@@ -28,7 +28,7 @@ void UMusicNote::PlayValidationNote(FVector2D NewTargetSize, float NewOpacity)
 {
 	IsPlayingValidation = true;
 
-	UINiagaraSystem->ActivateSystem(true);
+	// UINiagaraSystem->ActivateSystem(true);
 	
 	NoteValidationFinalScale = NewTargetSize;
 
