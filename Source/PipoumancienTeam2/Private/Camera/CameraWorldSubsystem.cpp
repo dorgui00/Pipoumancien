@@ -424,7 +424,9 @@ void UCameraWorldSubsystem::TickUpdateCameraVisibility(float DeltaTime)
 	
 	// foreach target multiple line trace
 	FVector Pos = WorldPosition + (CameraMain->GetForwardVector() * 150.f);
-	DrawDebugLine(GetWorld(), WorldPosition, Pos, FColor::Blue, false, 2.f, 0, 2.f);
+
+	// --- DEBUG ---
+	//DrawDebugLine(GetWorld(), WorldPosition, Pos, FColor::Blue, false, 2.f, 0, 2.f);
 	
 
 	// Reset
