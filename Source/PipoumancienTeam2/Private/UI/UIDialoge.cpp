@@ -155,8 +155,12 @@ void UUIDialoge::ShowNextCharacter()
 		CurrentCharIndex++;
 
 		// --- TO EDIT ---
-		if (CurrentSkeleton->Voices.Num() != 0)
-			UGameplayStatics::PlaySound2D(GetWorld(),CurrentSkeleton->Voices[0]);
+		// TObjectPtr<USoundBase> CurrentSound = CurrentSkeleton->Voices->Rand.Rand;
+		//
+		// Rand
+		
+		// if (CurrentSkeleton->Voices.Num() != 0)
+		// 	UGameplayStatics::PlaySound2D(GetWorld(),CurrentSkeleton->Voices[0]);
 	}
 	else
 	{

@@ -222,7 +222,7 @@ void ASkeletonController::InterationDialogue()
 {
 	if (!WidgetComponent->IsVisible())
 	{
-		WidgetComponent->SetVisibility(true);			
+		WidgetComponent->SetVisibility(false);			
 	}
 }
 
