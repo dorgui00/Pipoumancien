@@ -457,5 +457,36 @@ void ASkeletonController::PlayFootstepsSound(UPhysicalMaterial* PhysMat)
 	AudioComp->SetIntParameter(TEXT("SurfaceType"), SurfaceIndex);
 }
 
+//get set go
 
+void ASkeletonController::SetFollowerSplineFollowSpeed(float NewSpeed)
+{
+	if (!FollowComponent)
+	{
+		FollowComponent = FindComponentByClass<UAC_SkeletonFollower>();
+	}
 
+	if (FollowComponent)
+	{
+		FollowComponent->SetSplineFollowSpeed(NewSpeed);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[SkeletonController] where is skeli controller? not here"));
+	}
+}
+
+float ASkeletonController::GetFollowerSplineFollowSpeed() const
+{
+	if (FollowComponent)
+	{
+		return FollowComponent->GetSplineFollowSpeed();
+	}
+
+	if (const UAC_SkeletonFollower* Found = FindComponentByClass<UAC_SkeletonFollower>())
+	{
+		return Found->GetSplineFollowSpeed();
+	}
+
+	return 0.f;
+}

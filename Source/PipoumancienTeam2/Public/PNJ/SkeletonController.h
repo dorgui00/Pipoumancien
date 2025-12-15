@@ -127,6 +127,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Animations")
 	TArray<UAnimationAsset*> WakeAnims ;
 
+	//walk speed
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PNJ|Variables")
+	float SkeletonMovespeed = 200.f;
+
 	// UPROPERTY()
 	// TObjectPtr<UAnimationAsset> WakeAnimToPlay;
 
@@ -144,6 +148,15 @@ public:
 	
 #pragma endregion
 	
+	// --- GET SET ---
+
+	UFUNCTION(BlueprintCallable, Category = "Skeleton|Follow")
+	void SetFollowerSplineFollowSpeed(float NewSpeed);
+
+	UFUNCTION(BlueprintCallable, Category = "Skeleton|Follow")
+	float GetFollowerSplineFollowSpeed() const;
+
+
 	// --- UI ---
 	void OpenDialogue();
 
