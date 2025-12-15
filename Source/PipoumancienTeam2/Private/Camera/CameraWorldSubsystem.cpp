@@ -94,9 +94,8 @@ void UCameraWorldSubsystem::InitMainCamera()
 void UCameraWorldSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 	// --- CINE ---
-	if (bCinematicPlaying)
+	if (ShouldSkipCameraForThisMap())
 	{
 		return;
 	}
@@ -877,6 +876,7 @@ void UCameraWorldSubsystem::ClampPositionIntoCameraBounds(FVector& Position)
 
 void UCameraWorldSubsystem::GetViewportBounds(FVector2D& OutViewportBoundsMin, FVector2D& OutViewportBoundsMax) const
 {
+
 	// Find Viewport
 	UGameViewportClient* ViewportClient = GetWorld()->GetGameViewport();
 	if (ViewportClient == nullptr) return;
@@ -921,4 +921,15 @@ FVector UCameraWorldSubsystem::CalculateWorldPositionFromViewportPosition(const 
 	WorldPosition += CameraWorldProjectDir * YDistanceToCenter;
 	
 	return WorldPosition;
+}
+
+bool UCameraWorldSubsystem::ShouldSkipCameraForThisMap() const
+{
+	const UWorld* World = GetWorld();
+	if (!World) return true;
+
+	const FString LevelName = UGameplayStatics::GetCurrentLevelName(World, true);
+
+	return LevelName.Equals(TEXT("CutsceneScene"), ESearchCase::IgnoreCase)
+		|| LevelName.Equals(TEXT("TrueMainMenu"), ESearchCase::IgnoreCase);
 }
