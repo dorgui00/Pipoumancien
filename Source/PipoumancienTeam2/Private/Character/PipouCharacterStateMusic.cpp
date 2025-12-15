@@ -170,8 +170,10 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 			// Negative feedback
 			UGameplayStatics::PlaySound2D(GetWorld(), MusicWorldSubsystem->FailedNoteSound);
 			MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->PlayFailNote();
-			MusicWorldSubsystem->SetBehindNoteFeedback(FLinearColor::Red);
-			MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::Red);
+			MusicWorldSubsystem->SetBehindNoteFeedback(FLinearColor(0.208, 0.078, 0.588));
+			MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor(0.208, 0.078, 0.588));
+
+			HUDSubsystem->WBPResurrectionInstance->PlaySliderFailAnimation(2.f);
 
 			FTimerHandle TimeToSetNotBackToWhite;
 			GetWorld()->GetTimerManager().ClearTimer(TimeToSetNotBackToWhite);
@@ -181,7 +183,7 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 				{
 					MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::White);
 				},
-				0.5f,
+				0.2f,
 				false
 				);
 			

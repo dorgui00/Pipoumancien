@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "UResurrectionWidget.generated.h"
 
+class UCanvasPanelSlot;
 class UCanvasPanel;
 class UImage;
 class USlider;
@@ -56,7 +57,7 @@ public:
 
 	void SetSliderPitch(float NewPitch);
 
-
+	
 	// ---- NOTES SPAWN POINTS ----
 	UPROPERTY(meta = (BindWidget))
 	UCanvasPanel* SlotSpawnPoints;
@@ -66,6 +67,11 @@ public:
 
 	UUserWidget* GetSpawnPointFromInputPitch(float InputPitch);
 
+	// ---- SLIDER FAIL ANIMATION ----
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	TObjectPtr<UWidgetAnimation> SliderFail;
+
+	void PlaySliderFailAnimation(float PlaybackSpeed);
 	
 	// ---- ANIMATION POP UI ----
 	void SetWBPAlphaToZero();
