@@ -394,7 +394,7 @@ void UAC_SkeletonFollower::TickLerpToSpline(float DeltaTime)
     auto HandleLerpFinished = [this]()
         {
             bLerpingToSpline = false;
-            bFollowingSpline = false;
+            bFollowingSpline = true;
 
             if (ParentActor)
             {
