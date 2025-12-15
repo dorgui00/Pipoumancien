@@ -16,9 +16,6 @@ struct FSkeletonVisuals
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<USkeletalMesh> Mesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UMaterial> Material;
-
 	// ANIMS
 	//
 	// UPROPERTY(EditAnywhere, BlueprintReadWrite)

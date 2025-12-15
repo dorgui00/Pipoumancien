@@ -30,6 +30,9 @@ struct F_Skeleton : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FString> Discution;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString Thanks;
+
 	// SPRITE / ANIMS 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	FSkeletonVisuals SkeletonVisuals;
