@@ -286,6 +286,7 @@ void UGlobalHUDSubsystem::Init()
 	WBPResurrectionClass = SubsystemSettings->WBPResurrectionClass;
 	WBPNoteClass = SubsystemSettings->WBPNoteClass;
 	WBPPartitionFinishClass = SubsystemSettings->WBPPartitionFinishClass;
+	WBPPauseMenuClass = SubsystemSettings->WBPPauseMenuClass;
 
 	// Init HUD Data
 	HUDData = SubsystemSettings->HUDData.LoadSynchronous();
@@ -444,6 +445,7 @@ void UGlobalHUDSubsystem::SetMistakeToZero()
 	TargetMaterialThickness = 0.f;
 }
 
+
 void UGlobalHUDSubsystem::InitBirdWidget(ABird* Bird)
 {
 	BirdWidget = Cast<UBirdWidget>(Bird->FindComponentByClass<UWidgetComponent>()->GetWidget());
@@ -480,5 +482,29 @@ void UGlobalHUDSubsystem::DisplayNotesForSkeletonInteraction(const UInputAction*
 	
 	
 }
+
+// ---- UTILITIES ----
+void UGlobalHUDSubsystem::DisplayPauseMenu()
+{
+	if (!WBPPauseMenuClass) return;
+
+	APlayerController* PC = Cast<APlayerController>(GlobalGameSubsystem->PipouCharacters[0]->GetController());
+	if (!PC) return;
+	
+	WBPPauseMenuInstance = CreateWidget<UUserWidget>(PC, WBPPauseMenuClass);
+	if (!WBPPauseMenuInstance) return;
+
+	WBPPauseMenuInstance->AddToViewport();
+}
+
+void UGlobalHUDSubsystem::RemovePauseMenu()
+{
+	if (WBPPauseMenuInstance != nullptr)
+	{
+		WBPPauseMenuInstance->RemoveFromParent();
+		WBPPauseMenuInstance = nullptr;
+	}
+}
+
 
 
