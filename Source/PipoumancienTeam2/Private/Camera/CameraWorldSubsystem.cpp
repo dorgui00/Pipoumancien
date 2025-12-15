@@ -95,7 +95,7 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	//TickUpdateCameraZoom(DeltaTime);
 
-	if (bCinematicPlaying)
+	if (ShouldSkipCameraForThisMap())
 	{
 		return;
 	}
@@ -944,6 +944,7 @@ void UCameraWorldSubsystem::ClampPositionIntoCameraBounds(FVector& Position)
 
 void UCameraWorldSubsystem::GetViewportBounds(FVector2D& OutViewportBoundsMin, FVector2D& OutViewportBoundsMax) const
 {
+
 	// Find Viewport
 	UGameViewportClient* ViewportClient = GetWorld()->GetGameViewport();
 	if (ViewportClient == nullptr) return;
@@ -988,4 +989,15 @@ FVector UCameraWorldSubsystem::CalculateWorldPositionFromViewportPosition(const 
 	WorldPosition += CameraWorldProjectDir * YDistanceToCenter;
 	
 	return WorldPosition;
+}
+
+bool UCameraWorldSubsystem::ShouldSkipCameraForThisMap() const
+{
+	const UWorld* World = GetWorld();
+	if (!World) return true; // no world = don't do anything
+
+	// Remove PIE prefix so it matches your real map asset name.
+	const FString LevelName = UGameplayStatics::GetCurrentLevelName(World, /*bRemovePrefix=*/true);
+
+	return LevelName.Equals(TEXT("CutsceneScene"), ESearchCase::IgnoreCase);
 }
