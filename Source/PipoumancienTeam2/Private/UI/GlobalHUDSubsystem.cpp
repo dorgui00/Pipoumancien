@@ -23,8 +23,6 @@
 #include "UI/UMusicNote.h"
 #include "UI/PartitionFinish.h"
 #include "Character/PipouCharacter.h"
-#include "Kismet/GameplayStatics.h"
-#include "Music/MusicWorldSubsystem.h"
 #include "PNJ/Bird.h"
 #include "UI/BirdWidget.h"
 
@@ -99,10 +97,13 @@ void UGlobalHUDSubsystem::DisplayResurrectionWidget()
 
 void UGlobalHUDSubsystem::RemoveResurrectionWidget()
 {
-	UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
-	if (!CameraWorldSubsystem) return;
+	if (UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
+	{
+		FPostProcessSettings& CameraPostProcess = CameraWorldSubsystem->CameraMain->PostProcessSettings;
+		CameraPostProcess.RemoveBlendable(CurrentMistakeMaterialInstance);
+		CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(0.f);
+	}
 
-	CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(0.f);
 	CurrentMistakeMaterialInstance = nullptr;
 	
 	if (WBPResurrectionInstance != nullptr)
@@ -308,7 +309,7 @@ void UGlobalHUDSubsystem::Init()
 	};
 
 	// Init Material Instance
-	// MistakeMaterialInstance = HUDData->MistakeMaterialInstance;
+	MistakeBaseMaterial = HUDData->MistakeMaterialInstance;
 }
 
 UTexture2D* UGlobalHUDSubsystem::GetImageTextureFromNoteInput(const UInputAction* NoteInput) const
@@ -388,35 +389,21 @@ void UGlobalHUDSubsystem::RemoveBirdWidget()
 // ---- MISTAKE POST PROCESS ---- 
 void UGlobalHUDSubsystem::InitMistakeMaterial()
 {
-	UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
-	if (!CameraWorldSubsystem) return;
-
-	CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(1.f);
+	if (!MistakeBaseMaterial) return;
 	
-	FPostProcessSettings& CameraPostProcess = CameraWorldSubsystem->CameraMain->PostProcessSettings;
-	if (CameraPostProcess.WeightedBlendables.Array.Num() > 0)
+	if (UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
 	{
-		UObject* BlendableObj = CameraPostProcess.WeightedBlendables.Array[0].Object;
-		UMaterialInterface* BaseMaterial = Cast<UMaterialInterface>(BlendableObj);
-		
-		if (!BaseMaterial) return;
-		
-		CurrentMistakeMaterialInstance = UMaterialInstanceDynamic::Create(BaseMaterial, this);
+		FPostProcessSettings& CameraPostProcess = CameraWorldSubsystem->CameraMain->PostProcessSettings;
+		CurrentMistakeMaterialInstance = UMaterialInstanceDynamic::Create(MistakeBaseMaterial, this);
+
 		if (!CurrentMistakeMaterialInstance) return;
 
-		CameraPostProcess.WeightedBlendables.Array[0].Object = CurrentMistakeMaterialInstance;
+		CameraPostProcess.AddBlendable(CurrentMistakeMaterialInstance, 1.f);
+		CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(1.f);
 		
-		CurrentMistakeMaterialInstance->GetScalarParameterValue(FHashedMaterialParameterInfo(TEXT("Radius")), CurrentMaterialRadius);
-		CurrentMistakeMaterialInstance->GetScalarParameterValue(FHashedMaterialParameterInfo(TEXT("Thickness")), CurrentMaterialThickness);
-		
-		TargetMaterialRadius = MaxRadius;
-		TargetMaterialThickness = MinThickness;
-		
-		CurrentMistakeMaterialInstance->SetScalarParameterValue(TEXT("Radius"), MinRadius);
-		CurrentMistakeMaterialInstance->SetScalarParameterValue(TEXT("Thickness"), MinThickness);
+		ResetMistakeEffect();
 	}
 }
-
 
 void UGlobalHUDSubsystem::ApplyMistakeIncrease(int CurrentFail, int MaxFail)
 {
@@ -430,7 +417,7 @@ void UGlobalHUDSubsystem::ApplyMistakeIncrease(int CurrentFail, int MaxFail)
 
 void UGlobalHUDSubsystem::ResetMistakeEffect()
 {
-	TargetMaterialRadius = MinRadius;
+	TargetMaterialRadius = MaxRadius;
 	TargetMaterialThickness = MinThickness;
 }
 
@@ -438,6 +425,18 @@ void UGlobalHUDSubsystem::ForceMistakeCollapse()
 {
 	TargetMaterialRadius = MinRadius;
 	TargetMaterialThickness = MaxThickness;
+
+	FTimerHandle WaitBeforeGoingBackToUnCollapse;
+	GetWorld()->GetTimerManager().ClearTimer(WaitBeforeGoingBackToUnCollapse);
+
+	GetWorld()->GetTimerManager().SetTimer(
+		WaitBeforeGoingBackToUnCollapse, [this]()
+		{
+			SetMistakeToZero();
+		},
+		1.f,
+		false
+		);
 }
 
 void UGlobalHUDSubsystem::SetMistakeToZero()

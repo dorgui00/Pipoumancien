@@ -41,7 +41,7 @@ public:
 	UImage* GetFeedbackPosFromInputPitch(float InputPitch);
 
 	
-	// ---- SLIDE MUSIC ----
+	// ---- SLIDER MUSIC ----
 	UPROPERTY(meta = (BindWidget))
 	UCanvasPanel* SliderBox;
 	
