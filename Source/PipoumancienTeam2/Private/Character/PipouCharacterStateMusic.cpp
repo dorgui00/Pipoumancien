@@ -38,8 +38,6 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 	if (MusicAnim)
 		Character->GetMesh()->PlayAnimation(MusicAnim,true);
 
-	// Music  Particle System
-	Character->PlayMusicFeedbacks(true);
 }
 
 void UPipouCharacterStateMusic::StateTick(float Deltatime)
@@ -56,8 +54,6 @@ void UPipouCharacterStateMusic::StateExit(EPipouCharacterStateID NextStateID)
 	Character->InputPitchEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);
 	Character->InputPitchCompleted.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitchCompleted);
 
-	// Music  Particle System
-	Character->PlayMusicFeedbacks(false);
 }
 
 // Music

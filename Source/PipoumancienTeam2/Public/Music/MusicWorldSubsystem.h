@@ -88,7 +88,8 @@ public:
 
 	
 	// ---- UTILITIES ----
-	void InitMusic(ASkeletonController* Skeleton);
+	void SetMusic(ASkeletonController* Skeleton);
+	void InitMusic();
 
 	
 	// ---- SOUND ----
@@ -187,6 +188,9 @@ private:
 	void SucceedMelody();
 	bool HasAchievedQte();
 
+	// FEEDBACKS
+
+	void SetCharactersFeedbacks(bool Set);
 
 	// ---- NIAGARA UI FEEDBACK ----
 	UPROPERTY()
