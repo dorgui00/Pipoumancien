@@ -152,7 +152,7 @@ if (IsTouch)
 		   			}
 					IsTouch = true;
 				}),
-				5.0f,  // délai AVANT FolseWidget
+				4.0f,  // délai AVANT FolseWidget
 				false
 				);
 		}
