@@ -23,6 +23,7 @@
 #include "UI/UMusicNote.h"
 #include "UI/PartitionFinish.h"
 #include "Character/PipouCharacter.h"
+#include "Kismet/GameplayStatics.h"
 #include "PNJ/Bird.h"
 #include "UI/BirdWidget.h"
 
@@ -495,6 +496,8 @@ void UGlobalHUDSubsystem::DisplayPauseMenu()
 	if (!WBPPauseMenuInstance) return;
 
 	WBPPauseMenuInstance->AddToViewport();
+
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
 }
 
 void UGlobalHUDSubsystem::RemovePauseMenu()
@@ -503,6 +506,8 @@ void UGlobalHUDSubsystem::RemovePauseMenu()
 	{
 		WBPPauseMenuInstance->RemoveFromParent();
 		WBPPauseMenuInstance = nullptr;
+
+		UGameplayStatics::SetGamePaused(GetWorld(), false);
 	}
 }
 
