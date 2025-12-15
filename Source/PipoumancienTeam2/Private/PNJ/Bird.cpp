@@ -132,13 +132,13 @@ void ABird::SetMyNotes()
 		 float Delay =0.5f*i;
 		if (i==0)
 		{
-			//PlaySound(Text);
+			PlaySound(Text);
 		}
 		else
 		{
-			//FTimerHandle TimerHandle;
-			//GetWorld()->GetTimerManager().SetTimer(
-			// TimerHandle,	[this, Text](){PlaySound(Text);},Delay,false );
+			FTimerHandle TimerHandle;
+			GetWorld()->GetTimerManager().SetTimer(
+			TimerHandle,	[this, Text](){PlaySound(Text);},Delay,false );
 		}
 	}
 }

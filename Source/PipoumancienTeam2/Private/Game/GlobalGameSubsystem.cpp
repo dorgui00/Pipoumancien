@@ -131,10 +131,7 @@ if (IsTouch)
 					// 2️⃣ Ensuite le reste du code
 					ResetInputsArray();
 
-					if (Bird)
-					{
-						Bird->SetMyNotes();
-					}
+					
 
 					GlobalHUDSubsystem->RemoveBirdWidget();
 					
@@ -149,6 +146,10 @@ if (IsTouch)
 		   		delayHandle,
 		   		FTimerDelegate::CreateLambda([this]()
 			{
+		   			if (Bird)
+		   			{
+						   Bird->SetMyNotes();
+		   			}
 					IsTouch = true;
 				}),
 				5.0f,  // délai AVANT FolseWidget
@@ -209,7 +210,7 @@ void UGlobalGameSubsystem::ResetInputsArray()
 }
 
 // Check If Anybody Still Overlaps The Current Skeleton
-bool UGlobalGameSubsystem::PlayersOverlapSameSkeleton()
+bool UGlobalGameSubsystem::ArePlayersOverlapingSameSkeleton()
 {
 	// secu
 	if (PipouCharacters.Num() == 0 )
@@ -231,22 +232,41 @@ bool UGlobalGameSubsystem::PlayersOverlapSameSkeleton()
 			return false;
 	}
 	
-	// ---- PLAYERS OVERLAP SAME SKELETON ----
-	UE_LOG(LogTemp, Display, TEXT("Players are Overlapping the same skeleton"));
-	SetCurrentSkeleton(CurrentSkeletonIn);
-
-	// feedbacks
-	Bird->SetWidgetVisibility(true);
-	
 	return true;
+}
+
+void UGlobalGameSubsystem::StartOverlapSameSkeleton(ASkeletonController* NewSkeleton)
+{
+	// ---- DEBUG ----
+	//UE_LOG(LogTemp, Display, TEXT("Players are Overlapping the same skeleton"));
+	
+	// ---- PLAYERS OVERLAP SAME SKELETON ----
+	SetCurrentSkeleton(NewSkeleton);
+
+	// ---- GAMEPLAY ----
+	// Activate Bird
+	Bird->SetWidgetVisibility(true);
+
+	// ---- FEEDBACKS ----
+	// Camera
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SkeletonInteractionZoom(true);
+
 }
 
 void UGlobalGameSubsystem::CancelOverlapSameSkeleton()
 {
+	//  ---- PLAYERS DOESN'T OVERLAP SAME SKELETON ----
 	SetCurrentSkeleton(nullptr);
+
+	// ---- GAMEPLAY ----
+	
+	// Deactivate Bird
 	ResetInputsArray();
-	// FEEDBACKS
 	Bird->SetWidgetVisibility(false);
+
+	// ---- FEEDBACKS ----
+	// Camera
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SkeletonInteractionZoom(false);
 }
 
 
@@ -279,7 +299,7 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 	}
 
 	// CAMERA
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetMusicCamera() ;
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetMusicCamera(CurrentSkeleton) ;
 
 	// VISUELS
 	Bird->SetWidgetVisibility(false);

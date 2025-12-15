@@ -58,7 +58,8 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 	
 	// Security Check: The Music is supposed to work only in WorldStateMusic.
 	if (!IsInWorldStateMusic) return;
-
+	if (!GetCurrentWaitingNote()) return;
+	
 	if (IsInCountDown)
 	{
 		DecreaseTimerCountdown(DeltaTime);
@@ -107,7 +108,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			}
 
 			// Is it the time to do the QTE.
-			if (HasEnteredWindowNote())
+			if (HasEnteredWindowNote() && !IsAwaitingReply)
 			{
 				IsAwaitingReply = true;
 			}
@@ -124,7 +125,7 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 			}
 			
 			// Check for the exit of the window note, to check if the player HasAchievedQTE.
-			if (HasExitedWindowNote())
+			if (HasExitedWindowNote() && IsAwaitingReply)
 			{
 				// Not Time for the QTE anymore.
 				IsAwaitingReply = false;
@@ -157,7 +158,12 @@ void UMusicWorldSubsystem::Tick(float DeltaTime)
 // ---- NOTES & SKELETONS ---- 
 F_Note* UMusicWorldSubsystem::GetCurrentWaitingNote() const
 {
-	if (GetCurrentWaitingNoteIndex() > CurrentSkeleton->MySkeleton->Notes.Num() - 1) UE_LOGFMT(LogTemp, Error, "ERROR: Current waiting Note is out of range !");
+	if (GetCurrentWaitingNoteIndex() > CurrentSkeleton->MySkeleton->Notes.Num() - 1)
+	{
+		UE_LOGFMT(LogTemp, Error, "ERROR: Current waiting Note is out of range !");
+		return nullptr;
+	}
+	
 	return &CurrentSkeleton->MySkeleton->Notes[GetCurrentWaitingNoteIndex()];
 }
 
@@ -197,6 +203,8 @@ void UMusicWorldSubsystem::ReceivedMusicianInput()
 {
 	if (HasMusicianReceivedInput) return;
 	HasMusicianReceivedInput = true;
+
+	PitchAtMusicianInput = CurrentPitchCursorValue;
 }
 
 void UMusicWorldSubsystem::ResetMusicianReply()
@@ -359,7 +367,7 @@ void UMusicWorldSubsystem::LostMelody()
 			UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->RemoveResurrectionWidget();
 			GlobalGameSubsystem->SetLostMelody();
 		},
-		2.f,
+		3.f,
 		false
 		);
 }
@@ -382,9 +390,11 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 		UE_LOGFMT(LogTemp, Error, "ERROR: Has not achieved QTE because one reference or several references are null !");
 		return false;
 	}
+
+	float Pitch = PitchAtMusicianInput;
 	
-	IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch >= GetCurrentPitchCursorValue() - PitchTolerance
-	   && GetCurrentWaitingNote()->Pitch <= GetCurrentPitchCursorValue() + PitchTolerance;
+	IsConductorOnTheRightPitch = GetCurrentWaitingNote()->Pitch >= Pitch - PitchTolerance
+	   && GetCurrentWaitingNote()->Pitch <= Pitch + PitchTolerance;
 	
 	if (HasMusicianReceivedInput && IsConductorOnTheRightPitch)
 	{
@@ -401,28 +411,30 @@ void UMusicWorldSubsystem::LostQTE()
 	GlobalHUDSubsystem->ApplyMistakeIncrease(GetCurrentFailNotePossible(), MaxFailNotePossible);
 
 	// Negative Feedbacks
-	GetCurrentWaitingNoteWidget()->PlayFailNote();
-	SetBehindNoteFeedback(FLinearColor::Gray);
+	if (!GetCurrentWaitingNoteWidget()) return;
 	
-	// if (GetCurrentWaitingNoteWidget() != nullptr)
-	// {
-	// 	// GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::Black);
-	//
-	// 	FTimerHandle NoteChangeBackColor;
-	// 	GetWorld()->GetTimerManager().ClearTimer(NoteChangeBackColor);
-	//
-	// 	GetWorld()->GetTimerManager().SetTimer(
-	// 		NoteChangeBackColor, [this]()
-	// 		{
-	// 			if (GetCurrentWaitingNoteWidget() != nullptr)
-	// 			{
-	// 				GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::White);
-	// 			}
-	// 		},
-	// 		2.f,
-	// 		false
-	// 		);
-	// }
+	GetCurrentWaitingNoteWidget()->PlayFailNote();
+	SetBehindNoteFeedback(FLinearColor::Red);
+	
+	if (GetCurrentWaitingNoteWidget() != nullptr)
+	{
+		GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::Red);
+	
+		FTimerHandle NoteChangeBackColor;
+		GetWorld()->GetTimerManager().ClearTimer(NoteChangeBackColor);
+	
+		GetWorld()->GetTimerManager().SetTimer(
+			NoteChangeBackColor, [this]()
+			{
+				if (GetCurrentWaitingNoteWidget() != nullptr)
+				{
+					GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::White);
+				}
+			},
+			0.5f,
+			false
+			);
+	}
 
 	// Anim
 	CurrentSkeleton->PlayFailAnim();
@@ -452,7 +464,9 @@ int UMusicWorldSubsystem::GetCurrentFailNotePossible() const
 
 void UMusicWorldSubsystem::SetCurrentFailNotePossible(float NewValue)
 {
+	UE_LOGFMT(LogTemp, Log, "Previous CurrentFailNotePossible: {0}", CurrentFailNotePossible);
 	CurrentFailNotePossible = NewValue;
+	UE_LOGFMT(LogTemp, Log, "After CurrentFailNotePossible: {0}", CurrentFailNotePossible);
 }
 
 bool UMusicWorldSubsystem::HasLostAllFaileNotePossible() const

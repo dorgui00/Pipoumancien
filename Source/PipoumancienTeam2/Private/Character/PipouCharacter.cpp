@@ -416,16 +416,15 @@ void APipouCharacter::OnComponentEndOverlap(UPrimitiveComponent* OverlappedCompo
 		if (GlobalGameSubsystem->GetWorldState()==EWorldState::WorldTransport) return;
 
 		// -- SKELETON INTERACTION FOR MUSIC --
-		// Camera
-		if (GlobalGameSubsystem->PlayersOverlapSameSkeleton())
-			GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SkeletonInteractionZoom(false);
 		
 		// delete current skeleton for myself
 		OverlapSkeleton = nullptr;
 		
 		// delete current skeleton for everyone
 		GlobalGameSubsystem->CancelOverlapSameSkeleton();
-		UE_LOG(LogTemp, Display, TEXT("End Overlap Skeleton"));
+
+		// ---- DEBUG ----
+		//UE_LOG(LogTemp, Display, TEXT("End Overlap Skeleton"));
 	}
 }
 
@@ -447,10 +446,10 @@ void APipouCharacter::InteractWithSkeleton(ASkeletonController& SkeletonControll
 		if (SkeletonController.GetState() == ESkeletonState::Dead)
 		{
 			//not everyone overlaps the same skel
-			if (!GlobalGameSubsystem->PlayersOverlapSameSkeleton()) return;
-
+			if (!GlobalGameSubsystem->ArePlayersOverlapingSameSkeleton()) return;
+			
 			// -- OVERLAP SAME SKELETON --
-			GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SkeletonInteractionZoom(true);
+			GlobalGameSubsystem->StartOverlapSameSkeleton(&SkeletonController);
 			
 		}
 	}
