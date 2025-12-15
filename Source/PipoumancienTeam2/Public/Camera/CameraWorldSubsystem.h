@@ -39,8 +39,16 @@ public :
 #pragma region Init
 public :
 	
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UCameraComponent> CameraMain;
+
+	UFUNCTION(BlueprintCallable)
+	UCameraComponent* GetMainCamera() const { return CameraMain; }
+
+	bool bCinematicPlaying = false;
+
+	UFUNCTION(BlueprintCallable)
+	void SetCinematicPlaying(bool bPlaying) { bCinematicPlaying = bPlaying; }
 	
 	void InitCameraSubsystem();
 	
@@ -49,6 +57,10 @@ private :
 	void AssignAllCameras();
 	
 	void InitMainCamera();
+
+private:
+	bool ShouldSkipCameraForThisMap() const;
+
 
 #pragma endregion
 
@@ -142,6 +154,9 @@ public :
 
 	UFUNCTION(BlueprintCallable) 
 	bool GetIsZoomed();
+
+	void SkeletonInteractionZoom(bool Zoom);
+	float SkeletonZoom = 115.f;
 	
 private :
 	bool IsZoomed = false;
@@ -166,6 +181,12 @@ private :
 	void MakeObjectVisibleAgain(TObjectPtr<AActor> InvisibleObject); // no more invisible
 	
 	void CompareCurrentFromPreviousInvisibleObjects();
+
+	UPROPERTY()
+	TArray<AActor*> CurrentBlockingTest;
+	
+	UPROPERTY()
+	TArray<AActor*> PreviousInvisibleTest;
 
 
 	UPROPERTY()
@@ -194,9 +215,11 @@ private :
 	// STATE
 	ECameraState CameraState;
 	ECameraState PreviousState;
+	ECameraState NextState = ECameraState::GlobalCamera;
 	
 	// LERP CAMERAS
 	bool IsSettingCamera = false;
+	bool IsZooming = false;
 	float LerpTimer = 0;
 	
 	void LerpCamera(float DeltaTime);
@@ -215,6 +238,7 @@ private :
 	bool CanLerpComponent = false;
 	
 	void ResetLerp();
+	void ResetLerpTimer();
 	void FinishCameraLerp();
 	
 
@@ -242,7 +266,7 @@ private :
 #pragma region MusicCamera
 
 public :
-	void SetMusicCamera();
+	void SetMusicCamera(ASkeletonController* Skeleton);
 
 private :	
 

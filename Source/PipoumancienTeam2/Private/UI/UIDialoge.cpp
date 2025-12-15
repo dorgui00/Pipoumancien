@@ -7,6 +7,7 @@
 #include "TimerManager.h"
 #include "Data/F_Skeleton.h"
 #include "Game/GlobalGameSubsystem.h"
+#include "Kismet/GameplayStatics.h"
 
 
 void UUIDialoge::NativeConstruct()
@@ -23,9 +24,9 @@ void UUIDialoge::NativeConstruct()
 	{
 		FInputModeUIOnly InputMode;
 		InputMode.SetWidgetToFocus(TakeWidget());
-		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		//InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 		PC->SetInputMode(InputMode);
-		PC->bShowMouseCursor = true;
+		//PC->bShowMouseCursor = true;
 	}
 
 	// On ne lit PLUS la DataTable ici → c’est SetDialogue() qui charge le texte
@@ -51,6 +52,7 @@ void UUIDialoge::SetDialogue(F_Skeleton* Skeleton , int Valut)
 {
 	if (!IsInViewport())
 	{
+		CurrentSkeleton = Skeleton ;
 		CurrentDialogue = Skeleton->Discution;
 		CurrentName = Skeleton->Name.ToString();
 
@@ -67,7 +69,6 @@ void UUIDialoge::SetDialogue(F_Skeleton* Skeleton , int Valut)
 
 		AddToViewport();
 	}
-	
 }
 
 void UUIDialoge::GoToNextDialogue()
@@ -152,6 +153,14 @@ void UUIDialoge::ShowNextCharacter()
 		FString CurrentText = FullText.Left(CurrentCharIndex + 1);
 		Discution->SetText(FText::FromString(CurrentText));
 		CurrentCharIndex++;
+
+		// --- TO EDIT ---
+		// TObjectPtr<USoundBase> CurrentSound = CurrentSkeleton->Voices->Rand.Rand;
+		//
+		// Rand
+		
+		// if (CurrentSkeleton->Voices.Num() != 0)
+		// 	UGameplayStatics::PlaySound2D(GetWorld(),CurrentSkeleton->Voices[0]);
 	}
 	else
 	{

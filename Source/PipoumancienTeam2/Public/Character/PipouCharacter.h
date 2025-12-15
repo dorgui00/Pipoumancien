@@ -11,6 +11,8 @@
 #include "UI/PipouHUD.h"
 #include "PipouCharacter.generated.h"
 
+class UNiagaraComponent;
+class UNiagaraSystem;
 class UInputSoundData;
 class UCameraComponent;
 class ASkeletonController;
@@ -128,6 +130,10 @@ public:
 	UPROPERTY()
 	FInputPitchCompleted InputPitchCompleted;
 
+	// --- FEEDBACKS ---
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayMusicFeedbacks(bool Play);
+
 	#pragma endregion
 
 	#pragma region Interaction
@@ -205,6 +211,7 @@ protected:
 	UPROPERTY()
 	float InputPitch = 0;
 
+
 	#pragma endregion
 	
 private:
@@ -214,6 +221,8 @@ private:
 	void OnInputMoveXY(const FInputActionValue& InputActionValue);
 
 	#pragma endregion
+
+	void OnInputPause(const FInputActionValue& InputActionValue);
 	
 	#pragma region Music
 	// Functions to call and bind the event of input for the music mechanic.
@@ -237,7 +246,8 @@ private:
 	#pragma endregion
 
 	#pragma region Interaction
-	// Interact with the Skeletons
+
+	// OVERLAP
 	UFUNCTION()
 	void OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -246,6 +256,7 @@ private:
 	void OnComponentEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	// Skeleton Interaction
 	void InteractWithSkeleton(ASkeletonController& SkeletonController);
 	
 	#pragma endregion

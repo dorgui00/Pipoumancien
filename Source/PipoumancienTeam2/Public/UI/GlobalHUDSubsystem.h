@@ -8,6 +8,8 @@
 #include "Components/TextBlock.h"
 #include "GlobalHUDSubsystem.generated.h"
 
+class ABird;
+class UBirdWidget;
 class USkeletonInteractionWidget;
 class UWidgetComponent;
 class APipouCharacter;
@@ -47,6 +49,12 @@ public:
 
 	UPROPERTY()
 	UMusicNote* WBPNoteInstance;
+
+	UPROPERTY()
+	TSubclassOf<UUserWidget> WBPPauseMenuClass;
+
+	UPROPERTY()
+	UUserWidget* WBPPauseMenuInstance;
 
 	// Create or Remove the widget of the resurrection.
 	void DisplayResurrectionWidget();
@@ -89,6 +97,7 @@ public:
 	TObjectPtr<UHUDData> HUDData;
 
 	UTexture2D* GetImageTextureFromNoteInput(const UInputAction* NoteInput) const;
+	UTexture2D* GetImageBirdTextureFromNoteInput(const UInputAction* NoteInput) const;
 
 	void SetMusicWorldSubsystem(UMusicWorldSubsystem* NewMusicSubsystem);
 
@@ -105,18 +114,33 @@ public:
 
 	void SetImageColor(UImage* CurrentImage, FLinearColor NewColor);
 
-	// ----- UI WORLD -----
-	TObjectPtr<UWidgetComponent> GetSkeletonInteractionWidgetComponent() const;
 	
-	void FindSkeletonInteractionWidget(); // call at init in game mode
+	// ----- UI WORLD -----
+	void InitBirdWidget(ABird* Bird);
 	
 	void DisplayNotesForSkeletonInteraction(const UInputAction* InputAction);
 
-	void CallSkeletonInteractionWidget();
-
-	void ResetSkeletonInteractionWidget();
+	void ResetBirdWidget();
 
 	void SetWidgetVisibility(UUserWidget* Widget, bool Visibility);
+
+	void ValideWidget();
+
+	void FolseWidget();
+
+	void RemoveBirdWidget();
+
+	
+	// ---- MISTAKE POST PROCESS ----
+	void ApplyMistakeIncrease(int CurrentFail, int MaxFail);
+	void ResetMistakeEffect();
+	void ForceMistakeCollapse();
+	void SetMistakeToZero();
+
+
+	// ---- UTILITIES ----
+	void DisplayPauseMenu();
+	void RemovePauseMenu();
 	
 	
 protected:
@@ -133,6 +157,7 @@ protected:
 private:
 	// ---- MUSIC UI ----
 	float UISpeed = 0;
+
 	
 	// Size of the partition UI.
 	float UIOffset;
@@ -147,15 +172,45 @@ private:
 	// ---- FEEDBACK COLORS NOTES ----
 	void Internal_SetImageColor(UImage* CurrentImage, FLinearColor NewColor);
 
+	
 	// ---- UI WORLD ----
 	UPROPERTY()
 	TObjectPtr<AActor> SkeletonInteractionWidgetActor = nullptr;
 	
 	UPROPERTY()
 	TObjectPtr<UWidgetComponent> SkeletonInteractionWidgetComponent = nullptr;
-
+	
 	UPROPERTY()
 	TObjectPtr<USkeletonInteractionWidget> SkeletonInteractionWidget = nullptr;
+
+	TObjectPtr<UBirdWidget> BirdWidget = nullptr;
+
+	
+	// ---- MISTAKE POST PROCESS ----
+	UPROPERTY()
+	UMaterialInterface* MistakeBaseMaterial;
+
+	UPROPERTY()
+	UMaterialInstanceDynamic* CurrentMistakeMaterialInstance;
+
+	float CurrentMaterialRadius = 0.f;
+	float CurrentMaterialThickness = 0.f;
+
+	float TargetMaterialRadius = 0.f;
+	float TargetMaterialThickness = 0.f;
+
+	float MinRadius = 0.1f;
+	float MaxRadius = 1.2f;
+
+	float MinThickness = 0.1f;
+	float MaxThickness = 2.f;
+
+	float RadiusInterpolationSpeed = 5.f;
+	float ThicknessInterpolationSpeed = 5.f;
+
+	void InitMistakeMaterial(); 
+
+	
 	
 	// ---- UTILITIES ----
 	UPROPERTY()
@@ -171,6 +226,10 @@ private:
 	UPROPERTY()
 	TMap<UInputAction*, UTexture2D*> TextureFromNoteInput;
 
+	UPROPERTY()
+	TMap<UInputAction*, UTexture2D*> BirdTextureFromNoteInput;
+
+	
 	UPROPERTY()
 	UGlobalGameSubsystem* GlobalGameSubsystem;
 	

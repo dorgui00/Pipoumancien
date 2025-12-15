@@ -1,9 +1,9 @@
 ﻿#pragma once
-
+#include "Data/FSkeletonVisuals.h"
+#include "Data/F_Note.h"
 #include "F_Skeleton.generated.h"
 
 class USoundCue;
-struct F_Note;
 
 USTRUCT(BlueprintType)
 struct F_Skeleton : public FTableRowBase
@@ -16,12 +16,28 @@ struct F_Skeleton : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int ID;
 
+	// MUSIC
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<F_Note> Notes;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	USoundCue* BackgroundMusic;
+	int MaxFailNotePossible = 3;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundCue* BackgroundMusic;
+
+	// DIALOGUE
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialogue")
 	TArray<FString> Discution;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialogue")
+	FString Thanks;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialogue")
+	TArray<USoundBase*> Voices;
+
+	// SPRITE / ANIMS 
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	FSkeletonVisuals SkeletonVisuals;
+
 };

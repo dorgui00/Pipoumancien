@@ -4,6 +4,8 @@
 #include "UI/GlobalHUDSubsystem.h"
 #include "UResurrectionWidget.h"
 #include "Blueprint/UserWidget.h"
+#include "Camera/CameraComponent.h"
+#include "Camera/CameraWorldSubsystem.h"
 #include "Character/PipouCharacterInputData.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
@@ -21,8 +23,8 @@
 #include "UI/UMusicNote.h"
 #include "UI/PartitionFinish.h"
 #include "Character/PipouCharacter.h"
-#include "Kismet/GameplayStatics.h"
-#include "UI/SkeletonInteractionWidget.h"
+#include "PNJ/Bird.h"
+#include "UI/BirdWidget.h"
 
 
 // ---- GAME INSTANCE SUBSYSTEM ---- 
@@ -36,15 +38,30 @@ void UGlobalHUDSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UGlobalHUDSubsystem::Tick(float DeltaTime)
 {
+	// Manage reset color.
 	if (TimerBeforeResetingColor > 0)
 	{
 		TimerBeforeResetingColor -= DeltaTime;
 
 		if (TimerBeforeResetingColor >= 0.2f)
 		{
-			
 			TimerBeforeResetingColor = 0;
 		}
+	}
+
+	// Manage Mistake Render.
+	if (!CurrentMistakeMaterialInstance) return;
+
+	bool MistakeAnimationShouldBeUpdated = !FMath::IsNearlyEqual(CurrentMaterialRadius, TargetMaterialRadius, 0.001f) ||
+		  !FMath::IsNearlyEqual(CurrentMaterialThickness, TargetMaterialThickness, 0.001f);
+	
+	if (MistakeAnimationShouldBeUpdated)
+	{
+		CurrentMaterialThickness = FMath::FInterpTo(CurrentMaterialThickness, TargetMaterialThickness, DeltaTime, ThicknessInterpolationSpeed);
+		CurrentMaterialRadius = FMath::FInterpTo(CurrentMaterialRadius, TargetMaterialRadius, DeltaTime, RadiusInterpolationSpeed);
+
+		CurrentMistakeMaterialInstance->SetScalarParameterValue("Thickness", CurrentMaterialThickness);
+		CurrentMistakeMaterialInstance->SetScalarParameterValue("Radius", CurrentMaterialRadius);
 	}
 }
 
@@ -56,13 +73,16 @@ void UGlobalHUDSubsystem::DisplayResurrectionWidget()
 
 	APlayerController* PC = Cast<APlayerController>(GlobalGameSubsystem->PipouCharacters[0]->GetController());
 	if (!PC) return;
-	
+
 	WBPResurrectionInstance = CreateWidget<UResurrectionWidget>(PC, WBPResurrectionClass);
 	
 	if (WBPResurrectionInstance != nullptr)
 	{
 		WBPResurrectionInstance->AddToViewport();
 
+		// Manage Mistake PostProcess
+		InitMistakeMaterial();
+		
 		UCanvasPanelSlot* PartitionSlot = Cast<UCanvasPanelSlot>(WBPResurrectionInstance->PartitionBox->Slot);
 		if (!PartitionSlot) return;
 
@@ -71,18 +91,21 @@ void UGlobalHUDSubsystem::DisplayResurrectionWidget()
 
 		float MiddleOfPitchSliderPosX = SliderBoxSlot->GetPosition().X + (SliderBoxSlot->GetSize().X / 2);
 		float BoundsXMaxPartitionBox = PartitionSlot->GetSize().X;
-		// // How many of my slider I can put in the partition : 110 * 9,35px (result of PartitionSlot->GetSize().X / SliderSlot->GetSize().X).
-		// float PartitionInSliderRatio = PartitionSlot->GetSize().X / SliderBoxSlot->GetSize().X;
-		// // How many 9,35 are in my slider (110px) = 11,8. I can put 11,8 of 9,35 in my slider.
-		// float EffectiveSliderPartSize = (SliderBoxSlot->GetSize().X / MiddleOfPitchSliderPosX);
-		// // UiOffset is all the partition size minus the size of the slider for it to time for the qte when the note is the middle of the circle of the slider.
-		// UIOffset = PartitionInSliderRatio * (SliderBoxSlot->GetSize().X - EffectiveSliderPartSize);
 		UIOffset = (BoundsXMaxPartitionBox - MiddleOfPitchSliderPosX);
 	}
 }
 
 void UGlobalHUDSubsystem::RemoveResurrectionWidget()
 {
+	if (UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
+	{
+		FPostProcessSettings& CameraPostProcess = CameraWorldSubsystem->CameraMain->PostProcessSettings;
+		CameraPostProcess.RemoveBlendable(CurrentMistakeMaterialInstance);
+		CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(0.f);
+	}
+
+	CurrentMistakeMaterialInstance = nullptr;
+	
 	if (WBPResurrectionInstance != nullptr)
 	{
 		WBPResurrectionInstance->RemoveFromParent();
@@ -241,6 +264,8 @@ void UGlobalHUDSubsystem::Init()
 {
 	// Init Global Game Subsystem.
 	GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
+	// Init Myself in Global Game Subsystem
+	if (GlobalGameSubsystem) GlobalGameSubsystem->SetHUD(this);
 
 	// Init Subsystem Settings.
 	const USubsystemSettings* SubsystemSettings = GetDefault<USubsystemSettings>();
@@ -261,23 +286,40 @@ void UGlobalHUDSubsystem::Init()
 	WBPResurrectionClass = SubsystemSettings->WBPResurrectionClass;
 	WBPNoteClass = SubsystemSettings->WBPNoteClass;
 	WBPPartitionFinishClass = SubsystemSettings->WBPPartitionFinishClass;
+	WBPPauseMenuClass = SubsystemSettings->WBPPauseMenuClass;
 
 	// Init HUD Data
 	HUDData = SubsystemSettings->HUDData.LoadSynchronous();
 
 	// init image from input
-	TextureFromNoteInput =
+	TextureFromNoteInput=
 	{
 		{ InputData->InputNoteY, HUDData->NoteUp },
 		{ InputData->InputNoteB, HUDData->NoteRight },
 		{ InputData->InputNoteA, HUDData->NoteDown },
 		{ InputData->InputNoteX, HUDData->NoteLeft },
 	};
+
+	BirdTextureFromNoteInput =
+	{
+		{ InputData->InputNoteY, HUDData->NoteUpInteraction },
+		{ InputData->InputNoteB, HUDData->NoteRightInteraction },
+		{ InputData->InputNoteA, HUDData->NoteDownInteraction },
+		{ InputData->InputNoteX, HUDData->NoteLeftInteraction },
+	};
+
+	// Init Material Instance
+	MistakeBaseMaterial = HUDData->MistakeMaterialInstance;
 }
 
 UTexture2D* UGlobalHUDSubsystem::GetImageTextureFromNoteInput(const UInputAction* NoteInput) const
 {
 	return TextureFromNoteInput[NoteInput];
+}
+
+UTexture2D* UGlobalHUDSubsystem::GetImageBirdTextureFromNoteInput(const UInputAction* NoteInput) const
+{
+	return BirdTextureFromNoteInput[NoteInput];
 }
 
 void UGlobalHUDSubsystem::SetMusicWorldSubsystem(UMusicWorldSubsystem* NewMusicSubsystem)
@@ -318,8 +360,8 @@ void UGlobalHUDSubsystem::Internal_SetImageColor(UImage* CurrentImage, FLinearCo
 	}
 }
 
-// --- UI WORLD ---
 
+// ---- UI WORLD ----
 void UGlobalHUDSubsystem::SetWidgetVisibility(UUserWidget* Widget, bool Visibility)
 {
 	if (Visibility)
@@ -328,75 +370,141 @@ void UGlobalHUDSubsystem::SetWidgetVisibility(UUserWidget* Widget, bool Visibili
 		Widget->SetVisibility(ESlateVisibility::Hidden);
 }
 
-void UGlobalHUDSubsystem::FindSkeletonInteractionWidget()
+void UGlobalHUDSubsystem::ValideWidget()
 {
-	TArray<AActor*> SkeletonInteractionWidgetIn;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), "SkeletonInteractionWidget",SkeletonInteractionWidgetIn);
+	BirdWidget->ToucheV();
+}
+
+void UGlobalHUDSubsystem::FolseWidget()
+{
+	BirdWidget->ToucheF();
+}
+
+void UGlobalHUDSubsystem::RemoveBirdWidget()
+{
+	BirdWidget->RemoveWidget();
+}
+
+
+// ---- MISTAKE POST PROCESS ---- 
+void UGlobalHUDSubsystem::InitMistakeMaterial()
+{
+	if (!MistakeBaseMaterial) return;
 	
-	if (SkeletonInteractionWidgetIn.Num() > 0)
+	if (UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
 	{
-		SkeletonInteractionWidgetActor = SkeletonInteractionWidgetIn[0];
-		if (!SkeletonInteractionWidgetActor)
-			UE_LOG(LogTemp, Error, TEXT("SkeletonInteractionWidgetActor is nullptr"));
+		FPostProcessSettings& CameraPostProcess = CameraWorldSubsystem->CameraMain->PostProcessSettings;
+		CurrentMistakeMaterialInstance = UMaterialInstanceDynamic::Create(MistakeBaseMaterial, this);
+
+		if (!CurrentMistakeMaterialInstance) return;
+
+		CameraPostProcess.AddBlendable(CurrentMistakeMaterialInstance, 1.f);
+		CameraWorldSubsystem->CameraMain->SetPostProcessBlendWeight(1.f);
 		
-		SkeletonInteractionWidgetComponent = SkeletonInteractionWidgetActor->FindComponentByClass<UWidgetComponent>();
-		if (!SkeletonInteractionWidgetComponent)
-			UE_LOG(LogTemp, Error, TEXT("SkeletonInteractionWidgetComponent is nullptr"));
-		
-		SkeletonInteractionWidget =  Cast<USkeletonInteractionWidget>(SkeletonInteractionWidgetComponent->GetWidget());
-		if (!SkeletonInteractionWidget)
-		{
-			UE_LOG(LogTemp, Error, TEXT("SkeletonInteractionWidget is nullptr"));
-		}
-		else
-		{
-			ResetSkeletonInteractionWidget();
-		}
+		ResetMistakeEffect();
 	}
 }
 
-TObjectPtr<UWidgetComponent> UGlobalHUDSubsystem::GetSkeletonInteractionWidgetComponent() const
+void UGlobalHUDSubsystem::ApplyMistakeIncrease(int CurrentFail, int MaxFail)
 {
-	return SkeletonInteractionWidgetComponent;
+	if (!CurrentMistakeMaterialInstance) return;
+
+	float FailRatio = 1.f - (CurrentFail / MaxFail); 
+
+	TargetMaterialRadius = FMath::Lerp(MinRadius, MaxRadius, FailRatio);
+	TargetMaterialThickness = FMath::Lerp(MinThickness, MaxThickness, FailRatio);
+}
+
+void UGlobalHUDSubsystem::ResetMistakeEffect()
+{
+	TargetMaterialRadius = MaxRadius;
+	TargetMaterialThickness = MinThickness;
+}
+
+void UGlobalHUDSubsystem::ForceMistakeCollapse()
+{
+	TargetMaterialRadius = MinRadius;
+	TargetMaterialThickness = MaxThickness;
+
+	FTimerHandle WaitBeforeGoingBackToUnCollapse;
+	GetWorld()->GetTimerManager().ClearTimer(WaitBeforeGoingBackToUnCollapse);
+
+	GetWorld()->GetTimerManager().SetTimer(
+		WaitBeforeGoingBackToUnCollapse, [this]()
+		{
+			SetMistakeToZero();
+		},
+		1.f,
+		false
+		);
+}
+
+void UGlobalHUDSubsystem::SetMistakeToZero()
+{
+	TargetMaterialRadius = 3.f;
+	TargetMaterialThickness = 0.f;
 }
 
 
-void UGlobalHUDSubsystem::CallSkeletonInteractionWidget()
+void UGlobalHUDSubsystem::InitBirdWidget(ABird* Bird)
 {
-	FVector Tot;
-	TArray<APipouCharacter*> Characters = GlobalGameSubsystem->PipouCharacters;
-	
-	for (auto Target : Characters)
-	{
-		Tot += Target->GetActorLocation();
-	}
-	FVector Moy = Tot/Characters.Num();
-
-	SkeletonInteractionWidgetActor->SetActorLocation(Moy);
-	
-	// For now hide all image not widget
-	//SetWidgetVisibility(SkeletonInteractionWidget, true);
-	
+	BirdWidget = Cast<UBirdWidget>(Bird->FindComponentByClass<UWidgetComponent>()->GetWidget());
 }
 
-void UGlobalHUDSubsystem::ResetSkeletonInteractionWidget()
+void UGlobalHUDSubsystem::ResetBirdWidget()
 {
-	for (auto Image : SkeletonInteractionWidget->Images)
+	for (auto Image : BirdWidget->Images)
 	{
 		Image->SetVisibility(ESlateVisibility::Hidden);
 	}
-	
 }
 
 void UGlobalHUDSubsystem::DisplayNotesForSkeletonInteraction(const UInputAction* InputAction)
 {
-	int index = GlobalGameSubsystem->InputPressed.Num() - 1;
+	if (!GlobalGameSubsystem || !BirdWidget) return;
+
+	// Récupérer l’index en le clampant
+	const int32 MaxIndex = BirdWidget->Images.Num() - 1;
+	int32 Index = FMath::Clamp(GlobalGameSubsystem->InputPressed.Num() - 1, 0, MaxIndex);
+
+	// Récupérer l'image
+	if (UTexture2D* Text = GetImageBirdTextureFromNoteInput(InputAction))
+	{
+		BirdWidget->Images[Index]->SetBrushFromTexture(Text);
+	}
+
+	// Couleur (pleine opacité)
+	BirdWidget->Images[Index]->SetColorAndOpacity(FLinearColor::White);
 	
-	// set image
-	UTexture2D* Text = GetImageTextureFromNoteInput(InputAction);
-	SkeletonInteractionWidget->Images[index]->SetBrushFromTexture(Text);
 
-	// display
-	SkeletonInteractionWidget->Images[index]->SetVisibility(ESlateVisibility::Visible);
-
+	// Afficher l'image
+	// BirdWidget->Images[Index]->SetVisibility(ESlateVisibility::Visible);
+	
+	
 }
+
+// ---- UTILITIES ----
+void UGlobalHUDSubsystem::DisplayPauseMenu()
+{
+	if (!WBPPauseMenuClass) return;
+
+	APlayerController* PC = Cast<APlayerController>(GlobalGameSubsystem->PipouCharacters[0]->GetController());
+	if (!PC) return;
+	
+	WBPPauseMenuInstance = CreateWidget<UUserWidget>(PC, WBPPauseMenuClass);
+	if (!WBPPauseMenuInstance) return;
+
+	WBPPauseMenuInstance->AddToViewport();
+}
+
+void UGlobalHUDSubsystem::RemovePauseMenu()
+{
+	if (WBPPauseMenuInstance != nullptr)
+	{
+		WBPPauseMenuInstance->RemoveFromParent();
+		WBPPauseMenuInstance = nullptr;
+	}
+}
+
+
+

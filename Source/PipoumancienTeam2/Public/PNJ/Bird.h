@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "Bird.generated.h"
 
+class UImage;
 class UBirdWidget;
 class ASkeletonController;
 class UWidgetComponent;
@@ -21,6 +22,11 @@ public:
 	ABird();
 
 	void SetWidgetVisibility(bool Visibility);
+	
+	void SetMyNotes() ; // update bird notes
+
+	void SetWidgetINVisible();
+
 	
 
 protected:
@@ -39,8 +45,15 @@ private :
 	// --- UI ---
 	UPROPERTY()
 	UBirdWidget* BirdWidget;
+
+	// --- SOUNDS ---
 	
-	void SetMyNotes() const; // update bird notes 
+	// Map Sound From Image
+	UPROPERTY()
+	TMap<TObjectPtr<UTexture2D>, TObjectPtr<USoundBase>> SoundFromImage;
+	
+	TObjectPtr<USoundBase> GetSoundFromImage(const UTexture2D* Texture);
+	void PlaySound(const UTexture2D* Texture);
 
 	// --- UTILITES ---
 	UPROPERTY()

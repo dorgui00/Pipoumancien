@@ -14,9 +14,31 @@
 #include "Tools/Slider/NoteMapping.h"
 #include "UI/GlobalHUDSubsystem.h"
 
+
+void UGlobalGameSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+
+	Init();
+}
+
+void UGlobalGameSubsystem::Init()
+{
+	GlobalHUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
+	if (!GlobalHUDSubsystem)
+		UE_LOG(LogTemp, Error, TEXT("Global HUD Subsystem is null"))
+}
+
 // void UGlobalGameSubsystem::Tick(float DeltaTime)
 // {
 // }
+
+// Called In HUD
+void UGlobalGameSubsystem::SetHUD(TObjectPtr<UGlobalHUDSubsystem> HUDSubsystem)
+{
+	GlobalHUDSubsystem =  HUDSubsystem;
+}
+
 
 // to call in init pipou chara
 void UGlobalGameSubsystem::SetCharacters(APipouCharacter* Character)
@@ -39,42 +61,129 @@ void UGlobalGameSubsystem::SetCurrentSkeleton(ASkeletonController* Skeleton)
 void UGlobalGameSubsystem::SetBird(ABird* InBird)
 {
 	Bird = InBird;
+	
+	GlobalHUDSubsystem->InitBirdWidget(Bird);
+}
+
+ABird* UGlobalGameSubsystem::GetBird()
+{
+	return Bird;
 }
 
 
 // Music
 void UGlobalGameSubsystem::AddNoteForSkeletonInteraction(UInputAction* InputAction)
 {
-	// HUD 
-	UGlobalHUDSubsystem* GlobalHUDSubsystemIn = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
 
-	// First Note
-	if (InputPressed.Num() == 0)
-	{
-		GlobalHUDSubsystemIn->CallSkeletonInteractionWidget();
-	}
-
+	// TO EDIT
+	//// First Note
+	// if (InputPressed.Num() == 0)
+	// {
+	// 	GlobalHUDSubsystemIn->CallSkeletonInteractionWidget();
+	// }
+	
+if (IsTouch)
+{
 	// Add Notes
 	InputPressed.Add(InputAction);
-	GlobalHUDSubsystemIn->DisplayNotesForSkeletonInteraction(InputAction);
-
-	// Compare notes
+	GlobalHUDSubsystem->DisplayNotesForSkeletonInteraction(InputAction);
+	
 	if (InputPressed.Num() >= SkeletonNotesToCheck)
 	{
+		IsTouch = false;
 		if (HasValidFirstNotes())
 		{
-			SetWorldMusicState();
-		}
+			//GlobalHUDSubsystemIn->ValideWidget();
+			//FTimerHandle TimerHandle;
+			//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this,
+			//&UGlobalGameSubsystem::SetWorldMusicState,
+			//3.f, false);
+			//SetWorldMusicState();
+			//Bird->SetWidgetINVisible();
 
+			GlobalHUDSubsystem->ValideWidget();
+			SetWorldMusicState();
+			ResetInputsArray();
+
+			FTimerHandle TimerHandle;
+			 GetWorld()->GetTimerManager().SetTimer(
+			 	TimerHandle,
+			 	[this]()
+			 	{
+			 		//Bird->SetWidgetINVisible();
+					IsTouch = true;
+			 	},
+			 	2.f,
+			 	false
+			 );
+		}
+		else
+		{
+
+			FTimerHandle DelayHandle;
+			GetWorld()->GetTimerManager().SetTimer(
+				DelayHandle,
+				FTimerDelegate::CreateLambda([this]()
+				{
+					// 1️⃣ FolseWidget() après 2 secondes
+					GlobalHUDSubsystem->FolseWidget();
+
+					// 2️⃣ Ensuite le reste du code
+					ResetInputsArray();
+
+					
+
+					GlobalHUDSubsystem->RemoveBirdWidget();
+					
+
+				}),
+				1.0f,  // délai AVANT FolseWidget
+				false
+				);
+			
+			FTimerHandle delayHandle;
+		GetWorld()->GetTimerManager().SetTimer(
+		   		delayHandle,
+		   		FTimerDelegate::CreateLambda([this]()
+			{
+		   			if (Bird)
+		   			{
+						   Bird->SetMyNotes();
+		   			}
+					IsTouch = true;
+				}),
+				4.5f,  // délai AVANT FolseWidget
+				false
+				);
+		}
+	
+}
+
+		// --- RESET ---
 		// Reset 3 Notes
-		ResetInputsArray();
+		//ResetInputsArray();
 		
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, GlobalHUDSubsystemIn,
-			&UGlobalHUDSubsystem::ResetSkeletonInteractionWidget,
-			1.f, false);
+		
+		// Reset UI
+		//FTimerHandle TimerHandle;
+		//GetWorld()->GetTimerManager().SetTimer(TimerHandle, GlobalHUDSubsystemIn,
+		//	&UGlobalHUDSubsystem::RimouveWidget(),
+		//	1.f, false);
+
+		//GetWorld()->GetTimerManager().SetTimer(TimerHandle,FTimerDelegate::CreateLambda([this]()
+	//{
+		// Code exécuté après 5s
+		//Bird->SetMyNotes();
+	//}),
+	//2.0f,
+	//false
+//);
+		//GlobalHUDSubsystemIn->RemoveBirdWidget();
+		
 	}
 }
+
+
 
 bool UGlobalGameSubsystem::HasValidFirstNotes()
 {
@@ -101,7 +210,7 @@ void UGlobalGameSubsystem::ResetInputsArray()
 }
 
 // Check If Anybody Still Overlaps The Current Skeleton
-bool UGlobalGameSubsystem::PlayersOverlapSameSkeleton()
+bool UGlobalGameSubsystem::ArePlayersOverlapingSameSkeleton()
 {
 	// secu
 	if (PipouCharacters.Num() == 0 )
@@ -113,6 +222,9 @@ bool UGlobalGameSubsystem::PlayersOverlapSameSkeleton()
 	// first player doesn't overlap a skeleton => cancel checking
 	if (!CurrentSkeletonIn) return false;
 
+	// For music interaction
+	if (CurrentSkeletonIn->GetState()!=ESkeletonState::Dead) return false;
+
 	for (auto Character : PipouCharacters)
 	{
 		// doesn't overlap the same skel
@@ -120,28 +232,47 @@ bool UGlobalGameSubsystem::PlayersOverlapSameSkeleton()
 			return false;
 	}
 	
-	// ---- PLAYERS OVERLAP SAME SKELETON ----
-	UE_LOG(LogTemp, Display, TEXT("Players are Overlapping the same skeleton"));
-	SetCurrentSkeleton(CurrentSkeletonIn);
-
-	// feedbacks
-	Bird->SetWidgetVisibility(true);
-	
 	return true;
+}
+
+void UGlobalGameSubsystem::StartOverlapSameSkeleton(ASkeletonController* NewSkeleton)
+{
+	// ---- DEBUG ----
+	//UE_LOG(LogTemp, Display, TEXT("Players are Overlapping the same skeleton"));
+	
+	// ---- PLAYERS OVERLAP SAME SKELETON ----
+	SetCurrentSkeleton(NewSkeleton);
+
+	// ---- GAMEPLAY ----
+	// Activate Bird
+	Bird->SetWidgetVisibility(true);
+
+	// ---- FEEDBACKS ----
+	// Camera
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SkeletonInteractionZoom(true);
+
 }
 
 void UGlobalGameSubsystem::CancelOverlapSameSkeleton()
 {
+	//  ---- PLAYERS DOESN'T OVERLAP SAME SKELETON ----
 	SetCurrentSkeleton(nullptr);
 
-	// FEEDBACKS
+	// ---- GAMEPLAY ----
+	
+	// Deactivate Bird
+	ResetInputsArray();
 	Bird->SetWidgetVisibility(false);
+
+	// ---- FEEDBACKS ----
+	// Camera
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SkeletonInteractionZoom(false);
 }
+
 
 void UGlobalGameSubsystem::SetLostMelody()
 {
-	UGlobalHUDSubsystem* HUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
-	HUDSubsystem->RemovePartitionFinish();
+	GlobalHUDSubsystem->RemovePartitionFinish();
 
 	SetWorldFreeState();
 
@@ -168,16 +299,13 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 	}
 
 	// CAMERA
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetMusicCamera() ;
-	
-	UGlobalHUDSubsystem* HUDSubsystem = GetGameInstance()->GetSubsystem<UGlobalHUDSubsystem>();
-	if (!HUDSubsystem) return;
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetMusicCamera(CurrentSkeleton) ;
 
 	// VISUELS
 	Bird->SetWidgetVisibility(false);
 	
 	// Display UI
-	HUDSubsystem->DisplayResurrectionWidget();
+	GlobalHUDSubsystem->DisplayResurrectionWidget();
 	
 	GetWorld()->GetSubsystem<UMusicWorldSubsystem>()->InitMusic(CurrentSkeleton);
 }
@@ -232,6 +360,9 @@ void UGlobalGameSubsystem::SetWorldDialogueState(APipouCharacter* Interactor, AS
 	//Open dialogue
 	Speaker->OpenDialogue();
 }
+
+
+
 
 
 

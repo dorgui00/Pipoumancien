@@ -8,6 +8,7 @@
 #include "Game/GlobalGameSubsystem.h"
 #include "PNJ/AC_SkeletonFollower.h"
 #include "UI/UIDialoge.h"
+#include "UI/UI_Merci.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimationAsset.h"
 #include "BP/Fog.h"
@@ -15,7 +16,8 @@
 #include "Components/AudioComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "DrawDebugHelpers.h"
-
+#include "MyAnimNotify_PlayCleanseOnce.h"
+#include "Data/FSkeletonVisuals.h"
 
 
 // Sets default values
@@ -31,9 +33,15 @@ ASkeletonController::ASkeletonController()
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	SphereComponent->SetupAttachment(RootComponent);
 	SphereComponent->SetSphereRadius(500);
+
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
+	WidgetComponent->SetupAttachment(RootComponent);
 	
-	//SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ASkeletonController::ASkeletonController::BeginOverlaps);
-	//SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ASkeletonController::EndOverlaps);
+	WidgetComponentMerci = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponentMerci"));
+	WidgetComponentMerci->SetupAttachment(RootComponent);
+	
+	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ASkeletonController::ASkeletonController::BeginOverlaps);
+	SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ASkeletonController::EndOverlaps);
 
 	//HUD
 	PlayerWidgetClass = nullptr;
@@ -48,6 +56,8 @@ ASkeletonController::~ASkeletonController()
 		FollowComponent->OnEnterVillage.RemoveDynamic(this, &ASkeletonController::OnEnterVillage);
 		FollowComponent->OnReachHome.RemoveDynamic(this, &ASkeletonController::OnReachHome);
 	}
+
+	
 }
 
 // Called when the game starts or when spawned
@@ -55,24 +65,42 @@ void ASkeletonController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	MySkeleton = GetGameInstance()->GetSubsystem<UGlobalDataTableSubsystem>()->GetSkeletonByID(ID);
+	// ---- SET MYSELF ----
+	WidgetComponentMerci->SetVisibility(false);
+	WidgetComponent->SetVisibility(false);
 
-	//ANIM
+	MySkeleton = GetGameInstance()->GetSubsystem<UGlobalDataTableSubsystem>()->GetSkeletonByID(ID);
+	
+	// Mesh
 	if (!TargetMesh)
 	{
 		TargetMesh = FindComponentByClass<USkeletalMeshComponent>();
 	}
+	
+	InitMyVisuals();
 
+	// Anims
 	// Start with idle if we have it
-	if (TargetMesh && IdleAnimation)
-	{
-		TargetMesh->PlayAnimation(IdleAnimation, true);
-	}
+	// if (TargetMesh && IdleAnimation)
+	// {
+	// 	TargetMesh->PlayAnimation(IdleAnimation, true);
+	// }
 
 	LastLocation = GetActorLocation();
 	bHasLastLocation = true;
 	bWasMoving = false;
 	bWasFollowing = false;
+
+	// UI
+	WidgetComponent->SetVisibility(false);
+}
+
+void ASkeletonController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	
+	SphereComponent->OnComponentBeginOverlap.RemoveDynamic(this, &ASkeletonController::BeginOverlaps);
+	SphereComponent->OnComponentEndOverlap.RemoveDynamic(this, &ASkeletonController::EndOverlaps);
 }
 
 // Called every frame
@@ -86,12 +114,29 @@ void ASkeletonController::Tick(float DeltaTime)
 
 void ASkeletonController::BeginOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	
+	if (OtherActor->IsA(APipouCharacter::StaticClass()))
+	{
+		if (MyState == ESkeletonState::Dialogue)
+		{
+			InterationDialogue();
+		}
+	}
 }
 
-void ASkeletonController::EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void ASkeletonController::EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	if (OtherActor->IsA(APipouCharacter::StaticClass()))
+	{
+		if (MyState == ESkeletonState::Dialogue)
+		{
+			WidgetComponent->SetVisibility(false);
+		}
+	}
+}
+
+F_Skeleton ASkeletonController::GetMyData() const
+{
+	return *MySkeleton;
 }
 
 // STATE
@@ -117,15 +162,37 @@ void ASkeletonController::SetSkeletonForTransport()
 
 }
 
+
 void ASkeletonController::OnEnterVillage()
 {
 	FogDilet();
+
 	// MY STATE
 	MyState = ESkeletonState::BackToHome;
 
 	// WORLD STATE : Free
-	if (UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>())
+	if (UGlobalGameSubsystem* GlobalGameSubsystem =
+		GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>())
+	{
 		GlobalGameSubsystem->SetWorldFreeState();
+	}
+
+	// Création du widget
+	if (PlayerWidgetMerciClass)
+	{
+		PlayerWidgetMerci = CreateWidget<UUIMerci>(GetWorld(), PlayerWidgetMerciClass);
+
+		if (PlayerWidgetMerci)
+		{
+			PlayerWidgetMerci->SetMerci(MySkeleton);
+
+			if (WidgetComponentMerci)
+			{
+				WidgetComponentMerci->SetWidget(PlayerWidgetMerci);
+				WidgetComponentMerci->SetVisibility(true);
+			}
+		}
+	}
 }
 
 
@@ -142,6 +209,7 @@ void ASkeletonController::OnReachHome()
 
 void ASkeletonController::OpenDialogue()
 {
+	WidgetComponent->SetVisibility(false);
 	PlayerWidget = CreateWidget<UUIDialoge>(GetWorld(), PlayerWidgetClass);
 	PlayerWidget->SetDialogue(MySkeleton,ValutFrase);
 	if (ValutFrase == 0)
@@ -150,11 +218,26 @@ void ASkeletonController::OpenDialogue()
 	}
 }
 
+void ASkeletonController::InterationDialogue()
+{
+	if (!WidgetComponent->IsVisible())
+	{
+		WidgetComponent->SetVisibility(false);			
+	}
+}
+
+void ASkeletonController::InterationDialoguenOFF()
+{
+		WidgetComponent->SetVisibility(false);
+}
+
+
 //ANIMATION
 
 void ASkeletonController::UpdateAnimation(float DeltaTime)
 {
 	// no mesh, no animation / footsteps
+	 
 	if (!TargetMesh)
 	{
 		TargetMesh = FindComponentByClass<USkeletalMeshComponent>();
@@ -268,9 +351,6 @@ void ASkeletonController::UpdateAnimation(float DeltaTime)
 	LastLocation = CurrentLocation;
 }
 
-
-//ANIMATIONS
-
 void ASkeletonController::FogDilet()
 {
 	for (AFog* Fog : FogList)
@@ -280,6 +360,38 @@ void ASkeletonController::FogDilet()
 			Fog->SupprimerFog(MySkeleton);  // Appel sur chaque élément
 		}
 	}
+}
+
+void ASkeletonController::InitMyVisuals()
+{
+	if (!MySkeleton) return;
+	if (!MySkeleton->SkeletonVisuals.Mesh) return;
+	
+	 // -- MESH --
+	TargetMesh->SetSkeletalMeshAsset(MySkeleton->SkeletonVisuals.Mesh) ;
+
+	// -- ANIMS --
+	
+	//wake
+	// WakeAnimation = MySkeleton->SkeletonVisuals.WakeAnim;
+	// if (!WakeAnimation)
+	// 	UE_LOG(LogTemp,Error,TEXT("Wake Anim is null"));
+	//
+	// // transport
+	// IdleAnimation = MySkeleton->SkeletonVisuals.IdleAnim;
+	// if (!IdleAnimation)
+	// 	UE_LOG(LogTemp,Error,TEXT("Idle Anim is null"));
+	//
+	// WalkAnimation = MySkeleton->SkeletonVisuals.WalkAnim;
+	// if (!WalkAnimation)
+	// 	UE_LOG(LogTemp,Error,TEXT("Walk Anim is null"));
+	//
+	// WaitAnimation = MySkeleton->SkeletonVisuals.WaitAnim;
+	// if (!WaitAnimation)
+	// {
+	// 	UE_LOG(LogTemp,Warning,TEXT("Wait Anim is null"));
+	// 	if (IdleAnimation) WaitAnimation = IdleAnimation;
+	// }
 }
 
 void ASkeletonController::PlayIdle()
@@ -305,6 +417,33 @@ void ASkeletonController::PlayWait()
 		TargetMesh->PlayAnimation(WaitAnimation, true);
 	}
 }
+
+//NIAGARA SFX
+
+void ASkeletonController::StartCleanseWindow()
+{
+	if (bCleanseFXPlayed)
+		return;
+
+	bCleanseWindowActive = true;
+
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().SetTimer(
+			CleanseWindowTimerHandle,
+			this,
+			&ASkeletonController::EndCleanseWindow,
+			CleanseWindowDuration,
+			false
+		);
+	}
+}
+
+void ASkeletonController::EndCleanseWindow()
+{
+	bCleanseWindowActive = false;
+}
+
 
 // ------------------ //
 
@@ -338,5 +477,36 @@ void ASkeletonController::PlayFootstepsSound(UPhysicalMaterial* PhysMat)
 	AudioComp->SetIntParameter(TEXT("SurfaceType"), SurfaceIndex);
 }
 
+//get set go
 
+void ASkeletonController::SetFollowerSplineFollowSpeed(float NewSpeed)
+{
+	if (!FollowComponent)
+	{
+		FollowComponent = FindComponentByClass<UAC_SkeletonFollower>();
+	}
 
+	if (FollowComponent)
+	{
+		FollowComponent->SetSplineFollowSpeed(NewSpeed);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[SkeletonController] where is skeli controller? not here"));
+	}
+}
+
+float ASkeletonController::GetFollowerSplineFollowSpeed() const
+{
+	if (FollowComponent)
+	{
+		return FollowComponent->GetSplineFollowSpeed();
+	}
+
+	if (const UAC_SkeletonFollower* Found = FindComponentByClass<UAC_SkeletonFollower>())
+	{
+		return Found->GetSplineFollowSpeed();
+	}
+
+	return 0.f;
+}

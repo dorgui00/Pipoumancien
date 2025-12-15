@@ -30,4 +30,7 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UInputAction> InputNoteY;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UInputAction> InputPause;
 };

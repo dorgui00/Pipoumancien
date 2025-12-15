@@ -3,6 +3,8 @@
 #include "Character/PipouCharacterStateMachine.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
 #include "Camera/CameraComponent.h"
 #include "Camera/CameraVisibleTarget.h"
 #include "Character/PipouCharacterInputData.h"
@@ -16,16 +18,20 @@
 #include "Interaction/Interact.h"
 #include "Kismet/GameplayStatics.h"
 #include "Music/MusicWorldSubsystem.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "PNJ/SkeletonController.h"
+#include "UI/GlobalHUDSubsystem.h"
 
 #pragma region Default Constructors
 APipouCharacter::APipouCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	// COLLIDER
 	InteractionCollider = CreateDefaultSubobject<USphereComponent>(TEXT("InteractColl"));
 	InteractionCollider->InitSphereRadius(100.0f);
 	InteractionCollider->SetupAttachment(GetRootComponent());
+
 }
 
 APipouCharacter::~APipouCharacter()
@@ -169,11 +175,31 @@ void APipouCharacter::BindInputMoveAndActions(UEnhancedInputComponent* EnhancedI
 		EnhancedInputComponent->BindAction(InputData->InputActionMoveXY, ETriggerEvent::Triggered, this, &APipouCharacter::OnInputMoveXY);
 		EnhancedInputComponent->BindAction(InputData->InputActionMoveXY, ETriggerEvent::Completed, this, &APipouCharacter::OnInputMoveXY);
 	}
+
+	if (InputData->InputPause)
+	{
+		EnhancedInputComponent->BindAction(InputData->InputPause, ETriggerEvent::Started, this, &APipouCharacter::OnInputPause);
+	}
 }
 
 void APipouCharacter::OnInputMoveXY(const FInputActionValue& InputActionValue)
 {
 	InputMoveXY = InputActionValue.Get<FVector2D>();
+}
+
+void APipouCharacter::OnInputPause(const FInputActionValue& InputActionValue)
+{
+	if (UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>())
+	{
+		if (!HUDSubsystem->WBPPauseMenuInstance)
+		{
+			HUDSubsystem->DisplayPauseMenu();
+		}
+		else
+		{
+			HUDSubsystem->RemovePauseMenu();
+		}
+	}
 }
 
 #pragma endregion
@@ -410,16 +436,16 @@ void APipouCharacter::OnComponentEndOverlap(UPrimitiveComponent* OverlappedCompo
 		UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
 		if (GlobalGameSubsystem->GetWorldState()==EWorldState::WorldTransport) return;
 
-		// Camera
-		if (GlobalGameSubsystem->PlayersOverlapSameSkeleton())
-			GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->Dezoom(200);
+		// -- SKELETON INTERACTION FOR MUSIC --
 		
 		// delete current skeleton for myself
 		OverlapSkeleton = nullptr;
 		
 		// delete current skeleton for everyone
 		GlobalGameSubsystem->CancelOverlapSameSkeleton();
-		UE_LOG(LogTemp, Display, TEXT("End Overlap Skeleton"));
+
+		// ---- DEBUG ----
+		//UE_LOG(LogTemp, Display, TEXT("End Overlap Skeleton"));
 	}
 }
 
@@ -441,16 +467,11 @@ void APipouCharacter::InteractWithSkeleton(ASkeletonController& SkeletonControll
 		if (SkeletonController.GetState() == ESkeletonState::Dead)
 		{
 			//not everyone overlaps the same skel
-			if (!GlobalGameSubsystem->PlayersOverlapSameSkeleton()) return;
-
+			if (!GlobalGameSubsystem->ArePlayersOverlapingSameSkeleton()) return;
+			
 			// -- OVERLAP SAME SKELETON --
-			GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->Zoom(200);
-
-			// for (int i = 0; i < 3; ++i)
-			// {
-			// 	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
-			// 	FString::Printf(TEXT("INPUT : %s"), *GlobalGameSubsystem->GetCurrentSkeleton()->MySkeleton->Notes[i].InputAction->GetName()), true, FVector2D(2, 2));
-			// }
+			GlobalGameSubsystem->StartOverlapSameSkeleton(&SkeletonController);
+			
 		}
 	}
 }

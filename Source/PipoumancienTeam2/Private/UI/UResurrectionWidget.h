@@ -6,6 +6,8 @@
 #include "Blueprint/UserWidget.h"
 #include "UResurrectionWidget.generated.h"
 
+class UNiagaraSystemWidget;
+class UCanvasPanelSlot;
 class UCanvasPanel;
 class UImage;
 class USlider;
@@ -41,7 +43,7 @@ public:
 	UImage* GetFeedbackPosFromInputPitch(float InputPitch);
 
 	
-	// ---- SLIDE MUSIC ----
+	// ---- SLIDER MUSIC ----
 	UPROPERTY(meta = (BindWidget))
 	UCanvasPanel* SliderBox;
 	
@@ -56,7 +58,7 @@ public:
 
 	void SetSliderPitch(float NewPitch);
 
-
+	
 	// ---- NOTES SPAWN POINTS ----
 	UPROPERTY(meta = (BindWidget))
 	UCanvasPanel* SlotSpawnPoints;
@@ -65,6 +67,19 @@ public:
 	TMap<float, UUserWidget*> SpawnPointFromInputPitch;
 
 	UUserWidget* GetSpawnPointFromInputPitch(float InputPitch);
+
+	// ---- SLIDER FAIL ANIMATION ----
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	TObjectPtr<UWidgetAnimation> SliderFail;
+
+	void PlaySliderFailAnimation(float PlaybackSpeed);
+	
+	// ---- ANIMATION POP UI ----
+	void SetWBPAlphaToZero();
+	
+	
+	// ---- FEEDBACK NIAGARA UI ----
+	UNiagaraSystemWidget* GetNiagaraSystemFromPitch(float InputPitch);
 	
 
 private:
@@ -99,5 +114,30 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UImage* NoteFeedBackFive;
+
+	// ---- FEEDBACK NIAGARA UI ----
+	UPROPERTY(meta = (BindWidget))
+	UNiagaraSystemWidget* NiagaraSystemWidgetOne;
+
+	UPROPERTY(meta = (BindWidget))
+	UNiagaraSystemWidget* NiagaraSystemWidgetTwo;
+
+	UPROPERTY(meta = (BindWidget))
+	UNiagaraSystemWidget* NiagaraSystemWidgetThree;
+
+	UPROPERTY()
+	UNiagaraSystemWidget* NiagaraSystemWidgetFour;
+
+	UPROPERTY(meta = (BindWidget))
+	UNiagaraSystemWidget* NiagaraSystemWidgetFive;
+
+	UPROPERTY()
+	TMap<float, UNiagaraSystemWidget*> NiagaraFeedbackFromPitch;
+	
+
+	// ---- ANIMATION POP UI ----
+	float TargetWBPAlpha = 0.f;
+	float CurrentWBPAlpha = 0.f;
+	float WBPAlphaInterpolation = 2.f;
 	
 };

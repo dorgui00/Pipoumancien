@@ -5,11 +5,9 @@
 #include "InputActionValue.h"
 #include "Character/PipouCharacter.h"
 #include "Character/PipouCharacterInputData.h"
-#include "Components/CanvasPanelSlot.h"
 #include "Data/F_Note.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
-#include "Logging/StructuredLog.h"
 #include "Music/MusicWorldSubsystem.h"
 #include "Sound/SoundCue.h"
 #include "UI/GlobalHUDSubsystem.h"
@@ -34,8 +32,14 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 	Character->InputPitchEvent.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);
 	Character->InputPitchCompleted.AddDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitchCompleted);
 
+	// --- FEEDBACKS ---
+	
 	// ANIMS
-	Character->GetMesh()->PlayAnimation(MusicAnim,true);
+	if (MusicAnim)
+		Character->GetMesh()->PlayAnimation(MusicAnim,true);
+
+	// Music  Particle System
+	Character->PlayMusicFeedbacks(true);
 }
 
 void UPipouCharacterStateMusic::StateTick(float Deltatime)
@@ -51,6 +55,9 @@ void UPipouCharacterStateMusic::StateExit(EPipouCharacterStateID NextStateID)
 	Character->InputTriggeredNoteEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPressedNote);
 	Character->InputPitchEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);
 	Character->InputPitchCompleted.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitchCompleted);
+
+	// Music  Particle System
+	Character->PlayMusicFeedbacks(false);
 }
 
 // Music
@@ -142,26 +149,47 @@ void UPipouCharacterStateMusic::OnCharacterPressedNote(UInputAction* InputAction
 {
 	if (CurrentRole == EPipouCharacterRoles::Musician)
 	{
-		if (MusicWorldSubsystem->GetIsAwatingReply() && MusicWorldSubsystem->GetCurrentWaitingNote()->InputAction == InputAction && !HasPressedNotes)
+		UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>();
+		if (!HUDSubsystem || !HUDSubsystem->WBPResurrectionInstance) return;
+		
+		if (MusicWorldSubsystem->GetIsAwatingReply() && MusicWorldSubsystem->GetCurrentWaitingNote()->InputAction == InputAction && !HasPressedNotes
+				&& (MusicWorldSubsystem->GetCurrentWaitingNote()->Pitch >= MusicWorldSubsystem->GetCurrentPitchCursorValue() - MusicWorldSubsystem->GetPitchTolerance()
+				&& MusicWorldSubsystem->GetCurrentWaitingNote()->Pitch <= MusicWorldSubsystem->GetCurrentPitchCursorValue() + MusicWorldSubsystem->GetPitchTolerance()))
 		{
 			HasPressedNotes = true;
 			MusicWorldSubsystem->ReceivedMusicianInput();
-			MusicWorldSubsystem->SetNoteFeedbackMusic(FLinearColor::Green);
-			
+
 			// Set invisibility for the notes.
 			MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->PlayValidationNote({50, 50}, 0);
-			// MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor(0.f, 0.f, 0.f,0.f));
+			MusicWorldSubsystem->SetBehindNoteFeedback(FLinearColor::Green, true);
 		}
 		else if (!MusicWorldSubsystem->GetIsAwatingReply() && !MusicWorldSubsystem->IsInCountDown && !HasPressedNotes)
 		{
 			HasPressedNotes = true;
-			
+
 			// Negative feedback
 			UGameplayStatics::PlaySound2D(GetWorld(), MusicWorldSubsystem->FailedNoteSound);
-			MusicWorldSubsystem->SetNoteFeedbackMusic(FLinearColor::Red);
+			MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->PlayFailNote();
+			MusicWorldSubsystem->SetBehindNoteFeedback(FLinearColor(0.208, 0.078, 0.588), false);
+			MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor(0.208, 0.078, 0.588));
 
+			HUDSubsystem->WBPResurrectionInstance->PlaySliderFailAnimation(2.f);
+
+			FTimerHandle TimeToSetNotBackToWhite;
+			GetWorld()->GetTimerManager().ClearTimer(TimeToSetNotBackToWhite);
+			
+			GetWorld()->GetTimerManager().SetTimer(
+				TimeToSetNotBackToWhite, [this]()
+				{
+					MusicWorldSubsystem->GetCurrentWaitingNoteWidget()->NoteImage->SetColorAndOpacity(FLinearColor::White);
+				},
+				0.2f,
+				false
+				);
+			
 			// FAILS
 			MusicWorldSubsystem->SetCurrentFailNotePossible(MusicWorldSubsystem->GetCurrentFailNotePossible() - 1);
+			HUDSubsystem->ApplyMistakeIncrease(MusicWorldSubsystem->GetCurrentFailNotePossible(), MusicWorldSubsystem->MaxFailNotePossible);
 
 			// Defeat
 			if (MusicWorldSubsystem->HasLostAllFaileNotePossible())

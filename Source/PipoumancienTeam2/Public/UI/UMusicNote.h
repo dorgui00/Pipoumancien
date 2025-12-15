@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "NiagaraSystem.h"
+#include "NiagaraSystemWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/Image.h"
 #include "UMusicNote.generated.h"
@@ -37,9 +39,10 @@ public:
 	UPROPERTY()
 	UCanvasPanelSlot* NoteImageSlot;
 
-	FVector2D NoteCurrentSize = {32, 32 };
-	FVector2D NoteTargetSize;
-	FVector2D NoteFinalSize;
+	// ---- VALIDATION NOTE FEEDBACK ----
+	FVector2D NoteCurrentValidationScale = {32, 32 };
+	FVector2D NoteTargetValidationScale;
+	FVector2D NoteValidationFinalScale;
 
 	float NoteImageCurrentOpacity = 1.f;
 	float NoteImageTargetOpacity;
@@ -47,13 +50,29 @@ public:
 	bool IsPlayingValidation = false;
 
 	UPROPERTY()
-	float InterpSpeedSize = 10.f;
+	float InterpValidationSpeedScale = 10.f;
 
 	UPROPERTY()
 	float InterpSpeedOpacity = 5.f;
 
 	void PlayValidationNote(FVector2D NewTargetSize, float NewOpacity);
 
+
+	// ---- FAIL NOTE FEEDBACK ----
+	float NoteCurrentRotation = 1;
+	float NoteTargetRotation = 0;
+	float InterpRotationSpeed = 50.f;
+	
+	FVector2D NoteCurrentFailScale = {50, 50 };
+	FVector2D NoteTargetFailScale;
+	float InterpFailScaleSpeed = 30.f;
+
+	bool IsPlayingFailAnimation = false;
+
+	void PlayFailNote();
+
+	
+	// ---- IMAGE NOTE ----
 	void SetNoteTexture(UTexture2D* NewTexture);
 
 
@@ -64,4 +83,18 @@ public:
 	UPROPERTY()
 	UCanvasPanelSlot* EndPoint;
 
+	// ---- NIAGARA FEEDBACK ----
+	// UPROPERTY(meta = (BindWidget))
+	// UNiagaraSystemWidget* UINiagaraSystem;
+	//
+	// UPROPERTY(meta = (BindWidget))
+	// UNiagaraSystemWidget* UINiagaraSystemFail;
+
+private:
+	// ---- VALIDATION NOTE FEEDBACK ----
+	void Internal_PlayValidationNote(float DeltaTime);
+
+	// ---- FAIL NOTE FEEDBACK ----
+	void Internal_PlayFailNote(float DeltaTime);
+	
 };

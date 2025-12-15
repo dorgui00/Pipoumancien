@@ -6,6 +6,8 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "MusicWorldSubsystem.generated.h"
 
+class UNiagaraSystem;
+class UHUDData;
 class UMusicNote;
 class ASkeletonController;
 class UGlobalHUDSubsystem;
@@ -43,9 +45,8 @@ public:
 
 	int GetCurrentWaitingNoteIndex() const;
 
-	int GetCurrentWaitingNoteIndexUI() const;
-	F_Note* GetCurrentWaitingNoteUI() const;
-
+	bool GetIsConductorOnPitch() const;	
+	
 	// Tell the Music Logic the player HAS pressed an input.
 	void ReceivedMusicianInput();
 	
@@ -60,8 +61,12 @@ public:
 	UPROPERTY()
 	float TimeTolerance = 0.2f;
 
+	float PitchAtMusicianInput = 0.5f;
+
 	float GetCurrentPitchCursorValue() const;
 	void SetCurrentPitchCursorValue(float NewPitchCursorValue);
+
+	float GetPitchTolerance() const;
 
 	// Return the status of IsAwaitingReplyVariable.
 	bool GetIsAwatingReply() const;
@@ -72,13 +77,12 @@ public:
 	// Called when the player performs an action too early or too late.
 	void LostQTE();
 	void LostMelody();
-	void SetNoteFeedbackMusic(FLinearColor NewColor) const;
+	void SetBehindNoteFeedback(FLinearColor NewColor, bool IsWinning);
 
 	// Fail Note possible -> Health Bar of the partition.
 	int GetCurrentFailNotePossible() const;
 	void SetCurrentFailNotePossible(float NewValue);
 	bool HasLostAllFaileNotePossible() const;
-	bool HasCurrentFailNoteReachMaximumValue() const;
 	
 	EMelodyType GetMelodyType() const;
 
@@ -103,13 +107,15 @@ private:
 	float TimerLerpingOffset = 0.f;
 	bool IsLerpingOffset = true;
 
-	UPROPERTY()
-	int CurrentWaitingNoteIndexUI = 0;
 	bool HasReachFrequency = false;
 	
+	int CurrentWaitingNoteIndexUI = 0;
+	int LastUIIndexReachedSlider = 0; 
+	
 	bool HasFinishedLerpingOffset() const;
+	void OnFinishLerpingOffset();
 
-	bool HasReachPitchSlider() const;
+	bool HasReachPitchSlider();
 
 	
 	// ---- MUSIC COUNTDOWN ---- 
@@ -160,9 +166,8 @@ private:
 	UPROPERTY()
 	int CurrentFailNotePossible;
 
-	void PlayMusic();
-
 	void IncreaseMusicTempo(float DeltaTime);
+	void IncreaseMusicTempoUI(float DeltaTime);
 
 	// Change the CurrentWaitingNoteIndex to go to the next note.
 	void GoNextNote();
@@ -182,6 +187,14 @@ private:
 	void SucceedMelody();
 	bool HasAchievedQte();
 
+
+	// ---- NIAGARA UI FEEDBACK ----
+	UPROPERTY()
+	UNiagaraSystem* WinFeedback;
+
+	UPROPERTY()
+	UNiagaraSystem* LoseFeedback;
+	
 	
 	// ---- UTILITIES ----
 	bool IsInWorldStateMusic = false;
@@ -191,6 +204,9 @@ private:
 
 	UPROPERTY()
 	UGlobalHUDSubsystem* GlobalHUDSubsystem;
+
+	UPROPERTY()
+	UHUDData* HUDData;
 
 	
 	// ---- SOUND ----
