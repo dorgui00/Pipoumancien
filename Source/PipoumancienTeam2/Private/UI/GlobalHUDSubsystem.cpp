@@ -259,7 +259,6 @@ float UGlobalHUDSubsystem::GetUIOffset() const
 }
 
 
-
 // ---- UTILITIES ----
 void UGlobalHUDSubsystem::Init()
 {

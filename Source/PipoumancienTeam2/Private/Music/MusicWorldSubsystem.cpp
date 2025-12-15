@@ -2,9 +2,13 @@
 
 
 #include "Music/MusicWorldSubsystem.h"
+
+#include "Blueprint/WidgetTree.h"
+#include "Components/CanvasPanelSlot.h"
 #include "Components/Slider.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
+#include "Data/HUDData.h"
 #include "Data/MusicGenericData.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
@@ -42,6 +46,9 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	TObjectPtr<UMusicGenericData> MusicGenericData = SubsystemSettings->MusicGenericData.LoadSynchronous();
 	if (!MusicGenericData) return;
 
+	// Init HUD Data
+	HUDData = SubsystemSettings->HUDData.LoadSynchronous();
+
 	// Initialize TimeTolerance.
 	TimeTolerance = MusicGenericData->TimeTolerance;
 
@@ -50,6 +57,11 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
 	// Initialize FailedNoteSound.
 	FailedNoteSound = MusicGenericData->FailedNoteSound;
+
+	// Init Feedback Niagara from HUDData
+	WinFeedback = HUDData->WinFeedback;
+	LoseFeedback = HUDData->LoseFeedback;
+	
 }
 
 void UMusicWorldSubsystem::Tick(float DeltaTime)
@@ -372,12 +384,30 @@ void UMusicWorldSubsystem::LostMelody()
 		);
 }
 
-void UMusicWorldSubsystem::SetBehindNoteFeedback(FLinearColor NewColor)
+void UMusicWorldSubsystem::SetBehindNoteFeedback(FLinearColor NewColor, bool IsWinning)
 {
 	UResurrectionWidget* ResurrectionWidget = GlobalHUDSubsystem->WBPResurrectionInstance;
 	if (!ResurrectionWidget) return;
 
+	if (IsWinning)
+	{
+		UNiagaraSystemWidget* WidgetNiagara = GlobalHUDSubsystem->WBPResurrectionInstance->GetNiagaraSystemFromPitch(CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Pitch);
+		if (!WidgetNiagara) return;
+
+		WidgetNiagara->UpdateNiagaraSystemReference(WinFeedback);
+		WidgetNiagara->ActivateSystem(true);
+	}
+	else
+	{
+		UNiagaraSystemWidget* WidgetNiagara = GlobalHUDSubsystem->WBPResurrectionInstance->GetNiagaraSystemFromPitch(CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Pitch);
+		if (!WidgetNiagara) return;
+
+		WidgetNiagara->UpdateNiagaraSystemReference(LoseFeedback);
+		WidgetNiagara->ActivateSystem(true);
+	}
+
 	UImage* CurrentNoteFeedback = ResurrectionWidget->GetFeedbackPosFromInputPitch(CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndexUI].Pitch);
+	if (!CurrentNoteFeedback) return;
 	GlobalHUDSubsystem->SetImageColor(CurrentNoteFeedback, NewColor);
 }
 
@@ -419,7 +449,7 @@ void UMusicWorldSubsystem::LostQTE()
 	if (!GetCurrentWaitingNoteWidget()) return;
 	
 	GetCurrentWaitingNoteWidget()->PlayFailNote();
-	SetBehindNoteFeedback(FLinearColor(0.208, 0.078, 0.588));
+	SetBehindNoteFeedback(FLinearColor(0.208, 0.078, 0.588), false);
 	
 	if (GetCurrentWaitingNoteWidget() != nullptr)
 	{
@@ -469,9 +499,7 @@ int UMusicWorldSubsystem::GetCurrentFailNotePossible() const
 
 void UMusicWorldSubsystem::SetCurrentFailNotePossible(float NewValue)
 {
-	UE_LOGFMT(LogTemp, Log, "Previous CurrentFailNotePossible: {0}", CurrentFailNotePossible);
 	CurrentFailNotePossible = NewValue;
-	UE_LOGFMT(LogTemp, Log, "After CurrentFailNotePossible: {0}", CurrentFailNotePossible);
 }
 
 bool UMusicWorldSubsystem::HasLostAllFaileNotePossible() const
