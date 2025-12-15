@@ -994,10 +994,10 @@ FVector UCameraWorldSubsystem::CalculateWorldPositionFromViewportPosition(const 
 bool UCameraWorldSubsystem::ShouldSkipCameraForThisMap() const
 {
 	const UWorld* World = GetWorld();
-	if (!World) return true; // no world = don't do anything
+	if (!World) return true;
 
-	// Remove PIE prefix so it matches your real map asset name.
-	const FString LevelName = UGameplayStatics::GetCurrentLevelName(World, /*bRemovePrefix=*/true);
+	const FString LevelName = UGameplayStatics::GetCurrentLevelName(World, true);
 
-	return LevelName.Equals(TEXT("CutsceneScene"), ESearchCase::IgnoreCase);
+	return LevelName.Equals(TEXT("CutsceneScene"), ESearchCase::IgnoreCase)
+		|| LevelName.Equals(TEXT("TrueMainMenu"), ESearchCase::IgnoreCase);
 }
