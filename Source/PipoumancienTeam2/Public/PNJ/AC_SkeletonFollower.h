@@ -31,7 +31,7 @@ public:
     USplineComponent* SplineToFollow = nullptr;
 
     // speed
-    UPROPERTY(EditAnywhere, Category = "Follow|Spline", meta = (ClampMin = "0"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Follow|Spline", meta = (ClampMin = "0"))
     float SplineFollowSpeed = 280.f;
 
     UPROPERTY(EditAnywhere, Category = "Follow|Spline")
