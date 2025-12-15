@@ -152,7 +152,7 @@ if (IsTouch)
 		   			}
 					IsTouch = true;
 				}),
-				5.0f,  // délai AVANT FolseWidget
+				4.5f,  // délai AVANT FolseWidget
 				false
 				);
 		}
@@ -210,7 +210,7 @@ void UGlobalGameSubsystem::ResetInputsArray()
 }
 
 // Check If Anybody Still Overlaps The Current Skeleton
-bool UGlobalGameSubsystem::PlayersOverlapSameSkeleton()
+bool UGlobalGameSubsystem::ArePlayersOverlapingSameSkeleton()
 {
 	// secu
 	if (PipouCharacters.Num() == 0 )
@@ -232,22 +232,41 @@ bool UGlobalGameSubsystem::PlayersOverlapSameSkeleton()
 			return false;
 	}
 	
-	// ---- PLAYERS OVERLAP SAME SKELETON ----
-	UE_LOG(LogTemp, Display, TEXT("Players are Overlapping the same skeleton"));
-	SetCurrentSkeleton(CurrentSkeletonIn);
-
-	// feedbacks
-	Bird->SetWidgetVisibility(true);
-	
 	return true;
+}
+
+void UGlobalGameSubsystem::StartOverlapSameSkeleton(ASkeletonController* NewSkeleton)
+{
+	// ---- DEBUG ----
+	//UE_LOG(LogTemp, Display, TEXT("Players are Overlapping the same skeleton"));
+	
+	// ---- PLAYERS OVERLAP SAME SKELETON ----
+	SetCurrentSkeleton(NewSkeleton);
+
+	// ---- GAMEPLAY ----
+	// Activate Bird
+	Bird->SetWidgetVisibility(true);
+
+	// ---- FEEDBACKS ----
+	// Camera
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SkeletonInteractionZoom(true);
+
 }
 
 void UGlobalGameSubsystem::CancelOverlapSameSkeleton()
 {
+	//  ---- PLAYERS DOESN'T OVERLAP SAME SKELETON ----
 	SetCurrentSkeleton(nullptr);
+
+	// ---- GAMEPLAY ----
+	
+	// Deactivate Bird
 	ResetInputsArray();
-	// FEEDBACKS
 	Bird->SetWidgetVisibility(false);
+
+	// ---- FEEDBACKS ----
+	// Camera
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SkeletonInteractionZoom(false);
 }
 
 
@@ -280,7 +299,7 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 	}
 
 	// CAMERA
-	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetMusicCamera() ;
+	GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->SetMusicCamera(CurrentSkeleton) ;
 
 	// VISUELS
 	Bird->SetWidgetVisibility(false);

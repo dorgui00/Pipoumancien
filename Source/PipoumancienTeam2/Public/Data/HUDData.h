@@ -40,7 +40,7 @@ public :
 	UPROPERTY(EditAnywhere, Category="Note Images Interaction")
 	UTexture2D* NoteLeftInteraction;
 
-	// UPROPERTY(EditAnywhere, Category="Material Mistake")
-	// UMaterialInterface* MistakeMaterialInstance;
+	UPROPERTY(EditAnywhere, Category="Material Mistake")
+	UMaterialInterface* MistakeMaterialInstance;
 	
 };

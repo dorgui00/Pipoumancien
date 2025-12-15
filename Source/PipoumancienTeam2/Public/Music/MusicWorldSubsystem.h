@@ -59,6 +59,8 @@ public:
 	UPROPERTY()
 	float TimeTolerance = 0.2f;
 
+	float PitchAtMusicianInput = 0.5f;
+
 	float GetCurrentPitchCursorValue() const;
 	void SetCurrentPitchCursorValue(float NewPitchCursorValue);
 

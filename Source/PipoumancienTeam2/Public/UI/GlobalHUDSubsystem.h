@@ -173,11 +173,11 @@ private:
 	TObjectPtr<USkeletonInteractionWidget> SkeletonInteractionWidget = nullptr;
 
 	TObjectPtr<UBirdWidget> BirdWidget = nullptr;
+
 	
 	// ---- MISTAKE POST PROCESS ----
-	// Mistake Renderer
-	// UPROPERTY()
-	// UMaterialInterface* MistakeMaterialInstance;
+	UPROPERTY()
+	UMaterialInterface* MistakeBaseMaterial;
 
 	UPROPERTY()
 	UMaterialInstanceDynamic* CurrentMistakeMaterialInstance;

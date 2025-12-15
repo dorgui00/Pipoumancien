@@ -7,6 +7,7 @@
 #include "Camera/FInvisibleObject.h"
 #include "Character/PipouCharacterStateID.h"
 #include "Character/PipouCharacterStateMachine.h"
+#include "Concepts/Iterable.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -93,13 +94,18 @@ void UCameraWorldSubsystem::InitMainCamera()
 void UCameraWorldSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	//TickUpdateCameraZoom(DeltaTime);
 
+	// --- CINE ---
 	if (bCinematicPlaying)
 	{
 		return;
 	}
-
+	
+	// --- TICK ---
+	
+	//TickUpdateCameraZoom(DeltaTime);
+	TickUpdateCameraVisibility(DeltaTime);
+	
 	// --- SETTING + ZOOM ---
 	if (IsSettingCamera)
 	{
@@ -113,7 +119,6 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 	{
 		TickUpdateCameraPosition(DeltaTime);
 		
-		//TickUpdateCameraVisibility(DeltaTime);
 	}
 }
 
@@ -418,40 +423,23 @@ void UCameraWorldSubsystem::TickUpdateCameraVisibility(float DeltaTime)
 	
 	
 	// foreach target multiple line trace
-	FVector Pos;
+	FVector Pos = WorldPosition + (CameraMain->GetForwardVector() * 150.f);
 
-	// // TO EDIT : DEBUG
-	for (const auto& Target : VisibleTargets)
-	{
-		//Uniquement si l’objet dans la liste implémente l’interface 
-		if (Target !=nullptr && Target->Implements<UCameraVisibleTarget>())
-		{
-			Pos = ICameraVisibleTarget::Execute_GetVisiblePosition(Target);
-
-			// DEBUG
-			//DrawDebugLine(GetWorld(), WorldPosition, Pos, FColor::Blue, false, 2.f, 0, 2.f);
-		};
-	}
+	// --- DEBUG ---
+	//DrawDebugLine(GetWorld(), WorldPosition, Pos, FColor::Blue, false, 2.f, 0, 2.f);
+	
 
 	// Reset
 	TArray<struct FHitResult> OutHits;
-	CurrentCloakingObjects.Empty();
+	CurrentBlockingTest.Empty();
 	
 	GetWorld()->LineTraceMultiByChannel(OutHits,WorldPosition,Pos, COLLISION_CLOAK);
 	
 	for (const auto& Hit : OutHits)
 	{
-		AActor* Actor = Hit.GetActor();
-		if (!Actor) continue;
-
-		if (Actor->Implements<UCameraVisibleTarget>()) // BLOCK IS VISIBLE TARGET
-		{
-			break; // stop at target
-		}
-
 		SetCloakingObjectBehaviour(Hit);
 	}
-
+	
 	// check if previous cloaking objet are no more cloaking
 	CompareCurrentFromPreviousInvisibleObjects();
 	
@@ -459,103 +447,52 @@ void UCameraWorldSubsystem::TickUpdateCameraVisibility(float DeltaTime)
 
 void UCameraWorldSubsystem::SetCloakingObjectBehaviour(const FHitResult& Hit)
 {
+	AActor* HitActor = Hit.GetActor();
+	
 	// DEBUG 
-	//UE_LOG(LogTemp,Display,TEXT("Hit %s avant la visible target "), *Hit.GetActor()->GetName());
+	//UE_LOG(LogTemp,Display,TEXT("Hit %s dvisible target "), *Hit.GetActor()->GetName());
 			
-	if (UMeshComponent* MeshComponent = Cast<UMeshComponent>(Hit.GetActor()->GetComponentByClass(UMeshComponent::StaticClass())))
+	// Add to currently cloaking object list
+	CurrentBlockingTest.Add(HitActor);
+	
+	if (!PreviousInvisibleTest.Contains(HitActor))
 	{
-		// Add to currently cloaking object list
-		CurrentCloakingObjects.Add(Hit.GetActor());
-
-		// Contains Actor
-		bool ContainsActor = false;
-		for (const auto& InvisibleObject : InvisibleObjects)
-		{
-			if (InvisibleObject.Actor == Hit.GetActor())
-			{
-				ContainsActor = true;
-				break;
-			}
-		}
+		// Set invisibility
+		HitActor->SetActorHiddenInGame(true);
 		
-		// already invisible
-		if (ContainsActor)
-		{
-			// do nothing
-		}
-		// Not invisible 
-		else
-		{
-			const TArray<UMaterialInterface*> Materials = MeshComponent->GetMaterials();
-			
-			// update invisible object list
-			InvisibleObjects.AddUnique(FInvisibleObject(Hit.GetActor(), Materials));
-			
-			// Set invisibility on each mat of the actor
-			for (int i=0;i<Materials.Num();i++)
-			{
-				MeshComponent->SetMaterial(i,InvisibleMaterial); 
-			}
-		
-		}
+		// update invisible object list
+		PreviousInvisibleTest.AddUnique(HitActor);
 	}
 	
 }
 
-void UCameraWorldSubsystem::MakeObjectVisibleAgain(TObjectPtr<AActor> InvisibleObject)
-{
-	// DEBUG 
-	// UE_LOG(LogTemp, Display, TEXT("Plus invisible"));
-	
-	// Reset origin materials
-	UMeshComponent* Mesh = Cast<UMeshComponent>(InvisibleObject->GetComponentByClass(UMeshComponent::StaticClass()));
-	if (!Mesh) return;
-	
-	// for each material reset origin material
-	//FInvisibleObject* VisibleItemSoon =  InvisibleObjects.FindByKey(*InvisibleObject);
-
-	for (int i=0;i<InvisibleObjects.Num();i++)
-	{
-		if (InvisibleObjects[i].Actor == InvisibleObject)
-		{
-	
-			for (int j = 0; j < InvisibleObjects[i].Materials.Num() ; j++ )
-			{
-				UMaterialInterface* M = InvisibleObjects[i].Materials[j];
-				Mesh->SetMaterial(j,M);
-			}
-	
-			// Update list
-			//InvisibleObjects.Remove(InvisibleObject);
-			InvisibleObjects.RemoveAt(i);
-	
-			break;
-		}
-	}
-}
 
 void UCameraWorldSubsystem::CompareCurrentFromPreviousInvisibleObjects()
 {
-
-	TArray<AActor*> ObjectsToRemove;
-	
-	// Compare Current From Previous Invisible Objects
-	for (const FInvisibleObject& PreviousInvisibleObject : InvisibleObjects)
+	for (int i = 0; i < PreviousInvisibleTest.Num() ; i++)
 	{
 		// no longer invisible
-		if (!CurrentCloakingObjects.Contains(PreviousInvisibleObject.Actor))
+		if (!CurrentBlockingTest.Contains(PreviousInvisibleTest[i]))
 		{
 			// remove from list
-			ObjectsToRemove.AddUnique(PreviousInvisibleObject.Actor);
+			MakeObjectVisibleAgain(PreviousInvisibleTest[i]);
 		}
 	}
+	
+}
 
-	for (const auto& ObjectToRemove : ObjectsToRemove)
-	{
-		MakeObjectVisibleAgain(ObjectToRemove);
-	}
 
-	ObjectsToRemove.Empty();
+void UCameraWorldSubsystem::MakeObjectVisibleAgain(TObjectPtr<AActor> InvisibleObject)
+{
+	//DEBUG 
+	//UE_LOG(LogTemp, Display, TEXT("Plus invisible"));
+
+	// Visible
+	InvisibleObject->SetActorHiddenInGame(false);
+
+	// Update list
+	PreviousInvisibleTest.Remove(InvisibleObject);
+	
 }
 
 void UCameraWorldSubsystem::TickUpdateCameraPosition(float DeltaTime)
@@ -642,13 +579,16 @@ ECameraState UCameraWorldSubsystem::GetState() const
 	return CameraState;
 }
 
-void UCameraWorldSubsystem::SetMusicCamera()
+void UCameraWorldSubsystem::SetMusicCamera(ASkeletonController* Skeleton)
 {
 	//transition
 	ResetLerp();
 	
-	// Actor Pos / Rot
-	CanLerpActor = false;
+	// Actor Pos 
+	CanLerpActor = true;
+	StartActorTransform = CameraMain->GetOwner()->GetActorTransform();
+	EndActorTransform = CameraMain->GetOwner()->GetActorTransform();
+	EndActorTransform.SetLocation(Skeleton->GetActorLocation());
 	
 	// Component Pos / Rot
 	CanLerpComponent = true;
@@ -672,10 +612,6 @@ void UCameraWorldSubsystem::SetGlobalCamera()
 	StartActorTransform = CameraMain->GetOwner()->GetActorTransform();
 	FVector EndLocation = CalculateAveragePositionBetweenTargets();
 	EndActorTransform.SetLocation(EndLocation);
-
-	// Actor rotation
-	//FRotator EndRotation = FRotator(0,-90,0); // default
-	//EndActorTransform = FTransform(EndRotation,EndLocation, FVector(1,1,1));
 	
 	//Camera Component pos
 	CanLerpComponent = true;
@@ -715,9 +651,6 @@ void UCameraWorldSubsystem::SetDialogueCamera(const APipouCharacter* Interactor,
 	FVector EndActorPosition =  (Interactor->GetActorLocation()+Speaker->GetActorLocation())*0.5f; // places itself in the middle
 	EndActorTransform.SetLocation(EndActorPosition);
 
-	// End Actor Rotation
-	//FRotator EndRotation = FRotator(0,-90,0); // default
-	//EndActorTransform = FTransform(EndRotation,EndActorPosition, FVector(1,1,1));
 	
 	// Dialogue Camera Component
 	CanLerpComponent = true;
