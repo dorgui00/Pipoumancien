@@ -377,6 +377,8 @@ void UAC_SkeletonFollower::TickFollowSpline(float DeltaTime)
     {
         bFollowingSpline = false;
         UE_LOG(LogTemp, Display, TEXT("[SkeletonFollower] %s reached the end of spline."), *ParentActor->GetName());
+
+        OnReachHome.Broadcast();
     }
 }
 
