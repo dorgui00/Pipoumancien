@@ -377,6 +377,8 @@ void UAC_SkeletonFollower::TickFollowSpline(float DeltaTime)
     {
         bFollowingSpline = false;
         UE_LOG(LogTemp, Display, TEXT("[SkeletonFollower] %s reached the end of spline."), *ParentActor->GetName());
+
+        OnReachHome.Broadcast();
     }
 }
 
@@ -860,10 +862,22 @@ void UAC_SkeletonFollower::TickMeshRotationLerp(float DeltaTime)
     }
 }
 
-
 /*
 FollowerComponent->OnWaitingForDialogue.AddDynamic(this, &AMyDialogueManager::StartDialogue);
 */
+
+//getset, GOOOOOOO
+
+float UAC_SkeletonFollower::GetSplineFollowSpeed() const
+{
+    return SplineFollowSpeed;
+}
+
+void UAC_SkeletonFollower::SetSplineFollowSpeed(float NewSpeed)
+{
+    SplineFollowSpeed = FMath::Max(0.f, NewSpeed);
+}
+
 
 //debug
 
