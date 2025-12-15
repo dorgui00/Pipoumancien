@@ -27,8 +27,14 @@ struct F_Skeleton : public FTableRowBase
 	USoundCue* BackgroundMusic;
 
 	// DIALOGUE
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialogue")
 	TArray<FString> Discution;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialogue")
+	FString Thanks;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialogue")
+	TArray<USoundBase*> Voices;
 
 	// SPRITE / ANIMS 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
