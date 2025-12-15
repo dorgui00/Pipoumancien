@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "NiagaraSystemWidget.h"
 #include "Engine/DataAsset.h"
 #include "HUDData.generated.h"
 
@@ -42,5 +43,11 @@ public :
 
 	UPROPERTY(EditAnywhere, Category="Material Mistake")
 	UMaterialInterface* MistakeMaterialInstance;
+
+	UPROPERTY(EditAnywhere, Category="Feedback UI")
+	UNiagaraSystem* WinFeedback;
+
+	UPROPERTY(EditAnywhere, Category="Feedback UI")
+	UNiagaraSystem* LoseFeedback;
 	
 };
