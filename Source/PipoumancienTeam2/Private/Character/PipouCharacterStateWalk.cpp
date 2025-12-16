@@ -29,7 +29,7 @@ void UPipouCharacterStateWalk::StateEnter(EPipouCharacterStateID PreviousStateID
 	if (WalkSoundBase)
 	{
 		if (!IterateOnGround) //check if we're doing different sounds
-		{
+		{	
 			WalkLoopComponent = UGameplayStatics::SpawnSoundAttached(
 				WalkSoundBase,
 				Character->GetRootComponent());
