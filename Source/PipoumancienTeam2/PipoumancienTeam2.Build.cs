@@ -29,8 +29,10 @@ public class PipoumancienTeam2 : ModuleRules
             "NiagaraAnimNotifies",
             //niagaraaaaaa......????
 
-            "Landscape"
-
+            "Landscape",
+            "CinematicCamera",
+            "LevelSequence",
+            "MovieScene"
         });
 
         if (Target.bBuildEditor)
@@ -48,7 +50,8 @@ public class PipoumancienTeam2 : ModuleRules
                 "Engine",
                 "Slate",
                 "SlateCore",
-                "NiagaraUIRendererEditor"
+                "NiagaraUIRendererEditor",
+                "CinematicCamera"
             });
         }
         //jusqu'ici
