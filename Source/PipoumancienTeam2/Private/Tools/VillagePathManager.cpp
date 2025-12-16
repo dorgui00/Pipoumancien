@@ -2,10 +2,25 @@
 
 
 #include "Tools/VillagePathManager.h"
+#include "LevelSequenceActor.h"
+#include "LevelSequencePlayer.h"
 #include "Tools/PathManager.h"
 #include "Components/SplineComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/LightComponent.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "GameFramework/PlayerController.h"
+
+
+/*
+
+TO DO:
+finish at 167*
+
+TryStartCutscene
+
+*/
 
 AVillagePathManager::AVillagePathManager()
 {
@@ -20,6 +35,34 @@ void AVillagePathManager::BeginPlay()
     {
         UE_LOG(LogTemp, Warning, TEXT("A skeleton is missing a path"));
     }
+
+    if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+    {
+        if (ULocalPlayer* LP = PC->GetLocalPlayer())
+        {
+            if (UEnhancedInputLocalPlayerSubsystem* Subsys =
+                LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+            {
+                if (CutsceneIMC)
+                {
+                    Subsys->AddMappingContext(CutsceneIMC, 0);
+                }
+            }
+        }
+
+        if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PC->InputComponent))
+        {
+            if (StartCutsceneAction)
+            {
+                EIC->BindAction(StartCutsceneAction, ETriggerEvent::Started,
+                    this, &AVillagePathManager::HandleStartCutsceneInput);
+            }
+        }
+    }
+
+    // debug
+    bCutsceneStarted = true;
+    StartVillageCutscene();
 }
 
 USplineComponent* AVillagePathManager::GetSplineForSkeleton(AActor* Skeleton) const
@@ -83,7 +126,7 @@ void AVillagePathManager::OnSkeletonReachedEnd(AActor* Skeleton)
         return;
     }
 
-    for (const FSkeletonVillageRoute& Route : SkeletonRoutes)
+    for (FSkeletonVillageRoute& Route : SkeletonRoutes)
     {
         if (Route.Skeleton == Skeleton && Route.HouseLight)
         {
@@ -98,7 +141,80 @@ void AVillagePathManager::OnSkeletonReachedEnd(AActor* Skeleton)
                 Route.HouseLight->SetActorHiddenInGame(false);
             }
 
+            Route.bReachedHome = true;
+
             break;
         }
+    }
+
+    bool bAllHome = true;
+
+    for (const FSkeletonVillageRoute& R : SkeletonRoutes)
+    {
+        if (!R.Skeleton || !R.HouseLight) { continue; }
+
+        if (!R.bReachedHome)
+        {
+            bAllHome = false;
+            break;
+        }
+    }
+
+    TryStartCutscene();
+
+}
+
+void AVillagePathManager::StartVillageCutscene_Implementation()
+{
+    if (!CutsceneSequenceActor)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("CutsceneSequenceActor is null."));
+        return;
+    }
+
+    if (ULevelSequencePlayer* Player = CutsceneSequenceActor->GetSequencePlayer())
+    {
+        if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+        {
+            PC->SetCinematicMode(true, true, true, true, true);
+        }
+
+        Player->Play();
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("SequencePlayer is null on CutsceneSequenceActor."));
+    }
+}
+
+
+void AVillagePathManager::TryStartCutscene()
+{
+    if (bCutsceneStarted)
+    {
+        return;
+    }
+
+    bool bAllHome = true;
+
+    for (const FSkeletonVillageRoute& R : SkeletonRoutes)
+    {
+        if (!R.Skeleton || !R.HouseLight) { continue; }
+        if (!R.bReachedHome) { bAllHome = false; break; }
+    }
+
+    if (bAllHome)
+    {
+        bCutsceneStarted = true;
+        StartVillageCutscene();
+    }
+}
+
+void AVillagePathManager::HandleStartCutsceneInput()
+{
+    if (!bCutsceneStarted)
+    {
+        bCutsceneStarted = true;
+        StartVillageCutscene();
     }
 }

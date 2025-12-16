@@ -938,5 +938,6 @@ bool UCameraWorldSubsystem::ShouldSkipCameraForThisMap() const
 
 	return LevelName.Equals(TEXT("CutsceneScene"), ESearchCase::IgnoreCase)
 		|| LevelName.Equals(TEXT("TrueMainMenu"), ESearchCase::IgnoreCase)
-		|| LevelName.Equals(TEXT("MainMenu"), ESearchCase::IgnoreCase);
+		|| LevelName.Equals(TEXT("MainMenu"), ESearchCase::IgnoreCase)
+		|| LevelName.Equals(TEXT("TutorialScene"), ESearchCase::IgnoreCase);
 }
