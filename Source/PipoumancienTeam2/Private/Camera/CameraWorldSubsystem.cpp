@@ -422,7 +422,7 @@ void UCameraWorldSubsystem::TickUpdateCameraVisibility(float DeltaTime)
 	
 	
 	// foreach target multiple line trace
-	FVector Pos = WorldPosition + (CameraMain->GetForwardVector() * 150.f);
+	FVector Pos = WorldPosition + (CameraMain->GetForwardVector() * 50.f);
 
 	// --- DEBUG ---
 	//DrawDebugLine(GetWorld(), WorldPosition, Pos, FColor::Blue, false, 2.f, 0, 2.f);
@@ -430,14 +430,20 @@ void UCameraWorldSubsystem::TickUpdateCameraVisibility(float DeltaTime)
 
 	// Reset
 	TArray<struct FHitResult> OutHits;
+	struct FHitResult OutHit;
 	CurrentBlockingTest.Empty();
 	
-	GetWorld()->LineTraceMultiByChannel(OutHits,WorldPosition,Pos, COLLISION_CLOAK);
+	//GetWorld()->LineTraceByChannel(OutHits,WorldPosition,Pos, COLLISION_CLOAK);
+	GetWorld()->LineTraceSingleByChannel(OutHit,WorldPosition,Pos, COLLISION_CLOAK);
 	
-	for (const auto& Hit : OutHits)
+	if (OutHit.GetActor())
 	{
-		SetCloakingObjectBehaviour(Hit);
+		SetCloakingObjectBehaviour(OutHit);
 	}
+	// for (const auto& Hit : OutHits)
+	// {
+	// 	SetCloakingObjectBehaviour(Hit);
+	// }
 	
 	// check if previous cloaking objet are no more cloaking
 	CompareCurrentFromPreviousInvisibleObjects();
