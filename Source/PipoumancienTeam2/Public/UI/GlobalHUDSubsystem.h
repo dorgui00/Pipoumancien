@@ -50,6 +50,12 @@ public:
 	UPROPERTY()
 	UMusicNote* WBPNoteInstance;
 
+	UPROPERTY()
+	TSubclassOf<UUserWidget> WBPPauseMenuClass;
+
+	UPROPERTY()
+	UUserWidget* WBPPauseMenuInstance;
+
 	// Create or Remove the widget of the resurrection.
 	void DisplayResurrectionWidget();
 	void RemoveResurrectionWidget();
@@ -130,6 +136,11 @@ public:
 	void ResetMistakeEffect();
 	void ForceMistakeCollapse();
 	void SetMistakeToZero();
+
+
+	// ---- UTILITIES ----
+	void DisplayPauseMenu();
+	void RemovePauseMenu();
 	
 	
 protected:

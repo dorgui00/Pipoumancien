@@ -221,6 +221,8 @@ private:
 	void OnInputMoveXY(const FInputActionValue& InputActionValue);
 
 	#pragma endregion
+
+	void OnInputPause(const FInputActionValue& InputActionValue);
 	
 	#pragma region Music
 	// Functions to call and bind the event of input for the music mechanic.
