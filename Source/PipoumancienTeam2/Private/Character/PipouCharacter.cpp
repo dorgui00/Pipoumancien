@@ -195,10 +195,6 @@ void APipouCharacter::OnInputPause(const FInputActionValue& InputActionValue)
 		{
 			HUDSubsystem->DisplayPauseMenu();
 		}
-		else
-		{
-			HUDSubsystem->RemovePauseMenu();
-		}
 	}
 }
 
