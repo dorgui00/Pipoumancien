@@ -376,9 +376,12 @@ void UAC_SkeletonFollower::TickFollowSpline(float DeltaTime)
     if (CurrentDistance >= SplineLength - KINDA_SMALL_NUMBER)
     {
         bFollowingSpline = false;
-        UE_LOG(LogTemp, Display, TEXT("[SkeletonFollower] %s reached the end of spline."), *ParentActor->GetName());
 
-        OnReachHome.Broadcast();
+        if (bOnVillageSpline)
+        {
+            OnReachHome.Broadcast();
+            UE_LOG(LogTemp, Display, TEXT("[SkeletonFollower] %s reached his home."), *ParentActor->GetName());
+        }
     }
 }
 
