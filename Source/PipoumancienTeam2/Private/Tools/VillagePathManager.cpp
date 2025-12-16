@@ -13,6 +13,15 @@
 #include "GameFramework/PlayerController.h"
 
 
+/*
+
+TO DO:
+finish at 167*
+
+TryStartCutscene
+
+*/
+
 AVillagePathManager::AVillagePathManager()
 {
     PrimaryActorTick.bCanEverTick = false;
