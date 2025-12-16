@@ -310,7 +310,7 @@ void UMusicWorldSubsystem::SucceedQTE()
 {
 	// POSITIVE feedback
 	if (GetCurrentWaitingNote()->Sound)
-		UGameplayStatics::PlaySound2D(GetWorld(),GetCurrentWaitingNote()->Sound);
+		UGameplayStatics::PlaySound2D(GetWorld(),GetCurrentWaitingNote()->Sound, 1, GetCurrentWaitingNote()->Pitch);
 	
 	// Continue
 	GoNextNote();
