@@ -31,6 +31,15 @@ void UResurrectionWidget::NativeConstruct()
 		{ 0.5f, NoteFeedBackFour }, 
 		{ 1.f, NoteFeedBackFive }, 
 	};
+
+	NiagaraFeedbackFromPitch =
+	{
+		{ -1.f, NiagaraSystemWidgetOne },
+		{ -0.5f, NiagaraSystemWidgetTwo },
+		{ 0.f, NiagaraSystemWidgetThree }, 
+		{ 0.5f, NiagaraSystemWidgetFour }, 
+		{ 1.f, NiagaraSystemWidgetFive }, 
+	};
 }
 
 void UResurrectionWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -72,6 +81,13 @@ void UResurrectionWidget::PlaySliderFailAnimation(float PlaybackSpeed)
 void UResurrectionWidget::SetWBPAlphaToZero()
 {
 	TargetWBPAlpha = 0;
+}
+
+
+// ---- FEEDBACK NIAGARA UI ----
+UNiagaraSystemWidget* UResurrectionWidget::GetNiagaraSystemFromPitch(float InputPitch)
+{
+	return NiagaraFeedbackFromPitch[InputPitch];
 }
 
 

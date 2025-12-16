@@ -84,11 +84,11 @@ public:
 	UCanvasPanelSlot* EndPoint;
 
 	// ---- NIAGARA FEEDBACK ----
-	UPROPERTY(meta = (BindWidget))
-	UNiagaraSystemWidget* UINiagaraSystem;
-
-	UPROPERTY(meta = (BindWidget))
-	UNiagaraSystemWidget* UINiagaraSystemFail;
+	// UPROPERTY(meta = (BindWidget))
+	// UNiagaraSystemWidget* UINiagaraSystem;
+	//
+	// UPROPERTY(meta = (BindWidget))
+	// UNiagaraSystemWidget* UINiagaraSystemFail;
 
 private:
 	// ---- VALIDATION NOTE FEEDBACK ----

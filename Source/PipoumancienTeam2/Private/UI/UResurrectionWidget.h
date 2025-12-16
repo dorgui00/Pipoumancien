@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "UResurrectionWidget.generated.h"
 
+class UNiagaraSystemWidget;
 class UCanvasPanelSlot;
 class UCanvasPanel;
 class UImage;
@@ -75,6 +76,11 @@ public:
 	
 	// ---- ANIMATION POP UI ----
 	void SetWBPAlphaToZero();
+	
+	
+	// ---- FEEDBACK NIAGARA UI ----
+	UNiagaraSystemWidget* GetNiagaraSystemFromPitch(float InputPitch);
+	
 
 private:
 	// ---- NOTES SPAWN POINTS ----
@@ -108,6 +114,26 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UImage* NoteFeedBackFive;
+
+	// ---- FEEDBACK NIAGARA UI ----
+	UPROPERTY(meta = (BindWidget))
+	UNiagaraSystemWidget* NiagaraSystemWidgetOne;
+
+	UPROPERTY(meta = (BindWidget))
+	UNiagaraSystemWidget* NiagaraSystemWidgetTwo;
+
+	UPROPERTY(meta = (BindWidget))
+	UNiagaraSystemWidget* NiagaraSystemWidgetThree;
+
+	UPROPERTY()
+	UNiagaraSystemWidget* NiagaraSystemWidgetFour;
+
+	UPROPERTY(meta = (BindWidget))
+	UNiagaraSystemWidget* NiagaraSystemWidgetFive;
+
+	UPROPERTY()
+	TMap<float, UNiagaraSystemWidget*> NiagaraFeedbackFromPitch;
+	
 
 	// ---- ANIMATION POP UI ----
 	float TargetWBPAlpha = 0.f;

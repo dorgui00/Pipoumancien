@@ -6,6 +6,8 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "MusicWorldSubsystem.generated.h"
 
+class UNiagaraSystem;
+class UHUDData;
 class UMusicNote;
 class ASkeletonController;
 class UGlobalHUDSubsystem;
@@ -75,7 +77,7 @@ public:
 	// Called when the player performs an action too early or too late.
 	void LostQTE();
 	void LostMelody();
-	void SetBehindNoteFeedback(FLinearColor NewColor);
+	void SetBehindNoteFeedback(FLinearColor NewColor, bool IsWinning);
 
 	// Fail Note possible -> Health Bar of the partition.
 	int GetCurrentFailNotePossible() const;
@@ -86,7 +88,8 @@ public:
 
 	
 	// ---- UTILITIES ----
-	void InitMusic(ASkeletonController* Skeleton);
+	void SetMusic(ASkeletonController* Skeleton);
+	void InitMusic();
 
 	
 	// ---- SOUND ----
@@ -185,6 +188,17 @@ private:
 	void SucceedMelody();
 	bool HasAchievedQte();
 
+	// FEEDBACKS
+
+	void SetCharactersFeedbacks(bool Set);
+
+	// ---- NIAGARA UI FEEDBACK ----
+	UPROPERTY()
+	UNiagaraSystem* WinFeedback;
+
+	UPROPERTY()
+	UNiagaraSystem* LoseFeedback;
+	
 	
 	// ---- UTILITIES ----
 	bool IsInWorldStateMusic = false;
@@ -194,6 +208,9 @@ private:
 
 	UPROPERTY()
 	UGlobalHUDSubsystem* GlobalHUDSubsystem;
+
+	UPROPERTY()
+	UHUDData* HUDData;
 
 	
 	// ---- SOUND ----
