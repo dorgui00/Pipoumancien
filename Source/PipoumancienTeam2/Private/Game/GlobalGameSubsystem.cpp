@@ -100,20 +100,30 @@ if (IsTouch)
 			//3.f, false);
 			//SetWorldMusicState();
 			//Bird->SetWidgetINVisible();
-
 			GlobalHUDSubsystem->ValideWidget();
-			SetWorldMusicState();
 			ResetInputsArray();
-
 			FTimerHandle TimerHandle;
+            			 GetWorld()->GetTimerManager().SetTimer(
+            			 	TimerHandle,
+            			 	[this]()
+            			 	{
+            			 		//Bird->SetWidgetINVisible();
+			 					SetWorldMusicState();
+            			 		
+            			 	},
+            			 	2.f,
+            			 	false
+            			 );
+
+			FTimerHandle TimerHandle1;
 			 GetWorld()->GetTimerManager().SetTimer(
-			 	TimerHandle,
+			 	TimerHandle1,
 			 	[this]()
 			 	{
 			 		//Bird->SetWidgetINVisible();
 					IsTouch = true;
 			 	},
-			 	2.f,
+			 	3.f,
 			 	false
 			 );
 		}
