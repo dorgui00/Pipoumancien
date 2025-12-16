@@ -17,16 +17,6 @@ void UUIDialoge::NativeConstruct()
 
 	if (Name)
 		Name->SetText(FText::FromString(CurrentName));
-	
-	// Donne le focus clavier au widget
-	if (APlayerController* PC = GetOwningPlayer())
-	{
-		FInputModeUIOnly InputMode;
-		InputMode.SetWidgetToFocus(TakeWidget());
-		//InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-		PC->SetInputMode(InputMode);
-		//PC->bShowMouseCursor = true;
-	}
 
 	// On ne lit PLUS la DataTable ici → c’est SetDialogue() qui charge le texte
 
