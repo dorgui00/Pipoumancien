@@ -38,6 +38,10 @@ protected:
 	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 	
 	int32 text = 0;
+
+	// --- SKELETON ---
+	F_Skeleton* CurrentSkeleton = nullptr;
+	
 private :
 	
 	UPROPERTY()

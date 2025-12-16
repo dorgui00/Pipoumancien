@@ -58,6 +58,10 @@ private :
 	
 	void InitMainCamera();
 
+private:
+	bool ShouldSkipCameraForThisMap() const;
+
+
 #pragma endregion
 
 #pragma region FollowTargets

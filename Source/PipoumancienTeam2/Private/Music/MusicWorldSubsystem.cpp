@@ -2,9 +2,13 @@
 
 
 #include "Music/MusicWorldSubsystem.h"
+
+#include "Blueprint/WidgetTree.h"
+#include "Components/CanvasPanelSlot.h"
 #include "Components/Slider.h"
 #include "Data/F_Note.h"
 #include "Data/F_Skeleton.h"
+#include "Data/HUDData.h"
 #include "Data/MusicGenericData.h"
 #include "Game/GlobalGameSubsystem.h"
 #include "Kismet/GameplayStatics.h"
@@ -42,6 +46,9 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	TObjectPtr<UMusicGenericData> MusicGenericData = SubsystemSettings->MusicGenericData.LoadSynchronous();
 	if (!MusicGenericData) return;
 
+	// Init HUD Data
+	HUDData = SubsystemSettings->HUDData.LoadSynchronous();
+
 	// Initialize TimeTolerance.
 	TimeTolerance = MusicGenericData->TimeTolerance;
 
@@ -50,6 +57,11 @@ void UMusicWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
 	// Initialize FailedNoteSound.
 	FailedNoteSound = MusicGenericData->FailedNoteSound;
+
+	// Init Feedback Niagara from HUDData
+	WinFeedback = HUDData->WinFeedback;
+	LoseFeedback = HUDData->LoseFeedback;
+	
 }
 
 void UMusicWorldSubsystem::Tick(float DeltaTime)
@@ -215,44 +227,63 @@ void UMusicWorldSubsystem::ResetMusicianReply()
 
 
 // ---- MUSIC LOGIC ----
-void UMusicWorldSubsystem::InitMusic(ASkeletonController* Skeleton)
+void UMusicWorldSubsystem::SetMusic(ASkeletonController* Skeleton)
 {
-	MelodyState = EMelodyType::NONE;
+	// ---- MYSELF ----
+	InitMusic();
 	
-	// Init the Skeleton for the Music Logic.
+	// ---- SKELETON ----
 	CurrentSkeleton = Skeleton;
+	
+	// Fails
+	MaxFailNotePossible = CurrentSkeleton->MySkeleton->MaxFailNotePossible;
+	SetCurrentFailNotePossible(MaxFailNotePossible);
 
+	// ---- UI ----
+	// Spawn Notes in UI.
+	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->SpawnNotesPartition(CurrentSkeleton);
+
+	// ---- FEEDBACKS ----
+
+	//Skeleton
+	CurrentSkeleton->StartFeedbacksOfMelody();
+
+	// Characters
+	SetCharactersFeedbacks(true);
+
+	// ---- START ----
+	StartCountDown();
+}
+
+void UMusicWorldSubsystem::InitMusic()
+{
+	// State
+	MelodyState = EMelodyType::NONE;
+	IsInWorldStateMusic = true;
+	
+	// Tempo
 	Tempo = 0.f;
 	TempoNoteUI = 0.f;
 	TimerCountDown = 3.f;
 
 	CurrentWaitingNoteIndex = 0;
 	CurrentWaitingNoteIndexUI = 0;
-	
+
+	// Reply
 	IsAwaitingReply = false;
 	HasMusicianReceivedInput = false;
+	IsConductorOnTheRightPitch = false;
 	HasReachFrequency = false;
+	
+	HasLostMelody = false;
 	
 	// Reset the current cursor value for the pith slider.
 	CurrentPitchCursorValue = 0.f;
-	
+
+	// Offset
 	IsLerpingOffset = true;
 	TimerLerpingOffset = 0.f;
 	
-	IsConductorOnTheRightPitch = false;
-	HasLostMelody = false;
-	IsInWorldStateMusic = true;
-	
-	// Spawn Notes in UI.
-	UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>()->SpawnNotesPartition(CurrentSkeleton);
-
-	// Initialize MaxFailNotePossible.
-	MaxFailNotePossible = CurrentSkeleton->MySkeleton->MaxFailNotePossible;
-	
-	// Initialize CurrentFailNotePossible.
-	SetCurrentFailNotePossible(MaxFailNotePossible);
-	
-	StartCountDown();
 }
 
 bool UMusicWorldSubsystem::IsBeforeWindowNote() const
@@ -297,10 +328,15 @@ void UMusicWorldSubsystem::SucceedMelody()
 	// Reset Music
 	IsInWorldStateMusic = false;
 
-	// --- FEEDBACKS ---
-	//Anim
-	CurrentSkeleton->FinishWakeAnim(true);
+	// ---- FEEDBACKS ----
+
+	// Skeleton
+	CurrentSkeleton->EndFeedbacksOfMelody(true);
+
+	// Characters
+	SetCharactersFeedbacks(false);
 	
+	// Mist
 	GlobalHUDSubsystem->SetMistakeToZero();
 	
 	// Sound
@@ -350,9 +386,12 @@ void UMusicWorldSubsystem::LostMelody()
 	}
 
 	// --- FEEDBACKS ---
-	// Anim
-	CurrentSkeleton->FinishWakeAnim(false);
+	// Skeleton
+	CurrentSkeleton->EndFeedbacksOfMelody(false);
 
+	// Characters
+	SetCharactersFeedbacks(false);
+	
 	// Animation of Exit
 	// GlobalHUDSubsystem->DisplayPartitionFinish("FAILED MELODY");
 
@@ -372,12 +411,30 @@ void UMusicWorldSubsystem::LostMelody()
 		);
 }
 
-void UMusicWorldSubsystem::SetBehindNoteFeedback(FLinearColor NewColor)
+void UMusicWorldSubsystem::SetBehindNoteFeedback(FLinearColor NewColor, bool IsWinning)
 {
 	UResurrectionWidget* ResurrectionWidget = GlobalHUDSubsystem->WBPResurrectionInstance;
 	if (!ResurrectionWidget) return;
 
+	if (IsWinning)
+	{
+		UNiagaraSystemWidget* WidgetNiagara = GlobalHUDSubsystem->WBPResurrectionInstance->GetNiagaraSystemFromPitch(CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Pitch);
+		if (!WidgetNiagara) return;
+
+		WidgetNiagara->UpdateNiagaraSystemReference(WinFeedback);
+		WidgetNiagara->ActivateSystem(true);
+	}
+	else
+	{
+		UNiagaraSystemWidget* WidgetNiagara = GlobalHUDSubsystem->WBPResurrectionInstance->GetNiagaraSystemFromPitch(CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndex].Pitch);
+		if (!WidgetNiagara) return;
+
+		WidgetNiagara->UpdateNiagaraSystemReference(LoseFeedback);
+		WidgetNiagara->ActivateSystem(true);
+	}
+
 	UImage* CurrentNoteFeedback = ResurrectionWidget->GetFeedbackPosFromInputPitch(CurrentSkeleton->MySkeleton->Notes[CurrentWaitingNoteIndexUI].Pitch);
+	if (!CurrentNoteFeedback) return;
 	GlobalHUDSubsystem->SetImageColor(CurrentNoteFeedback, NewColor);
 }
 
@@ -409,6 +466,14 @@ bool UMusicWorldSubsystem::HasAchievedQte()
 	return false;
 }
 
+void UMusicWorldSubsystem::SetCharactersFeedbacks(bool Set)
+{
+	for (auto Character : GlobalGameSubsystem->PipouCharacters)
+	{
+		Character->PlayMusicFeedbacks(Set);
+	}
+}
+
 void UMusicWorldSubsystem::LostQTE()
 {
 	// FAILS 
@@ -419,7 +484,7 @@ void UMusicWorldSubsystem::LostQTE()
 	if (!GetCurrentWaitingNoteWidget()) return;
 	
 	GetCurrentWaitingNoteWidget()->PlayFailNote();
-	SetBehindNoteFeedback(FLinearColor(0.208, 0.078, 0.588));
+	SetBehindNoteFeedback(FLinearColor(0.208, 0.078, 0.588), false);
 	
 	if (GetCurrentWaitingNoteWidget() != nullptr)
 	{
@@ -440,9 +505,6 @@ void UMusicWorldSubsystem::LostQTE()
 			false
 			);
 	}
-
-	// Anim
-	CurrentSkeleton->PlayFailAnim();
 	
 	// If the max note possible to fail has been achieved you go out of the music state without the skeletons.
 	if (HasLostAllFaileNotePossible())
@@ -469,9 +531,7 @@ int UMusicWorldSubsystem::GetCurrentFailNotePossible() const
 
 void UMusicWorldSubsystem::SetCurrentFailNotePossible(float NewValue)
 {
-	UE_LOGFMT(LogTemp, Log, "Previous CurrentFailNotePossible: {0}", CurrentFailNotePossible);
 	CurrentFailNotePossible = NewValue;
-	UE_LOGFMT(LogTemp, Log, "After CurrentFailNotePossible: {0}", CurrentFailNotePossible);
 }
 
 bool UMusicWorldSubsystem::HasLostAllFaileNotePossible() const

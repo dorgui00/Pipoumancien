@@ -182,6 +182,14 @@ public:
     UFUNCTION(BlueprintCallable, CallInEditor, Category = "Debug")
     void ClearAllDebugLines();
 
+    //set get splinespeed
+    UFUNCTION(BlueprintCallable, Category = "Follow|Spline")
+    void SetSplineFollowSpeed(float NewSpeed);
+
+    UFUNCTION(BlueprintCallable, Category = "Follow|Spline")
+    float GetSplineFollowSpeed() const;
+
+
 private:
 
     USplineComponent* FindNearestSplineToOwner(bool bVillageOnly = false) const;

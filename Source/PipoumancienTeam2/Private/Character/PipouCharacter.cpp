@@ -20,6 +20,7 @@
 #include "Music/MusicWorldSubsystem.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "PNJ/SkeletonController.h"
+#include "UI/GlobalHUDSubsystem.h"
 
 #pragma region Default Constructors
 APipouCharacter::APipouCharacter()
@@ -174,11 +175,31 @@ void APipouCharacter::BindInputMoveAndActions(UEnhancedInputComponent* EnhancedI
 		EnhancedInputComponent->BindAction(InputData->InputActionMoveXY, ETriggerEvent::Triggered, this, &APipouCharacter::OnInputMoveXY);
 		EnhancedInputComponent->BindAction(InputData->InputActionMoveXY, ETriggerEvent::Completed, this, &APipouCharacter::OnInputMoveXY);
 	}
+
+	if (InputData->InputPause)
+	{
+		EnhancedInputComponent->BindAction(InputData->InputPause, ETriggerEvent::Started, this, &APipouCharacter::OnInputPause);
+	}
 }
 
 void APipouCharacter::OnInputMoveXY(const FInputActionValue& InputActionValue)
 {
 	InputMoveXY = InputActionValue.Get<FVector2D>();
+}
+
+void APipouCharacter::OnInputPause(const FInputActionValue& InputActionValue)
+{
+	if (UGlobalHUDSubsystem* HUDSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalHUDSubsystem>())
+	{
+		if (!HUDSubsystem->WBPPauseMenuInstance)
+		{
+			HUDSubsystem->DisplayPauseMenu();
+		}
+		else
+		{
+			HUDSubsystem->RemovePauseMenu();
+		}
+	}
 }
 
 #pragma endregion
