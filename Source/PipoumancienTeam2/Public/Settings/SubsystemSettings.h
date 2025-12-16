@@ -33,6 +33,9 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
 	TSubclassOf<USkeletonInteractionWidget> WBPSkeletonInteractionClass;
 
+	UPROPERTY(Config, EditAnywhere, Category="Pause Menu")
+	TSubclassOf<UUserWidget> WBPPauseMenuClass;
+	
 	UPROPERTY(Config, EditAnywhere, Category="GlobalHUD")
 	TSubclassOf<UBirdWidget> WBPBirdWidget;
 

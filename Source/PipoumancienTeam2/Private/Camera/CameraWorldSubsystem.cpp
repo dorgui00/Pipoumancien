@@ -931,5 +931,6 @@ bool UCameraWorldSubsystem::ShouldSkipCameraForThisMap() const
 	const FString LevelName = UGameplayStatics::GetCurrentLevelName(World, true);
 
 	return LevelName.Equals(TEXT("CutsceneScene"), ESearchCase::IgnoreCase)
-		|| LevelName.Equals(TEXT("TrueMainMenu"), ESearchCase::IgnoreCase);
+		|| LevelName.Equals(TEXT("TrueMainMenu"), ESearchCase::IgnoreCase)
+		|| LevelName.Equals(TEXT("MainMenu"), ESearchCase::IgnoreCase);
 }

@@ -104,13 +104,13 @@ public:
 	
 	UFUNCTION(BlueprintImplementableEvent)
 	void PlayWakeAnim();
-	
-	UFUNCTION(BlueprintImplementableEvent)
-	void FinishWakeAnim(bool HasSucceed);
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void PlayFailAnim();
-	
+	void EndFeedbacksOfMelody(bool HasSucceed);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartFeedbacksOfMelody();
+		
 #pragma endregion
 	
 	// --- GET SET ---
