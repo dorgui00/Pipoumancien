@@ -2,6 +2,8 @@
 
 
 #include "Tools/VillagePathManager.h"
+#include "LevelSequenceActor.h"
+#include "LevelSequencePlayer.h"
 #include "Tools/PathManager.h"
 #include "Components/SplineComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -27,8 +29,6 @@ void AVillagePathManager::BeginPlay()
 
     if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
     {
-        EnableInput(PC);
-
         if (ULocalPlayer* LP = PC->GetLocalPlayer())
         {
             if (UEnhancedInputLocalPlayerSubsystem* Subsys =
@@ -41,7 +41,7 @@ void AVillagePathManager::BeginPlay()
             }
         }
 
-        if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(InputComponent))
+        if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PC->InputComponent))
         {
             if (StartCutsceneAction)
             {
@@ -50,6 +50,10 @@ void AVillagePathManager::BeginPlay()
             }
         }
     }
+
+    // debug
+    bCutsceneStarted = true;
+    StartVillageCutscene();
 }
 
 USplineComponent* AVillagePathManager::GetSplineForSkeleton(AActor* Skeleton) const
@@ -145,34 +149,35 @@ void AVillagePathManager::OnSkeletonReachedEnd(AActor* Skeleton)
             bAllHome = false;
             break;
         }
-
-        TryStartCutscene();
     }
+
+    TryStartCutscene();
+
 }
 
 void AVillagePathManager::StartVillageCutscene_Implementation()
 {
-    if (!CutsceneCamera)
+    if (!CutsceneSequenceActor)
     {
-        UE_LOG(LogTemp, Warning, TEXT("VillagePathManager: CutsceneCamera is null."));
+        UE_LOG(LogTemp, Warning, TEXT("CutsceneSequenceActor is null."));
         return;
     }
 
-    APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
-    if (!PC)
+    if (ULevelSequencePlayer* Player = CutsceneSequenceActor->GetSequencePlayer())
     {
-        return;
+        if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+        {
+            PC->SetCinematicMode(true, true, true, true, true);
+        }
+
+        Player->Play();
     }
-
-    PreviousViewTarget = PC->GetViewTarget();
-
-    if (bUseCinematicMode)
+    else
     {
-        PC->SetCinematicMode(true, true, true, true, true);
+        UE_LOG(LogTemp, Warning, TEXT("SequencePlayer is null on CutsceneSequenceActor."));
     }
-
-    PC->SetViewTargetWithBlend(CutsceneCamera, CutsceneBlendTime);
 }
+
 
 void AVillagePathManager::TryStartCutscene()
 {

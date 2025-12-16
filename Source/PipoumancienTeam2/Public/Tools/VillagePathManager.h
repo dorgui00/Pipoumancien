@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "LevelSequenceActor.h"
 #include "VillagePathManager.generated.h"
 
 class APathManager;
@@ -67,6 +68,9 @@ public:
 
     UPROPERTY(VisibleAnywhere, Category = "Cutscene")
     AActor* PreviousViewTarget = nullptr;
+
+    UPROPERTY(EditAnywhere, Category = "Cutscene")
+    ALevelSequenceActor* CutsceneSequenceActor = nullptr;
 
     UFUNCTION(BlueprintNativeEvent, Category = "Cutscene")
     void StartVillageCutscene();

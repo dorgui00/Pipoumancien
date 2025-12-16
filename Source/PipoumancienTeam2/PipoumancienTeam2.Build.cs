@@ -30,7 +30,9 @@ public class PipoumancienTeam2 : ModuleRules
             //niagaraaaaaa......????
 
             "Landscape",
-            "CinematicCamera"
+            "CinematicCamera",
+            "LevelSequence",
+            "MovieScene"
         });
 
         if (Target.bBuildEditor)
