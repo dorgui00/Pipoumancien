@@ -44,7 +44,7 @@ void UUIDialoge::SetDialogue(F_Skeleton* Skeleton , int Valut)
 	{
 		CurrentSkeleton = Skeleton ;
 		CurrentDialogue = Skeleton->Discution;
-		CurrentDialogueSounds = Skeleton->DialogueSounds; // 🔊
+		CurrentDialogueSounds = Skeleton->Voices; // 🔊
 		CurrentName = Skeleton->Name.ToString();
 
 		CurrentDialogueIndex = 0;
