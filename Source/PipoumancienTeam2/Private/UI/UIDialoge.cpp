@@ -7,6 +7,7 @@
 #include "TimerManager.h"
 #include "Data/F_Skeleton.h"
 #include "Game/GlobalGameSubsystem.h"
+#include "Kismet/GameplayStatics.h"
 
 
 void UUIDialoge::NativeConstruct()
@@ -42,20 +43,38 @@ void UUIDialoge::SetDialogue(F_Skeleton* Skeleton , int Valut)
 	if (!IsInViewport())
 	{
 		CurrentDialogue = Skeleton->Discution;
+		CurrentDialogueSounds = Skeleton->DialogueSounds; // 🔊
 		CurrentName = Skeleton->Name.ToString();
 
 		CurrentDialogueIndex = 0;
 		CurrentCharIndex = 0;
+
 		if (Valut == 1)
 		{
 			CurrentDialogueIndex = 1;
 		}
-	
 
-		if (CurrentDialogue.Num() > 0 && (CurrentDialogueIndex <= CurrentDialogue.Num()-1))
+		if (CurrentDialogue.Num() > 0 && CurrentDialogueIndex <= CurrentDialogue.Num() - 1)
+		{
 			FullText = CurrentDialogue[CurrentDialogueIndex];
+			PlayDialogueSound(); // 🔊
+		}
 
 		AddToViewport();
+	}
+}
+
+void UUIDialoge::PlayDialogueSound()
+{
+	if (CurrentDialogueSounds.IsValidIndex(CurrentDialogueIndex))
+	{
+		if (CurrentDialogueSounds[CurrentDialogueIndex])
+		{
+			UGameplayStatics::PlaySound2D(
+				this,
+				CurrentDialogueSounds[CurrentDialogueIndex]
+			);
+		}
 	}
 }
 
@@ -79,6 +98,7 @@ void UUIDialoge::GoToNextDialogue()
 	// Charger la nouvelle phrase
 	FullText = CurrentDialogue[CurrentDialogueIndex];
 	CurrentCharIndex = 0;
+	PlayDialogueSound();
 
 	// Redémarrer l’affichage des lettres
 	GetWorld()->GetTimerManager().ClearTimer(TextTimerHandle);
@@ -89,6 +109,7 @@ void UUIDialoge::GoToNextDialogue()
 		TextSpeed,
 		true
 	);
+	
 
 }
 
@@ -115,6 +136,7 @@ FReply UUIDialoge::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent&
 		// Charger la nouvelle phrase
 		FullText = CurrentDialogue[CurrentDialogueIndex];
 		CurrentCharIndex = 0;
+		PlayDialogueSound();
 
 		// Redémarrer l’affichage des lettres
 		GetWorld()->GetTimerManager().ClearTimer(TextTimerHandle);

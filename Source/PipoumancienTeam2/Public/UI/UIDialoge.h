@@ -23,6 +23,7 @@ public:
 	float TextSpeed = 0.05f;
 
 	void SetDialogue(F_Skeleton* Skeleton, int Valut);
+	void PlayDialogueSound();
 
 	void GoToNextDialogue();
 	
@@ -60,5 +61,13 @@ private :
 	virtual void NativeConstruct() override;
 
 	TArray<FString> CurrentDialogue;
+	
+	TArray<USoundBase*> DialogueSounds;
+	
 	FString CurrentName;
+	
+	UPROPERTY()
+	TArray<USoundBase*> CurrentDialogueSounds;
+
+	
 };
