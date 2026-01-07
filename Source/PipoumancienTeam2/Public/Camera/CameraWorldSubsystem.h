@@ -69,6 +69,10 @@ public :
 	void AddFollowTarget(UObject* FollowTarget);
 	
 	void RemoveFollowTarget(UObject* FollowTarget);
+
+	bool CheckPlayerCollider(APipouCharacter* MovingChar, FVector Dir);
+
+	APipouCharacter* GetOhterPlayer(APipouCharacter* CurrentPlayer) const;
 	
 protected:
 	UPROPERTY()
