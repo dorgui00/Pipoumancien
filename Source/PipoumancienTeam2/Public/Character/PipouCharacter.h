@@ -257,7 +257,7 @@ private:
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	// Skeleton Interaction
-	void InteractWithSkeleton(ASkeletonController& SkeletonController);
+	void SetOverlapBehaviourWithSkeleton(ASkeletonController& SkeletonController);
 	
 	#pragma endregion
 

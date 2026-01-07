@@ -116,9 +116,14 @@ void ASkeletonController::BeginOverlaps(UPrimitiveComponent* OverlappedComp, AAc
 {
 	if (OtherActor->IsA(APipouCharacter::StaticClass()))
 	{
+		// Update overlapping players array
+		if (!OverlappingPlayers.Contains(OtherActor))
+			OverlappingPlayers.Add(OtherActor);
+
+		// DIALOGUE 
 		if (MyState == ESkeletonState::Dialogue)
 		{
-			InterationDialogue();
+			SetDialogueInteractionWidget(true);
 		}
 	}
 }
@@ -127,11 +132,30 @@ void ASkeletonController::EndOverlaps(UPrimitiveComponent* OverlappedComp, AActo
 {
 	if (OtherActor->IsA(APipouCharacter::StaticClass()))
 	{
+		// Update overlapping players array
+		if (OverlappingPlayers.Contains(OtherActor))
+			OverlappingPlayers.Remove(OtherActor);
+		
+		// -- VISU --
+		// Dialogue Interaction
+		if (OverlapAtLeastOnePlayer()) return;
+		
 		if (MyState == ESkeletonState::Dialogue)
 		{
-			WidgetComponent->SetVisibility(false);
+			SetDialogueInteractionWidget(false);
 		}
 	}
+} 
+
+bool ASkeletonController::OverlapAtLeastOnePlayer()
+{
+	if (OverlappingPlayers.Num() != 0) return true;
+	return false;
+}
+
+void ASkeletonController::SetMyState(ESkeletonState NewState)
+{
+	MyState = NewState;
 }
 
 F_Skeleton ASkeletonController::GetMyData() const
@@ -148,7 +172,7 @@ ESkeletonState ASkeletonController::GetState() const
 void ASkeletonController::SetSkeletonForTransport()
 {
 	// STATE
-	MyState = ESkeletonState::Transport;
+	SetMyState(ESkeletonState::Transport);
 	
 	//ADD FOLLOW
 	FollowComponent = Cast<UAC_SkeletonFollower>(AddComponentByClass(UAC_SkeletonFollower::StaticClass(), true, GetTransform(), false));
@@ -199,7 +223,10 @@ void ASkeletonController::OnEnterVillage()
 void ASkeletonController::SetSkeletonForDialogue()
 {
 	// MY STATE
-	MyState = ESkeletonState::Dialogue;
+	SetMyState(ESkeletonState::Dialogue);
+
+	// VISUEL
+	if (OverlapAtLeastOnePlayer()) SetDialogueInteractionWidget(true);
 }
 
 void ASkeletonController::OnReachHome()
@@ -218,12 +245,11 @@ void ASkeletonController::OpenDialogue()
 	}
 }
 
-void ASkeletonController::InterationDialogue()
+void ASkeletonController::SetDialogueInteractionWidget(bool Visibility)
 {
-	if (!WidgetComponent->IsVisible())
-	{
-		WidgetComponent->SetVisibility(true);			
-	}
+	if (WidgetComponent->IsVisible() == Visibility) return;
+	
+	WidgetComponent->SetVisibility(Visibility);		
 }
 
 void ASkeletonController::InterationDialoguenOFF()
