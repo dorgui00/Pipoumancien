@@ -83,7 +83,7 @@ public:
 
 	// Dead Zone to avoid diagonal movement when going forward and backward.
 	UPROPERTY(EditAnywhere, Category="Dead Zone")
-	float DeadZone = 0.5f;
+	float DeadZone = 0.2f;
 
 	// Store the data asset of our input action.
 	UPROPERTY()
