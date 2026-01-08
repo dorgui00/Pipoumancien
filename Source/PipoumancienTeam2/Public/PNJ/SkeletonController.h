@@ -125,7 +125,7 @@ public:
 	// --- UI ---
 	void OpenDialogue();
 
-	void InterationDialogue();
+	void SetDialogueInteractionWidget(bool Visibility);
 	void InterationDialoguenOFF();
 
 	UPROPERTY()
@@ -161,20 +161,22 @@ public:
 
 
 protected:
-	// Called when the game starts or when spawned
+	// OVERRIDES 
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+	// SKELETON
 	UPROPERTY(EditAnywhere, Category="Skeleton")
 	int ID = 0;
 
+	// DIALOGUE
 	// Called when the game starts or when spawned
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ZoneVictoir")
 	UStaticMeshComponent* ZoneVictoirMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ZoneVictoir")
 	USphereComponent* SphereComponent;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 	TSubclassOf<UUIDialoge> PlayerWidgetClass;
 
@@ -185,7 +187,10 @@ protected:
 	bool isDialoge = true;
 
 	bool isDialogVisible = false;
+	
+	int ValutFrase = 0;
 
+	// OVERLAP
 	UFUNCTION()
 	void BeginOverlaps(UPrimitiveComponent* OverlappedComp,AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,int32 OtherBodyIndex,bool bFromSweep,const FHitResult& SweepResult);
@@ -194,8 +199,10 @@ protected:
 	void EndOverlaps(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
 
-	int ValutFrase = 0;
+	TArray<AActor*> OverlappingPlayers;
 
+	bool OverlapAtLeastOnePlayer();
+	
 	// Liste de Fog (équivalent du tableau dans le Blueprint)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Références")
 	TArray<AFog*> FogList; 
@@ -204,6 +211,8 @@ private :
 	
 	// STATE
 	ESkeletonState MyState = ESkeletonState::Dead;
+
+	void SetMyState(ESkeletonState NewState);
 
 	// FOLLOW
 	UPROPERTY()

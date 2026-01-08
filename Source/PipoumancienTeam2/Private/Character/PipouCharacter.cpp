@@ -399,7 +399,7 @@ void APipouCharacter::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCom
 	// Skeleton Interaction
 	else if (ASkeletonController* SkeletonController = Cast<ASkeletonController>(OtherActor))
 	{
-		InteractWithSkeleton(*SkeletonController);
+		SetOverlapBehaviourWithSkeleton(*SkeletonController);
 	}
 }
 
@@ -445,30 +445,28 @@ void APipouCharacter::OnComponentEndOverlap(UPrimitiveComponent* OverlappedCompo
 	}
 }
 
-void APipouCharacter::InteractWithSkeleton(ASkeletonController& SkeletonController)
+void APipouCharacter::SetOverlapBehaviourWithSkeleton(ASkeletonController& SkeletonController)
 {
 	UGlobalGameSubsystem* GlobalGameSubsystem = GetGameInstance()->GetSubsystem<UGlobalGameSubsystem>();
 		
-	// can't interact in transport 
+	// overlap useless in transport 
 	if (GlobalGameSubsystem->GetWorldState()==EWorldState::WorldTransport) return;
 
+	// --- OVERLAP ---
+	
 	// overlap to revive or talk with 
-	if (SkeletonController.GetState() == ESkeletonState::Dead
-		|| SkeletonController.GetState() == ESkeletonState::Dialogue)
+	// set current skeleton for myself
+	OverlapSkeleton = &SkeletonController; // dead or dialogue
+	
+	// can't retrigger music of a skeleton alive
+	if (SkeletonController.GetState() == ESkeletonState::Dead)
 	{
-		// set current skeleton for myself
-		OverlapSkeleton = &SkeletonController; // dead or dialogue
+		//not everyone overlaps the same skel
+		if (!GlobalGameSubsystem->ArePlayersOverlapingSameSkeleton()) return;
 		
-		// can't retrigger music of a skeleton alive
-		if (SkeletonController.GetState() == ESkeletonState::Dead)
-		{
-			//not everyone overlaps the same skel
-			if (!GlobalGameSubsystem->ArePlayersOverlapingSameSkeleton()) return;
-			
-			// -- OVERLAP SAME SKELETON --
-			GlobalGameSubsystem->StartOverlapSameSkeleton(&SkeletonController);
-			
-		}
+		// -- OVERLAP SAME SKELETON --
+		GlobalGameSubsystem->StartOverlapSameSkeleton(&SkeletonController);
+		
 	}
 }
 

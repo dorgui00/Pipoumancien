@@ -337,6 +337,7 @@ void UGlobalGameSubsystem::SetWorldTransportState()
 // called when current skeleton reached village
 void UGlobalGameSubsystem::SetWorldFreeState()
 {
+	// DEBUG
 	UE_LOG(LogTemp, Display, TEXT("World State Free"));
 	
 	// WORLD STATE
