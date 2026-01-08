@@ -67,7 +67,7 @@ public :
 	//melody
 	void SetLostMelody();
 	
-	// State
+	// --- WORLD STATE ---
 	EWorldState GetWorldState() const;
 	
 	void SetWorldMusicState();
@@ -77,7 +77,8 @@ public :
 	void SetWorldFreeState();
 
 	void SetWorldDialogueState(APipouCharacter* Interactor, ASkeletonController* Speaker);
-	
+
+	// dialogue
 	void RimouveWidget();
 
 	bool IsTouch = true;

@@ -61,8 +61,10 @@ void AVillagePathManager::BeginPlay()
     }
 
     // debug
+    /*
     bCutsceneStarted = true;
     StartVillageCutscene();
+    */
 }
 
 USplineComponent* AVillagePathManager::GetSplineForSkeleton(AActor* Skeleton) const

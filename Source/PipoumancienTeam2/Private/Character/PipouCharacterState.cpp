@@ -109,7 +109,9 @@ void UPipouCharacterState::OnCharacterPressedNote(UInputAction* InputAction)
 	// dialogue
 	else if (Character->OverlapSkeleton && Character->OverlapSkeleton->GetState() == ESkeletonState::Dialogue)
 	{
-		GlobalGameSubsystem->SetWorldDialogueState(Character,Character->OverlapSkeleton);
+		// Interact with A
+		if (InputAction == Character->InputData->InputNoteA)
+			GlobalGameSubsystem->SetWorldDialogueState(Character,Character->OverlapSkeleton);
 	}
 	// else if I have an interactor : World Interaction
 	// else if => can't play one music to trigger skeleton & world at the same time

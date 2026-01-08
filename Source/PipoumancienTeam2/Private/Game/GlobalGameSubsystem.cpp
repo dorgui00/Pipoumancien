@@ -318,6 +318,8 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 	GlobalHUDSubsystem->DisplayResurrectionWidget();
 	
 	GetWorld()->GetSubsystem<UMusicWorldSubsystem>()->SetMusic(CurrentSkeleton);
+
+	//AUDIO
 }
 
 void UGlobalGameSubsystem::SetWorldTransportState()
@@ -337,6 +339,7 @@ void UGlobalGameSubsystem::SetWorldTransportState()
 // called when current skeleton reached village
 void UGlobalGameSubsystem::SetWorldFreeState()
 {
+	// DEBUG
 	UE_LOG(LogTemp, Display, TEXT("World State Free"));
 	
 	// WORLD STATE
