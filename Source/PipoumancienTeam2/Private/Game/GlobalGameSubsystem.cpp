@@ -318,6 +318,8 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 	GlobalHUDSubsystem->DisplayResurrectionWidget();
 	
 	GetWorld()->GetSubsystem<UMusicWorldSubsystem>()->SetMusic(CurrentSkeleton);
+
+	//AUDIO
 }
 
 void UGlobalGameSubsystem::SetWorldTransportState()
