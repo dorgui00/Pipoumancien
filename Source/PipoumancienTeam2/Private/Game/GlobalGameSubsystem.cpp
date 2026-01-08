@@ -340,15 +340,18 @@ void UGlobalGameSubsystem::SetWorldFreeState()
 	// DEBUG
 	UE_LOG(LogTemp, Display, TEXT("World State Free"));
 	
+	// CAMERA
+	// transition from transport to free => don't changer camera 
+	if (WorldState != EWorldState::WorldTransport)
+	{
+		UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
+		CameraWorldSubsystem->SetGlobalCamera(); // set characters in idle at the end of the lerp
+	};
+	
 	// WORLD STATE
 	WorldState = EWorldState::WorldFree;
-	
-	// CAMERA
-	UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
-	if (CameraWorldSubsystem->GetState() == ECameraState::GlobalCamera) return;
 
-	CameraWorldSubsystem->SetGlobalCamera(); // set characters in idle at the end of the lerp
-	
+	// GAMEPLAY
 }
 
 void UGlobalGameSubsystem::SetWorldDialogueState(APipouCharacter* Interactor, ASkeletonController* Speaker)
