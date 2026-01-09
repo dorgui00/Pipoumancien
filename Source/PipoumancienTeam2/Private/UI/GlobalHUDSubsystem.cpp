@@ -386,6 +386,11 @@ void UGlobalHUDSubsystem::RemoveBirdWidget()
 	BirdWidget->RemoveWidget();
 }
 
+void  UGlobalHUDSubsystem::PlayBirdWidget()
+{
+	BirdWidget->AnimationPlayIdel();
+}
+
 
 // ---- MISTAKE POST PROCESS ---- 
 void UGlobalHUDSubsystem::InitMistakeMaterial()

@@ -46,6 +46,7 @@ public :
 	void ToucheV();
 	void ToucheF();
 	void RemoveWidget();
+	void AnimationPlayIdel();
 
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
 	UWidgetAnimation* AnimationTouche;
@@ -58,6 +59,9 @@ public :
 	
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
 	UWidgetAnimation* RemoveAnimation;
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* AnimationIdel;
 	
 	
 
