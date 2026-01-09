@@ -29,6 +29,10 @@ public:
 	UPROPERTY()
 	EPipouCharacterRoles CurrentRole;
 
+	// --- FEEDBACKS ---
+	UFUNCTION(BlueprintImplementableEvent, Category = "Music|Feedbacks")
+	void PlayMusicFeedbacks(bool bPlay);
+
 	void InitRole();
 	void InitSkeletons();
 	void InitInputPitch();
