@@ -38,6 +38,12 @@ void UPipouCharacterStateMusic::StateEnter(EPipouCharacterStateID PreviousStateI
 	if (MusicAnim)
 		Character->GetMesh()->PlayAnimation(MusicAnim,true);
 
+	// FEEDBACKS
+	if (Character)
+	{
+		Character->PlayMusicFeedbacks(true);
+	}
+
 }
 
 void UPipouCharacterStateMusic::StateTick(float Deltatime)
@@ -54,6 +60,11 @@ void UPipouCharacterStateMusic::StateExit(EPipouCharacterStateID NextStateID)
 	Character->InputPitchEvent.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitch);
 	Character->InputPitchCompleted.RemoveDynamic(this, &UPipouCharacterStateMusic::OnCharacterPitchCompleted);
 
+
+	if (Character)
+	{
+		Character->PlayMusicFeedbacks(false);
+	}
 }
 
 // Music
