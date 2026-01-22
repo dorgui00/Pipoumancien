@@ -120,7 +120,7 @@ private:
 
 	
 	// ---- MUSIC COUNTDOWN ---- 
-	float TimerCountDown = 3.f;
+	float TimerCountDown = 1.5f;
 	void StartCountDown();
 	void FinishCountDown();
 	bool HasFinishedCountdown() const;

@@ -940,6 +940,7 @@ void UCameraWorldSubsystem::GetViewportBounds(FVector2D& OutViewportBoundsMin, F
 		Viewport->GetInitialPositionXY()+ Viewport->GetSizeXY()
 	);
 
+
 	FIntRect ViewportRect = Viewport->CalculateViewExtents(CameraMain->AspectRatio, ViewRect);
 
 	//Fill output parameters with ViewportRect
