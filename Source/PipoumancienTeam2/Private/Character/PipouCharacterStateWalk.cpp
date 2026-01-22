@@ -29,7 +29,7 @@ void UPipouCharacterStateWalk::StateEnter(EPipouCharacterStateID PreviousStateID
 	if (WalkSoundBase)
 	{
 		if (!IterateOnGround) //check if we're doing different sounds
-		{
+		{	
 			WalkLoopComponent = UGameplayStatics::SpawnSoundAttached(
 				WalkSoundBase,
 				Character->GetRootComponent());
@@ -68,21 +68,24 @@ void UPipouCharacterStateWalk::StateTick(float Deltatime)
 		MoveDir.Normalize();
 		Character->SetOrientXY(FVector2D(MoveDir.X, MoveDir.Y));
 		FVector NextPos = Character->GetActorLocation() + (MoveDir * MoveSpeed * Deltatime);
-		
-		// Camera 
-		if (UCameraWorldSubsystem* CamSys = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
+
+		if (!GetWorld()->GetSubsystem<UCameraWorldSubsystem>()->CheckPlayerCollider(Character, MoveDir))
 		{
-			FVector ClampedPos;
-			bool bInside = CamSys->ClampPositionInsideQuad(NextPos, ClampedPos);
+			// Camera 
+			if (UCameraWorldSubsystem* CamSys = GetWorld()->GetSubsystem<UCameraWorldSubsystem>())
+			{
+				FVector ClampedPos;
+				bool bInside = CamSys->ClampPositionInsideQuad(NextPos, ClampedPos);
 			
-			// clamp position if outside
-			if (!bInside)
-			{
-				Character->SetActorLocation(ClampedPos);
-			}
-			else
-			{
-				Character->AddMovementInput(MoveDir);
+				// clamp position if outside
+				if (!bInside)
+				{
+					Character->SetActorLocation(ClampedPos);
+				}
+				else
+				{
+					Character->AddMovementInput(MoveDir);
+				}
 			}
 		}
 	}

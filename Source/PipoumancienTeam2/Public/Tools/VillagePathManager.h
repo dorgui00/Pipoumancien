@@ -3,7 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CineCameraActor.h"
 #include "GameFramework/Actor.h"
+#include "InputAction.h"
+#include "InputMappingContext.h"
+#include "LevelSequenceActor.h"
 #include "VillagePathManager.generated.h"
 
 class APathManager;
@@ -22,6 +26,9 @@ struct FSkeletonVillageRoute
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Village Route")
     AActor* HouseLight = nullptr;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    bool bReachedHome = false;
 };
 
 UCLASS()
@@ -43,6 +50,39 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Village")
     void OnSkeletonReachedEnd(AActor* Skeleton);
+
+    //cutscene
+    UPROPERTY(EditAnywhere, Category = "Cutscene")
+    ACineCameraActor* CutsceneCamera = nullptr;
+
+    UPROPERTY(VisibleAnywhere, Category = "Cutscene")
+    bool bCutsceneStarted = false;
+
+    void TryStartCutscene();
+
+    UPROPERTY(EditAnywhere, Category = "Cutscene")
+    float CutsceneBlendTime = 1.0f;
+
+    UPROPERTY(EditAnywhere, Category = "Cutscene")
+    bool bUseCinematicMode = true;
+
+    UPROPERTY(VisibleAnywhere, Category = "Cutscene")
+    AActor* PreviousViewTarget = nullptr;
+
+    UPROPERTY(EditAnywhere, Category = "Cutscene")
+    ALevelSequenceActor* CutsceneSequenceActor = nullptr;
+
+    UFUNCTION(BlueprintNativeEvent, Category = "Cutscene")
+    void StartVillageCutscene();
+
+    UPROPERTY(EditAnywhere, Category = "Input")
+    UInputMappingContext* CutsceneIMC = nullptr;
+
+    UPROPERTY(EditAnywhere, Category = "Input")
+    UInputAction* StartCutsceneAction = nullptr;
+
+    UFUNCTION()
+    void HandleStartCutsceneInput();
 
 protected:
     virtual void BeginPlay() override;

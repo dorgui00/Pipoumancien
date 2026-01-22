@@ -28,8 +28,6 @@ void UCameraWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	
 }
 
-
-
 void UCameraWorldSubsystem::InitCameraSubsystem()
 {
 	AssignAllCameras();
@@ -37,10 +35,7 @@ void UCameraWorldSubsystem::InitCameraSubsystem()
 	InitMainCamera();
 	
 	InitCameraVisibility();
-
 }
-
-
 
 void UCameraWorldSubsystem::AssignAllCameras()
 {
@@ -117,7 +112,6 @@ void UCameraWorldSubsystem::Tick(float DeltaTime)
 	if (CameraState == ECameraState::GlobalCamera)
 	{
 		TickUpdateCameraPosition(DeltaTime);
-		
 	}
 }
 
@@ -134,6 +128,45 @@ void UCameraWorldSubsystem::RemoveFollowTarget(UObject* FollowTarget)
 	FollowTargets.Remove(FollowTarget);
 }
 
+bool UCameraWorldSubsystem::CheckPlayerCollider(APipouCharacter* MovingChar, FVector Dir)
+{
+	APipouCharacter* OtherChar = GetOhterPlayer(MovingChar);
+	if (!OtherChar) return false;
+
+	float TraceDistance = 30.f;
+
+	FVector StartPos = OtherChar->GetActorLocation();
+	FVector EndPos = StartPos + Dir * TraceDistance;
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(MovingChar);
+	Params.AddIgnoredActor(OtherChar);
+
+	bool HasHit = GetWorld()->LineTraceSingleByChannel(Hit, StartPos, EndPos, ECC_WorldStatic, Params);
+
+	DrawDebugLine(GetWorld(), StartPos, EndPos, HasHit ? FColor::Red : FColor::Green, false, 0.1f, 0, 2.f);
+
+	return HasHit;
+}
+
+APipouCharacter* UCameraWorldSubsystem::GetOhterPlayer(APipouCharacter* CurrentPlayer) const
+{
+	if (!CurrentPlayer) return nullptr;
+
+	UGlobalGameSubsystem* GlobalGameSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UGlobalGameSubsystem>();
+	if (!GlobalGameSubsystem) return nullptr;
+
+	for (APipouCharacter* Character : GlobalGameSubsystem->PipouCharacters)
+	{
+		if (Character && Character != CurrentPlayer)
+		{
+			return Character;
+		}
+	}
+
+	return nullptr;
+}
 
 TArray<FVector> UCameraWorldSubsystem::GetCameraQuadGroundBounds()
 {
@@ -422,7 +455,7 @@ void UCameraWorldSubsystem::TickUpdateCameraVisibility(float DeltaTime)
 	
 	
 	// foreach target multiple line trace
-	FVector Pos = WorldPosition + (CameraMain->GetForwardVector() * 150.f);
+	FVector Pos = WorldPosition + (CameraMain->GetForwardVector() * 50.f);
 
 	// --- DEBUG ---
 	//DrawDebugLine(GetWorld(), WorldPosition, Pos, FColor::Blue, false, 2.f, 0, 2.f);
@@ -430,14 +463,20 @@ void UCameraWorldSubsystem::TickUpdateCameraVisibility(float DeltaTime)
 
 	// Reset
 	TArray<struct FHitResult> OutHits;
+	struct FHitResult OutHit;
 	CurrentBlockingTest.Empty();
 	
-	GetWorld()->LineTraceMultiByChannel(OutHits,WorldPosition,Pos, COLLISION_CLOAK);
+	//GetWorld()->LineTraceByChannel(OutHits,WorldPosition,Pos, COLLISION_CLOAK);
+	GetWorld()->LineTraceSingleByChannel(OutHit,WorldPosition,Pos, COLLISION_CLOAK);
 	
-	for (const auto& Hit : OutHits)
+	if (OutHit.GetActor())
 	{
-		SetCloakingObjectBehaviour(Hit);
+		SetCloakingObjectBehaviour(OutHit);
 	}
+	// for (const auto& Hit : OutHits)
+	// {
+	// 	SetCloakingObjectBehaviour(Hit);
+	// }
 	
 	// check if previous cloaking objet are no more cloaking
 	CompareCurrentFromPreviousInvisibleObjects();
@@ -932,5 +971,6 @@ bool UCameraWorldSubsystem::ShouldSkipCameraForThisMap() const
 
 	return LevelName.Equals(TEXT("CutsceneScene"), ESearchCase::IgnoreCase)
 		|| LevelName.Equals(TEXT("TrueMainMenu"), ESearchCase::IgnoreCase)
-		|| LevelName.Equals(TEXT("MainMenu"), ESearchCase::IgnoreCase);
+		|| LevelName.Equals(TEXT("MainMenu"), ESearchCase::IgnoreCase)
+		|| LevelName.Equals(TEXT("TutorialScene"), ESearchCase::IgnoreCase);
 }

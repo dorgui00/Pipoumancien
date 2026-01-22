@@ -4,7 +4,9 @@
 #include "Character/PipouCharacterStateDialogue.h"
 
 #include "Character/PipouCharacter.h"
+#include "Enums/EInputAction.h"
 #include "PNJ/SkeletonController.h"
+#include "Tools/Slider/NoteMapping.h"
 #include "UI/UIDialoge.h"
 
 
@@ -35,6 +37,9 @@ void UPipouCharacterStateDialogue::StateExit(EPipouCharacterStateID NextStateID)
 
 void UPipouCharacterStateDialogue::OnCharacterPressedNote(UInputAction* InputAction)
 {
+	// Interact with A
+	if (InputAction != Character->InputData->InputNoteA) return;
+	
 	// Pass to next dialogue
 	if (Character->OverlapSkeleton && Character->OverlapSkeleton->PlayerWidget)
 	{

@@ -100,20 +100,30 @@ if (IsTouch)
 			//3.f, false);
 			//SetWorldMusicState();
 			//Bird->SetWidgetINVisible();
-
 			GlobalHUDSubsystem->ValideWidget();
-			SetWorldMusicState();
 			ResetInputsArray();
-
 			FTimerHandle TimerHandle;
+            			 GetWorld()->GetTimerManager().SetTimer(
+            			 	TimerHandle,
+            			 	[this]()
+            			 	{
+            			 		//Bird->SetWidgetINVisible();
+			 					SetWorldMusicState();
+            			 		
+            			 	},
+            			 	2.f,
+            			 	false
+            			 );
+
+			FTimerHandle TimerHandle1;
 			 GetWorld()->GetTimerManager().SetTimer(
-			 	TimerHandle,
+			 	TimerHandle1,
 			 	[this]()
 			 	{
 			 		//Bird->SetWidgetINVisible();
 					IsTouch = true;
 			 	},
-			 	2.f,
+			 	3.f,
 			 	false
 			 );
 		}
@@ -308,6 +318,8 @@ void UGlobalGameSubsystem::SetWorldMusicState()
 	GlobalHUDSubsystem->DisplayResurrectionWidget();
 	
 	GetWorld()->GetSubsystem<UMusicWorldSubsystem>()->SetMusic(CurrentSkeleton);
+
+	//AUDIO
 }
 
 void UGlobalGameSubsystem::SetWorldTransportState()
@@ -327,17 +339,21 @@ void UGlobalGameSubsystem::SetWorldTransportState()
 // called when current skeleton reached village
 void UGlobalGameSubsystem::SetWorldFreeState()
 {
+	// DEBUG
 	UE_LOG(LogTemp, Display, TEXT("World State Free"));
+	
+	// CAMERA
+	// transition from transport to free => don't changer camera 
+	if (WorldState != EWorldState::WorldTransport)
+	{
+		UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
+		CameraWorldSubsystem->SetGlobalCamera(); // set characters in idle at the end of the lerp
+	};
 	
 	// WORLD STATE
 	WorldState = EWorldState::WorldFree;
-	
-	// CAMERA
-	UCameraWorldSubsystem* CameraWorldSubsystem = GetWorld()->GetSubsystem<UCameraWorldSubsystem>();
-	if (CameraWorldSubsystem->GetState() == ECameraState::GlobalCamera) return;
 
-	CameraWorldSubsystem->SetGlobalCamera(); // set characters in idle at the end of the lerp
-	
+	// GAMEPLAY
 }
 
 void UGlobalGameSubsystem::SetWorldDialogueState(APipouCharacter* Interactor, ASkeletonController* Speaker)
