@@ -147,7 +147,18 @@ bool UCameraWorldSubsystem::CheckPlayerCollider(APipouCharacter* MovingChar, FVe
 
 	DrawDebugLine(GetWorld(), StartPos, EndPos, HasHit ? FColor::Red : FColor::Green, false, 0.1f, 0, 2.f);
 
-	return HasHit;
+	bool IsOtherPlayerBehind = false;
+	FVector DirectionToOther = OtherChar->GetActorLocation() - MovingChar->GetActorLocation();
+	DirectionToOther.Normalize();
+
+	float Dot = FVector::DotProduct(Dir, DirectionToOther);
+
+	if (Dot < -0.5f)
+	{
+		IsOtherPlayerBehind = true;
+	}
+
+	return HasHit && IsOtherPlayerBehind;
 }
 
 APipouCharacter* UCameraWorldSubsystem::GetOhterPlayer(APipouCharacter* CurrentPlayer) const
