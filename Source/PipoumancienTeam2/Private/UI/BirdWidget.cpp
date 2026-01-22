@@ -12,6 +12,18 @@ void UBirdWidget::NativeConstruct()
 	UE_LOG(LogTemp, Warning, TEXT("Image03 = %s"), Image03 ? TEXT("OK") : TEXT("NULL"));
 	Images = {Image01,Image02,Image03};
 	AnimationToucheIdel();
+
+	FTimerHandle TimerHandle1;
+	GetWorld()->GetTimerManager().SetTimer(
+		TimerHandle1,
+		[this]()
+		{
+			
+			AnimationPlayIdel();
+		},
+		2.f,
+		false
+	);
 }
 
 void UBirdWidget::AnimationToucheIdel()
@@ -35,5 +47,10 @@ void UBirdWidget::RemoveWidget()
 	PlayAnimation(RemoveAnimation, 0.0f, 1, EUMGSequencePlayMode::Forward, 1.0f, false);
 	//Images = {Image01,Image02,Image03};
 	
+}
+
+void UBirdWidget::AnimationPlayIdel()
+{
+	PlayAnimation(AnimationIdel, 0.0f, 0, EUMGSequencePlayMode::Forward, 1.0f, false);
 }
 

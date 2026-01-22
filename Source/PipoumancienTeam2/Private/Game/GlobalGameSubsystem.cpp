@@ -159,6 +159,7 @@ if (IsTouch)
 		   			if (Bird)
 		   			{
 						   Bird->SetMyNotes();
+		   				   GlobalHUDSubsystem->PlayBirdWidget();
 		   			}
 					IsTouch = true;
 				}),

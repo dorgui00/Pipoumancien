@@ -129,8 +129,9 @@ public:
 	void FolseWidget();
 
 	void RemoveBirdWidget();
+	void PlayBirdWidget();
 
-	
+
 	// ---- MISTAKE POST PROCESS ----
 	void ApplyMistakeIncrease(int CurrentFail, int MaxFail);
 	void ResetMistakeEffect();
